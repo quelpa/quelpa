@@ -1,0 +1,31 @@
+* quelpa
+
+Your personal local Emacs Lisp Package Archive (ELPA) with packages built on-the-fly directly from source.
+
+*this is not more than a concept at the moment*
+
+** Reasoning
+
+Currently we have these bigger package archives in the Emacs community:
+
+| elpa      | http://elpa.gnu.org/       |
+| marmalade | http://marmalade-repo.org/ |
+| melpa     | http://melpa.milkbox.net/  |
+
+marmalade and elpa work as =package.el= was meant to be: people release software, package it up and put it into a repository with proper versioning and so forth. From time to time they make a new release and update the package.
+
+Now melpa builds packages directly from upstream sources. So melpa is just kind of an index, but not really because it builds packages, with arbitrary versions (that also break the versioning of elpa and marmalade). So it's kinda of a middle man you don't really want. What you want is to install the latest version of, say =magit=, directly from the Git source.
+
+There is =el-get= than can do that for you, but =el-get= is non-standard. It doesn't use the package manager built into Emacs. It doesn't even use packages. It is usable but it would be much better if we could use the package manager built into Emacs for that purpose.
+
+Now with melpa when there is a new version of, say =magit= on Github, you will have to wait because melpa does not build packages every minute. But why should you have to wait? Why can't you just build the package yourself? What more do you need from melpa than the recipe and some helpers to build the package directly from the source?
+
+So this is what quelpa is meant to provide.
+
+** Why "quelpa"?
+
+German =Quelle= means =source= and =ELPA= is short for Emacs Lisp Package Archive. =quelpa= is your own source for packages.
+
+** TODO Implementation
+
+yeah, well it's just a nice idea currently but I thought about how to do it and I think it will work :)
