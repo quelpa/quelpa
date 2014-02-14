@@ -4,6 +4,8 @@ Your personal local Emacs Lisp Package Archive (ELPA) with packages built on-the
 
 *this is in early development, feel free to try it!*
 
+If you want to help with the development of quelpa, check the [[https://github.com/quelpa/quelpa/issues][issues.]] There are already some things you could do :)
+
 ** Usage
 
 Currently you need to install manually or from melpa:
@@ -13,16 +15,16 @@ Currently you need to install manually or from melpa:
 
 =servant= is very heavy together with =elnode=. It is planned to replace that later with simpler libraries.
 
-After than you can remove melpa from your =package-archives= :)
+After that you can remove melpa from your =package-archives= :)
 
 #+BEGIN_SRC emacs-lisp
 (with-temp-buffer
-  (url-insert-file-contents "https://raw.github.com/steckerhalter/quelpa/master/quelpa.el")
+  (url-insert-file-contents "https://raw.github.com/quelpa/quelpa/master/quelpa.el")
   (eval-buffer))
 (require 'quelpa)
 #+END_SRC
 
-Now to you can build and install any package for that you can provide a recipe in the melpa format. Navigate to http://melpa.milkbox.net/ and click on the recipe symbol of a package you'd like to install.
+Now to you can build and install any package that you can provide a recipe in the melpa format for. Navigate to http://melpa.milkbox.net/ and click on the recipe symbol of a package you'd like to install.
 
 For example I choose =company=, the alternative auto-completion framework: https://github.com/milkypostman/melpa/blob/master/recipes/company
 
