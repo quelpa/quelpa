@@ -38,7 +38,7 @@
 
 ;;; Code:
 
-(require 'servant)
+(require 'package-x)
 (require 'package-build)
 
 (defvar quelpa-dir (expand-file-name (concat user-emacs-directory "quelpa"))
@@ -47,65 +47,65 @@
 (defvar quelpa-build-dir (concat quelpa-dir "/build")
   "Where quelpa builds packages.")
 
+(defvar quelpa-target-dir (concat quelpa-dir "/target")
+  "Where quelpa puts the built package.")
+
 (defvar quelpa-packages-dir (concat quelpa-dir "/packages")
-  "Where quelpa stores packages.")
+  "The quelpa package archive.")
 
-(defvar quelpa-host "127.0.0.1"
-  "The interface/host to bind the elpa web server to.")
+(defun quelpa-archive-file-name (archive-entry)
+  "Return the path of the file in which the package for ARCHIVE-ENTRY is stored."
+  (let* ((name (car archive-entry))
+         (pkg-info (cdr archive-entry))
+         (version (package-version-join (aref pkg-info 0)))
+         (flavour (aref pkg-info 3)))
+    (expand-file-name
+     (format "%s-%s.%s" name version (if (eq flavour 'single) "el" "tar"))
+     quelpa-target-dir)))
 
-(defvar quelpa-port 63336
-  "The port to bind the elpa web server to.")
+(defun quelpa-refresh-contents ()
+  "Refresh the package archive cache."
+  (let ((archive `("quelpa" . ,quelpa-packages-dir)))
+    (condition-case-unless-debug nil
+        (package--download-one-archive archive "archive-contents")
+      (error (message "Failed to download `%s' archive."
+                      (car archive))))
+    (package-read-archive-contents (car archive))))
 
-(defvar quelpa-server-socket nil)
-
-(defun quelpa-server-p ()
-  "Return non-nil if the server is running."
-  (not
-    (condition-case nil
-        (delete-process
-         (make-network-process
-          :name "quelpa-server-started-p"
-          :host quelpa-host
-          :service quelpa-port))
-      (error t))))
-
-(defun quelpa-server-start ()
-  "Start the elpa server unless already running."
-  (unless (quelpa-server-p)
-    (setq quelpa-server-socket
-          (elnode-start
-           (servant-make-elnode-handler quelpa-packages-dir)
-           :port quelpa-port :host quelpa-host))))
+(defun quelpa-init ()
+  "Register the archive, create the packages dir."
+  (add-to-list
+   'package-archives
+   `("quelpa" . ,quelpa-packages-dir))
+  (unless (file-exists-p quelpa-packages-dir)
+    (make-directory quelpa-packages-dir t)))
 
 (defun quelpa-build-package (rcp)
   "Build a package from the given recipe RCP.
 Uses the `package-build' library to get the source code and build
-an elpa compatible package in `quelpa-packages-dir'."
+an elpa compatible package in `quelpa-build-dir'."
+  (ignore-errors (delete-directory quelpa-target-dir t))
+  (make-directory quelpa-target-dir t)
   (let* ((name (car rcp))
          (version (package-build-checkout name (cdr rcp) quelpa-build-dir)))
     (package-build-package (symbol-name name)
                            version
                            (pb/config-file-list rcp)
                            quelpa-build-dir
-                           quelpa-packages-dir)))
-
-(defun quelpa-init ()
-  "Setup dirs, start the elpa server and so on."
-  (add-to-list
-   'package-archives
-   `("quelpa" . ,(format "http://%s:%s/" quelpa-host quelpa-port)))
-  (unless (file-exists-p quelpa-packages-dir)
-    (make-directory quelpa-packages-dir t))
-  (quelpa-server-start))
+                           quelpa-target-dir)))
 
 ;;;###autoload
 (defun quelpa (rcp)
   "Build and install a package from the given recipe RCP."
   (quelpa-init)
-  (let ((package (car rcp)))
+  (let ((package (car rcp))
+        (package-archive-upload-base quelpa-packages-dir))
     (unless (package-installed-p package)
-      (quelpa-build-package rcp)
-      (package-refresh-contents)
+      (ignore-errors
+        (package-upload-file
+         (quelpa-archive-file-name
+          (quelpa-build-package rcp))))
+      (quelpa-refresh-contents)
       (package-install package))))
 
 (provide 'quelpa)
