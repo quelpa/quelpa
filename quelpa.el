@@ -195,7 +195,8 @@ Return the recipe if it exists, otherwise nil."
 If the package has dependencies recursively call this function to
 install them."
   (let ((pkg (quelpa-arg-pkg arg)))
-    (unless (package-installed-p pkg)
+    (unless (or (not pkg)
+                (package-installed-p pkg))
       (let* ((rcp (quelpa-arg-rcp arg))
              (file (quelpa-build-package rcp))
              (pkg-desc (quelpa-get-package-desc file))
