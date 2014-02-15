@@ -196,7 +196,7 @@ If the package has dependencies recursively call this function to
 install them."
   (let ((pkg (quelpa-arg-pkg arg)))
     (unless (package-installed-p pkg)
-      (let* ((rcp (quelpa-arg-rcp))
+      (let* ((rcp (quelpa-arg-rcp arg))
              (file (quelpa-build-package rcp))
              (pkg-desc (quelpa-get-package-desc file))
              (requires (package-desc-reqs pkg-desc)))
