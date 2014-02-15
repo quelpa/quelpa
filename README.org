@@ -2,15 +2,15 @@
 
 Your personal local Emacs Lisp Package Archive (ELPA) with packages built on-the-fly directly from source.
 
-**Important: quelpa requires at least Emacs 24.3**
+*Important: quelpa requires at least Emacs 24.3*
 
 If you want to help with the development of quelpa, check the [[https://github.com/quelpa/quelpa/issues][issues.]] The more people we get to work on quelpa, the better :)
 
 ** Overview
 
-quelpa wants to bring the power over your Emacs packages back to you. The [[http://melpa.milkbox.net/packages/][melpa]] archive is great because it has so many packages but why should an external build service control what packages you can install?
+=quelpa= wants to bring the power over your Emacs packages back to you. The [[http://melpa.milkbox.net/packages/][melpa]] archive is great because it has so many packages but why should an external build service control what packages you can install?
 
-Rather quelpa uses melpa (and their recipes) to build the packages you want to install from the source code and install them to a directory-based local package archive.
+Rather =quelpa= uses recipes in the melpa-format to build the packages you want from the source code and installs them to a directory-based local package archive that we call =quelpa=.
 
 You can build and install packages from all the sources the melpa build script (=package-build=) supports:
 
@@ -25,9 +25,9 @@ You can build and install packages from all the sources the melpa build script (
 
 ** Installation
 
-First quelpa needs to be bootstrapped, that means the melpa =package-build= has to be installed, then =quelpa= itself.
+First =quelpa= needs to be bootstrapped, that means melpa's =package-build= has to be installed, then =quelpa= itself.
 
-To bootstrap quelpa use this code:
+To bootstrap =quelpa=  use this code:
 
 #+BEGIN_SRC emacs-lisp
 (unless (require 'quelpa nil t)
@@ -36,7 +36,7 @@ To bootstrap quelpa use this code:
     (eval-buffer)))
 #+END_SRC
 
-To bootstrap quelpa now just evaluate this expression in your =*scratch*= buffer. Add it to your Emacs init file to make sure quelpa will be installed if necessary.
+To bootstrap =quelpa= now just evaluate this expression in your =*scratch*= buffer. Add it to your Emacs init file to make sure =quelpa= will be installed automatically if necessary.
 
 ** Usage
 
@@ -56,9 +56,9 @@ Now installing =company= from the Github source with =quelpa= is pretty simple:
 (quelpa '(company :repo "company-mode/company-mode" :fetcher github))
 #+END_SRC
 
-Just take care that you put a quote before the recipe. Running this expression will fetch the source code from Github, build a package in elpa format and put it into the local quelpa packages directory =~/.emacs.d/quelpa/packages=. The package is installed via the normal =package-install= command behind the scenes.
+Just take care that you put a quote before the recipe. Running this expression will fetch the source code from Github, build a package in elpa format and put it into the local =quelpa=  packages directory =~/.emacs.d/quelpa/packages=. The package is installed via the normal =package-install= command behind the scenes.
 
-You can also use the package management interface with quelpa. Just start =M-x list-packages= and work with your packages as you normally do.
+You can also use the package management interface with =quelpa= . Just start =M-x list-packages= and work with your packages as you normally do.
 
 That's currently all folks. More bling to come!
 
