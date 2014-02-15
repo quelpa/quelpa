@@ -4,6 +4,7 @@
 
 ;; Author: steckerhalter
 ;; URL: https://github.com/steckerhalter/quelpa
+;; Version: 0.0.1
 ;; Package-Requires: ((package-build "0") (servant "0"))
 ;; Keywords: package management build source elpa
 
