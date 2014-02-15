@@ -2,64 +2,66 @@
 
 Your personal local Emacs Lisp Package Archive (ELPA) with packages built on-the-fly directly from source.
 
-*this is in early development, feel free to try it!*
+**Important: quelpa requires at least Emacs 24.3**
 
-If you want to help with the development of quelpa, check the [[https://github.com/quelpa/quelpa/issues][issues.]] There are already some things you could do :)
+If you want to help with the development of quelpa, check the [[https://github.com/quelpa/quelpa/issues][issues.]] The more people we get to work on quelpa, the better :)
+
+** Overview
+
+quelpa wants to bring the power over your Emacs packages back to you. The [[http://melpa.milkbox.net/packages/][melpa]] archive is great because it has so many packages but why should an external build service control what packages you can install?
+
+Rather quelpa uses melpa (and their recipes) to build the packages you want to install from the source code and install them to a directory-based local package archive.
+
+You can build and install packages from all the sources the melpa build script (=package-build=) supports:
+
+- git: http://git-scm.com/
+- github: https://github.com/
+- bazaar (bzr): http://bazaar.canonical.com/en/
+- mercurial (hg): http://mercurial.selenic.com/
+- subversion (svn): http://subversion.apache.org/
+- cvs: http://www.nongnu.org/cvs/
+- darcs: http://darcs.net/
+- Emacs Wiki (wiki): http://www.emacswiki.org/
+
+** Installation
+
+First quelpa needs to be bootstrapped, that means the melpa =package-build= has to be installed, then =quelpa= itself.
+
+To bootstrap quelpa use this code:
+
+#+BEGIN_SRC emacs-lisp
+(unless (require 'quelpa nil t)
+  (with-temp-buffer
+    (url-insert-file-contents "https://raw.github.com/quelpa/quelpa/master/bootstrap.el")
+    (eval-buffer)))
+#+END_SRC
+
+To bootstrap quelpa now just evaluate this expression in your =*scratch*= buffer. Add it to your Emacs init file to make sure quelpa will be installed if necessary.
 
 ** Usage
 
-Currently you need to install manually or from melpa:
+Cool. Now that we are all setup enjoy the ride.
 
-- [[https://github.com/milkypostman/melpa/blob/master/package-build.el][package-build]]
-- [[https://github.com/cask/servant][servant]]
+Navigate to http://melpa.milkbox.net/ and click on the recipe symbol of a package you'd like to install. Or go directly https://github.com/milkypostman/melpa/blob/master/recipes/ and choose a recipe there.
 
-=servant= is very heavy together with =elnode=. It is planned to replace that later with simpler libraries.
-
-After that you can remove melpa from your =package-archives= :)
+In this example I use =company=, the alternative auto-completion framework at https://github.com/milkypostman/melpa/blob/master/recipes/company:
 
 #+BEGIN_SRC emacs-lisp
-(with-temp-buffer
-  (url-insert-file-contents "https://raw.github.com/quelpa/quelpa/master/quelpa.el")
-  (eval-buffer))
-(require 'quelpa)
+(company :repo "company-mode/company-mode" :fetcher github)
 #+END_SRC
 
-Now to you can build and install any package that you can provide a recipe in the melpa format for. Navigate to http://melpa.milkbox.net/ and click on the recipe symbol of a package you'd like to install.
-
-For example I choose =company=, the alternative auto-completion framework: https://github.com/milkypostman/melpa/blob/master/recipes/company
-
-I can use this recipe to install =company= from Github with =quelpa=:
+Now installing =company= from the Github source with =quelpa= is pretty simple:
 
 #+BEGIN_SRC emacs-lisp
 (quelpa '(company :repo "company-mode/company-mode" :fetcher github))
 #+END_SRC
 
-Just take care that you put a quote before the recipe. Running this expression will fetch the source code from Github, build a package for elpa and put it into the default packages directory =~/.emacs.d/quelpa/packages=.
-
-A local webserver (elnode) is started and the package is installed via the normal =package-install= command.
+Just take care that you put a quote before the recipe. Running this expression will fetch the source code from Github, build a package in elpa format and put it into the local quelpa packages directory =~/.emacs.d/quelpa/packages=. The package is installed via the normal =package-install= command behind the scenes.
 
 You can also use the package management interface with quelpa. Just start =M-x list-packages= and work with your packages as you normally do.
 
-That's currently all folks. Much more is to come if time permits!
-
-** Rationale
-
-Currently we have these bigger package archives in the Emacs community:
-
-| elpa      | http://elpa.gnu.org/       |
-| marmalade | http://marmalade-repo.org/ |
-| melpa     | http://melpa.milkbox.net/  |
-
-marmalade and elpa work as =package.el= was meant to be: people release software, package it up and put it into a repository with proper versioning and so forth. From time to time they make a new release and update the package.
-
-Now melpa builds packages directly from upstream sources. So melpa is just kind of an index, but not really because it builds packages, with arbitrary versions (that also break the versioning of elpa and marmalade). So it's kinda of a middle man you don't really want. What you want is to install the latest version of, say =magit=, directly from the Git source.
-
-There is =el-get= than can do that for you, but =el-get= is non-standard. It doesn't use the package manager built into Emacs. It doesn't even use packages. It is usable but it would be much better if we could use the package manager built into Emacs for that purpose.
-
-Now with melpa when there is a new version of, say =magit= on Github, you will have to wait because melpa does not build packages every minute. But why should you have to wait? Why can't you just build the package yourself? What more do you need from melpa than the recipe and some helpers to build the package directly from the source?
-
-So this is what quelpa is meant to provide.
+That's currently all folks. More bling to come!
 
 ** Why "quelpa"?
 
-German =Quelle= means =source=, =Quellcode= means =source code= and =ELPA= is short for Emacs Lisp Package Archive, you get the idea. So =quelpa= is your personal archive with packages built from source.
+German =Quelle= means =source=, =Quellcode= means =source code= and =ELPA= is short for Emacs Lisp Package Archive, you get the idea. So =quelpa= is your package archive with packages built from source.
