@@ -178,7 +178,12 @@ Return the recipe if it exists, otherwise nil."
     (quelpa-checkout-melpa)
     (setq quelpa-initialized-p t)))
 
-(defun quelpa-parse-arg (arg)
+(defun quelpa-arg-pkg (arg)
+  (pcase arg
+    ((pred listp) (car arg))
+    ((pred symbolp arg))))
+
+(defun quelpa-arg-rcp (arg)
   (pcase arg
     ((pred listp) arg)
     ((pred symbolp)
@@ -189,9 +194,9 @@ Return the recipe if it exists, otherwise nil."
   "Build and install package from ARG.
 If the package has dependencies recursively call this function to
 install them."
-  (let ((rcp (quelpa-parse-arg arg)))
-    (unless (package-installed-p (car rcp))
-      (let* ((pkg (car rcp))
+  (let ((pkg (quelpa-arg-pkg arg)))
+    (unless (package-installed-p pkg)
+      (let* ((rcp (quelpa-arg-rcp))
              (file (quelpa-build-package rcp))
              (pkg-desc (quelpa-get-package-desc file))
              (requires (package-desc-reqs pkg-desc)))
