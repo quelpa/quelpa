@@ -181,7 +181,7 @@ Return the recipe if it exists, otherwise nil."
 (defun quelpa-arg-pkg (arg)
   (pcase arg
     ((pred listp) (car arg))
-    ((pred symbolp arg))))
+    ((pred symbolp) arg)))
 
 (defun quelpa-arg-rcp (arg)
   (pcase arg
