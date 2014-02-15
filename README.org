@@ -30,6 +30,8 @@ You can build and install packages from all the sources the melpa build script (
 
 For any build source you need the corresponding tool. So if you want to install a =subversion= hosted package you need to have =subversion= installed locally.
 
+Important here is to note that if the source for a package is fetched with =git=, it still can have a dependency that may have to be fetched with =mercurial= so you better install the most common ones, i.e. =git=, =bzr=, =hg=, and =svn=.
+
 ** Installation
 
 First =quelpa= needs to be bootstrapped, that means melpa's =package-build= has to be installed, then =quelpa= itself.
