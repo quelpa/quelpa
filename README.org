@@ -10,7 +10,7 @@ If you want to help with the development of quelpa, check the [[https://github.c
 
 =quelpa= wants to bring the power over your Emacs packages back to you. The [[http://melpa.milkbox.net/packages/][melpa]] archive is great because it has so many packages but why should an external build service control what packages you can install?
 
-Rather =quelpa= uses recipes in the melpa-format to build the packages you want from the source code and installs them to a directory-based local package archive that we call =quelpa=.
+Rather =quelpa= uses recipes in the [[https://github.com/milkypostman/melpa#recipe-format][melpa-format]] to build the packages you want from the source code and installs them to a directory-based local package archive that we call =quelpa=.
 
 You can build and install packages from all the sources the melpa build script (=package-build=) supports:
 
@@ -42,7 +42,7 @@ To bootstrap =quelpa= now just evaluate this expression in your =*scratch*= buff
 
 Cool. Now that we are all setup enjoy the ride.
 
-Navigate to http://melpa.milkbox.net/ and click on the recipe symbol of a package you'd like to install. Or go directly https://github.com/milkypostman/melpa/blob/master/recipes/ and choose a recipe there.
+Navigate to http://melpa.milkbox.net/ and click on the recipe symbol of a package you'd like to install. Or go directly to https://github.com/milkypostman/melpa/blob/master/recipes/ and choose a recipe there.
 
 In this example I use =company=, the alternative auto-completion framework at https://github.com/milkypostman/melpa/blob/master/recipes/company:
 
