@@ -3,7 +3,7 @@
 ;; Copyright 2014, Steckerhalter
 
 ;; Author: steckerhalter
-;; URL: https://github.com/steckerhalter/quelpa
+;; URL: https://github.com/quelpa/quelpa
 ;; Version: 0.0.1
 ;; Package-Requires: ((package-build "0") (servant "0"))
 ;; Keywords: package management build source elpa
