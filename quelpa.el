@@ -5,7 +5,7 @@
 ;; Author: steckerhalter
 ;; URL: https://github.com/quelpa/quelpa
 ;; Version: 0.0.1
-;; Package-Requires: ((package-build "0") (servant "0"))
+;; Package-Requires: ((package-build "0"))
 ;; Keywords: package management build source elpa
 
 ;; This file is not part of GNU Emacs.
