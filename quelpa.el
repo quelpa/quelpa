@@ -52,6 +52,12 @@
 (defvar quelpa-packages-dir (concat quelpa-dir "/packages")
   "The quelpa package archive.")
 
+(defvar quelpa-melpa-dir (concat quelpa-dir "/melpa")
+  "Where melpa is checked out (to get the recipes).")
+
+(defvar quelpa-initialized-p nil
+  "Non-nil when quelpa has been initialized.")
+
 ;; --- archive-contents building ---------------------------------------------
 
 (defun quelpa-package-type (file)
@@ -107,18 +113,31 @@ On error return nil."
 
 ;; --- package building ------------------------------------------------------
 
+(defun quelpa-archive-file-name (archive-entry)
+  "Return the path of the file in which the package for ARCHIVE-ENTRY is stored."
+  (let* ((name (car archive-entry))
+         (pkg-info (cdr archive-entry))
+         (version (package-version-join (aref pkg-info 0)))
+         (flavour (aref pkg-info 3)))
+    (expand-file-name
+     (format "%s-%s.%s" name version (if (eq flavour 'single) "el" "tar"))
+     quelpa-packages-dir)))
+
 (defun quelpa-build-package (rcp)
   "Build a package from the given recipe RCP.
 Uses the `package-build' library to get the source code and build
-an elpa compatible package in `quelpa-build-dir'."
+an elpa compatible package in `quelpa-build-dir' storing it in
+`quelpa-packages-dir'.
+Return the path to the created file."
   (ignore-errors (delete-directory quelpa-build-dir t))
   (let* ((name (car rcp))
          (version (package-build-checkout name (cdr rcp) quelpa-build-dir)))
-    (package-build-package (symbol-name name)
-                           version
-                           (pb/config-file-list rcp)
-                           quelpa-build-dir
-                           quelpa-packages-dir)))
+    (quelpa-archive-file-name
+     (package-build-package (symbol-name name)
+                            version
+                            (pb/config-file-list rcp)
+                            quelpa-build-dir
+                            quelpa-packages-dir))))
 
 ;; --- helpers ---------------------------------------------------------------
 
@@ -131,27 +150,68 @@ an elpa compatible package in `quelpa-build-dir'."
                       (car archive))))
     (package-read-archive-contents (car archive))))
 
+(defun quelpa-checkout-melpa ()
+  "Fetch or update the melpa source code from Github."
+  (pb/checkout-git 'melpa
+                   '(:url "git://github.com/milkypostman/melpa.git")
+                   quelpa-melpa-dir))
+
+(defun quelpa-get-melpa-recipe (name)
+  "Read recipe with NAME for melpa git checkout.
+Return the recipe if it exists, otherwise nil."
+  (let* ((recipes-path (concat quelpa-melpa-dir "/recipes"))
+         (files (directory-files recipes-path nil "^[^\.]+"))
+         (file (assoc-string name files)))
+    (when file
+      (with-temp-buffer
+        (insert-file-contents-literally (concat recipes-path "/" file))
+        (read (buffer-string))))))
+
 (defun quelpa-init ()
-  "Register the archive, create the packages dir."
-  (add-to-list
-   'package-archives
-   `("quelpa" . ,quelpa-packages-dir))
-  (unless (file-exists-p quelpa-packages-dir)
-    (make-directory quelpa-packages-dir t)))
+  "Setup what we need for quelpa if not done."
+  (unless quelpa-initialized-p
+    (add-to-list
+     'package-archives
+     `("quelpa" . ,quelpa-packages-dir))
+    (unless (file-exists-p quelpa-packages-dir)
+      (make-directory quelpa-packages-dir t))
+    (quelpa-checkout-melpa)
+    (setq quelpa-initialized-p t)))
+
+(defun quelpa-parse-arg (arg)
+  (pcase arg
+    ((pred listp) arg)
+    ((pred symbolp)
+     (or (quelpa-get-melpa-recipe arg)
+         (error "Quelpa cannot find a package named %s" arg)))))
+
+(defun quelpa-package-install (arg)
+  "Build and install package from ARG.
+If the package has dependencies recursively call this function to
+install them."
+  (let ((rcp (quelpa-parse-arg arg)))
+    (unless (package-installed-p (car rcp))
+      (let* ((pkg (car rcp))
+             (file (quelpa-build-package rcp))
+             (pkg-desc (quelpa-get-package-desc file))
+             (requires (package-desc-reqs pkg-desc)))
+        (when requires
+          (mapcar (lambda (req)
+                    (unless (equal 'emacs (car req))
+                      (quelpa-package-install (car req))))
+                  requires))
+        (quelpa-build-archive-contents)
+        (quelpa-refresh-contents)
+        (package-install pkg)))))
 
 ;; --- public interface ------------------------------------------------------
 
 ;;;###autoload
-(defun quelpa (rcp)
-  "Build and install a package from the given recipe RCP."
+(defun quelpa (arg)
+  "Build and install a package with quelpa.
+ARG can be a package name (symbol) or a melpa recipe (lins)."
   (quelpa-init)
-  (let ((package (car rcp))
-        (package-archive-upload-base quelpa-packages-dir))
-    (unless (package-installed-p package)
-      (quelpa-build-package rcp)
-      (quelpa-build-archive-contents)
-      (quelpa-refresh-contents)
-      (package-install package))))
+  (quelpa-package-install arg))
 
 (provide 'quelpa)
 
