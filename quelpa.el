@@ -66,29 +66,32 @@ packages, or nil, if FILE is not a package."
 (defun quelpa-create-index-entry (file)
   "Create a package index entry for the package at FILE.
 Return a package index entry."
-  (let* ((pkg-desc (quelpa-get-package-desc file))
-         (file-type (package-desc-kind pkg-desc))
-         (pkg-name (package-desc-name pkg-desc))
-         (requires (package-desc-reqs pkg-desc))
-         (desc (package-desc-summary pkg-desc))
-         (split-version (package-desc-version pkg-desc))
-         (extras (package-desc-extras pkg-desc)))
-    (cons pkg-name (package-make-ac-desc split-version requires desc file-type extras))))
+  (let ((pkg-desc (quelpa-get-package-desc file)))
+    (when pkg-desc
+      (let* ((file-type (package-desc-kind pkg-desc))
+             (pkg-name (package-desc-name pkg-desc))
+             (requires (package-desc-reqs pkg-desc))
+             (desc (package-desc-summary pkg-desc))
+             (split-version (package-desc-version pkg-desc))
+             (extras (package-desc-extras pkg-desc)))
+        (cons pkg-name (package-make-ac-desc split-version requires desc file-type extras))))))
 
 (defun quelpa-get-package-desc (file)
-  "Extract and return the PACKAGE-DESC struct from FILE."
-  (with-temp-buffer
-    (insert-file-contents-literally file)
-    (pcase (quelpa-package-type file)
-      (`single (package-buffer-info))
-      (`tar (tar-mode)
-            (with-no-warnings (package-tar-file-info))))))
+  "Extract and return the PACKAGE-DESC struct from FILE.
+On error return nil."
+  (with-demoted-errors "Error getting PACKAGE-DESC: %s"
+    (with-temp-buffer
+      (insert-file-contents-literally file)
+      (pcase (quelpa-package-type file)
+        (`single (package-buffer-info))
+        (`tar (tar-mode)
+              (with-no-warnings (package-tar-file-info)))))))
 
 (defun quelpa-create-index (directory)
   "Generate a package index for DIRECTORY."
   (let* ((package-files (delq nil (mapcar (lambda (f) (when (quelpa-package-type f) f))
                                           (directory-files directory t))))
-         (entries (mapcar 'quelpa-create-index-entry package-files)))
+         (entries (delq nil (mapcar 'quelpa-create-index-entry package-files))))
     (append (list 1) entries)))
 
 (defun quelpa-create-index-string (directory)
