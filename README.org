@@ -23,6 +23,13 @@ You can build and install packages from all the sources the melpa build script (
 - darcs: http://darcs.net/
 - Emacs Wiki (wiki): http://www.emacswiki.org/
 
+** Requirements
+
+- Emacs 24.3
+- git: http://git-scm.com/
+
+For any build source you need the corresponding tool. So if you want to install a =subversion= hosted package you need to have =subversion= installed locally.
+
 ** Installation
 
 First =quelpa= needs to be bootstrapped, that means melpa's =package-build= has to be installed, then =quelpa= itself.
@@ -40,27 +47,39 @@ To bootstrap =quelpa= now just evaluate this expression in your =*scratch*= buff
 
 ** Usage
 
-Cool. Now that we are all setup enjoy the ride.
+Cool. Now that we are all setup, enjoy the ride.
 
-Navigate to http://melpa.milkbox.net/ and click on the recipe symbol of a package you'd like to install. Or go directly to https://github.com/milkypostman/melpa/blob/master/recipes/ and choose a recipe there.
+There are two ways to install packages with =quelpa=:
 
-In this example I use =company=, the alternative auto-completion framework at https://github.com/milkypostman/melpa/blob/master/recipes/company:
+*** Installing with a package name
 
-#+BEGIN_SRC emacs-lisp
-(company :repo "company-mode/company-mode" :fetcher github)
-#+END_SRC
-
-Now installing =company= from the Github source with =quelpa= is pretty simple:
+Check http://melpa.milkbox.net/ for any packages you would like to install. You only need to know the name:
 
 #+BEGIN_SRC emacs-lisp
-(quelpa '(company :repo "company-mode/company-mode" :fetcher github))
+(quelpa 'magit)
 #+END_SRC
 
-Just take care that you put a quote before the recipe. Running this expression will fetch the source code from Github, build a package in elpa format and put it into the local =quelpa=  packages directory =~/.emacs.d/quelpa/packages=. The package is installed via the normal =package-install= command behind the scenes.
+Running this expression will fetch the source code from Github, build a package in elpa format and put it into the local =quelpa=  packages directory =~/.emacs.d/quelpa/packages=. 
 
-You can also use the package management interface with =quelpa= . Just start =M-x list-packages= and work with your packages as you normally do.
+The package is installed via the normal =package-install= command behind the scenes.
 
-That's currently all folks. More bling to come!
+If the package has dependencies it will install them first.
+
+*** Installing with a recipe
+
+You can also install packages that are not on melpa. For this you need to provide a recipe in the melpa-format.
+
+For example I like the package [[http://www.emacswiki.org/emacs/eval-sexp-fu.el][eval-sexp-fu.el]] which is located on the Emacs Wiki but not available on melpa. I just need to provide a valid recipe instead of a package name:
+
+#+BEGIN_SRC emacs-lisp
+(quelpa '(eval-sexp-fu :fetcher wiki :files ("eval-sexp-fu.el")))
+#+END_SRC
+
+Don't forget the quote before the recipe. 
+
+*** Managing packages
+
+You can use the Emacs package management interface with =quelpa= . Just start =M-x list-packages= and work with your packages as you normally do.
 
 ** Why "quelpa"?
 
