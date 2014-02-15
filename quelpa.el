@@ -38,8 +38,9 @@
 
 ;;; Code:
 
-(require 'package-x)
 (require 'package-build)
+
+;; --- variables -------------------------------------------------------------
 
 (defvar quelpa-dir (expand-file-name (concat user-emacs-directory "quelpa"))
   "Where quelpa builds and stores packages.")
@@ -47,24 +48,78 @@
 (defvar quelpa-build-dir (concat quelpa-dir "/build")
   "Where quelpa builds packages.")
 
-(defvar quelpa-target-dir (concat quelpa-dir "/target")
-  "Where quelpa puts the built package.")
-
 (defvar quelpa-packages-dir (concat quelpa-dir "/packages")
   "The quelpa package archive.")
 
-(defun quelpa-archive-file-name (archive-entry)
-  "Return the path of the file in which the package for ARCHIVE-ENTRY is stored."
-  (let* ((name (car archive-entry))
-         (pkg-info (cdr archive-entry))
-         (version (package-version-join (aref pkg-info 0)))
-         (flavour (aref pkg-info 3)))
-    (expand-file-name
-     (format "%s-%s.%s" name version (if (eq flavour 'single) "el" "tar"))
-     quelpa-target-dir)))
+;; --- archive-contents building ---------------------------------------------
+
+(defun quelpa-package-type (file)
+  "Determine the package type of FILE.
+Return `tar' for tarball packages, `single' for single file
+packages, or nil, if FILE is not a package."
+  (let ((ext (file-name-extension file)))
+    (cond
+     ((string= ext "tar") 'tar)
+     ((string= ext "el") 'single)
+     (:else nil))))
+
+(defun quelpa-create-index-entry (file)
+  "Create a package index entry for the package at FILE.
+Return a package index entry."
+  (let* ((pkg-desc (quelpa-get-package-desc file))
+         (file-type (package-desc-kind pkg-desc))
+         (pkg-name (package-desc-name pkg-desc))
+         (requires (package-desc-reqs pkg-desc))
+         (desc (package-desc-summary pkg-desc))
+         (split-version (package-desc-version pkg-desc))
+         (extras (package-desc-extras pkg-desc)))
+    (cons pkg-name (package-make-ac-desc split-version requires desc file-type extras))))
+
+(defun quelpa-get-package-desc (file)
+  "Extract and return the PACKAGE-DESC struct from FILE."
+  (with-temp-buffer
+    (insert-file-contents-literally file)
+    (pcase (quelpa-package-type file)
+      (`single (package-buffer-info))
+      (`tar (tar-mode)
+            (with-no-warnings (package-tar-file-info))))))
+
+(defun quelpa-create-index (directory)
+  "Generate a package index for DIRECTORY."
+  (let* ((package-files (delq nil (mapcar (lambda (f) (when (quelpa-package-type f) f))
+                                          (directory-files directory t))))
+         (entries (mapcar 'quelpa-create-index-entry package-files)))
+    (append (list 1) entries)))
+
+(defun quelpa-create-index-string (directory)
+  "Generate a package index for DIRECTORY as string."
+  (let ((print-level nil)
+        (print-length nil))
+    (concat "\n" (prin1-to-string (quelpa-create-index directory)))))
+
+(defun quelpa-build-archive-contents ()
+  (with-temp-file (concat quelpa-packages-dir "/archive-contents")
+    (insert (quelpa-create-index-string quelpa-packages-dir))))
+
+;; --- package building ------------------------------------------------------
+
+(defun quelpa-build-package (rcp)
+  "Build a package from the given recipe RCP.
+Uses the `package-build' library to get the source code and build
+an elpa compatible package in `quelpa-build-dir'."
+  (ignore-errors (delete-directory quelpa-build-dir t))
+  (let* ((name (car rcp))
+         (version (package-build-checkout name (cdr rcp) quelpa-build-dir)))
+    (package-build-package (symbol-name name)
+                           version
+                           (pb/config-file-list rcp)
+                           quelpa-build-dir
+                           quelpa-packages-dir)))
+
+;; --- helpers ---------------------------------------------------------------
 
 (defun quelpa-refresh-contents ()
-  "Refresh the package archive cache."
+  "Refresh the elpa package archive cache."
   (let ((archive `("quelpa" . ,quelpa-packages-dir)))
     (condition-case-unless-debug nil
         (package--download-one-archive archive "archive-contents")
@@ -80,19 +135,7 @@
   (unless (file-exists-p quelpa-packages-dir)
     (make-directory quelpa-packages-dir t)))
 
-(defun quelpa-build-package (rcp)
-  "Build a package from the given recipe RCP.
-Uses the `package-build' library to get the source code and build
-an elpa compatible package in `quelpa-build-dir'."
-  (ignore-errors (delete-directory quelpa-target-dir t))
-  (make-directory quelpa-target-dir t)
-  (let* ((name (car rcp))
-         (version (package-build-checkout name (cdr rcp) quelpa-build-dir)))
-    (package-build-package (symbol-name name)
-                           version
-                           (pb/config-file-list rcp)
-                           quelpa-build-dir
-                           quelpa-target-dir)))
+;; --- public interface ------------------------------------------------------
 
 ;;;###autoload
 (defun quelpa (rcp)
@@ -101,10 +144,8 @@ an elpa compatible package in `quelpa-build-dir'."
   (let ((package (car rcp))
         (package-archive-upload-base quelpa-packages-dir))
     (unless (package-installed-p package)
-      (ignore-errors
-        (package-upload-file
-         (quelpa-archive-file-name
-          (quelpa-build-package rcp))))
+      (quelpa-build-package rcp)
+      (quelpa-build-archive-contents)
       (quelpa-refresh-contents)
       (package-install package))))
 
