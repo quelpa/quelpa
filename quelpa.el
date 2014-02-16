@@ -201,9 +201,9 @@ install them."
              (pkg-desc (quelpa-get-package-desc file))
              (requires (package-desc-reqs pkg-desc)))
         (when requires
-          (mapcar (lambda (req)
-                    (unless (equal 'emacs (car req))
-                      (quelpa-package-install (car req))))
+          (mapc (lambda (req)
+                  (unless (equal 'emacs (car req))
+                    (quelpa-package-install (car req))))
                   requires))
         (quelpa-build-archive-contents)
         (quelpa-refresh-contents)
