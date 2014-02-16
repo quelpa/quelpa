@@ -1,9 +1,6 @@
-* quelpa
-
-Your personal local Emacs Lisp Package Archive (ELPA) with packages built on-the-fly directly from source.
-
 [[https://raw.github.com/quelpa/quelpa/master/logo/quelpa-logo-h128.png]]
 
+Your personal local Emacs Lisp Package Archive (ELPA) with packages built on-the-fly directly from source.
 
 If you want to help with the development of quelpa, check the [[https://github.com/quelpa/quelpa/issues][issues.]] The more people we get to work on quelpa, the better :)
 
