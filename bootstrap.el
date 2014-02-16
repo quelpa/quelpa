@@ -28,10 +28,10 @@
                                    (version (package-version-join (aref pkg-info 0)))
                                    (flavour (aref pkg-info 3)))
                               (format "%s-%s.%s" name version (if (eq flavour 'single) "el" "tar"))))
-         (archive-url (concat archive archive-file-name)))
-    (let ((file (expand-file-name (concat temporary-file-directory archive-file-name))))
-      (url-copy-file archive-url file t)
-      (package-install-file file))))
+         (archive-url (concat archive archive-file-name))
+         (file (expand-file-name (concat temporary-file-directory archive-file-name))))
+    (url-copy-file archive-url file t)
+    (package-install-file file)))
 
 ;; since we have package-build now, we can install the quelpa package
 (unless (require 'quelpa nil t)
