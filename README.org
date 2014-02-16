@@ -2,13 +2,14 @@
 
 Your personal local Emacs Lisp Package Archive (ELPA) with packages built on-the-fly directly from source.
 
-*Important: quelpa requires at least Emacs 24.3*
+[[https://raw.github.com/quelpa/quelpa/master/logo/quelpa-logo.svg]]
+
 
 If you want to help with the development of quelpa, check the [[https://github.com/quelpa/quelpa/issues][issues.]] The more people we get to work on quelpa, the better :)
 
 ** Overview
 
-=quelpa= wants to bring the power over your Emacs packages back to you. The [[http://melpa.milkbox.net/packages/][melpa]] archive is great because it has so many packages but why should an external build service control what packages you can install?
+=quelpa= brings the power over your Emacs packages back to you. The [[http://melpa.milkbox.net/packages/][melpa]] archive is great because it has so many packages but why should an external build service control what packages you can install?
 
 Rather =quelpa= uses recipes in the [[https://github.com/milkypostman/melpa#recipe-format][melpa-format]] to build the packages you want from the source code and installs them to a directory-based local package archive that we call =quelpa=.
 
