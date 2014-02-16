@@ -1,6 +1,7 @@
 ;;; quelpa.el --- Emacs Lisp packages built directly from source
 
 ;; Copyright 2014, Steckerhalter
+;; Copyright 2014, Vasilij Schneidermann <v.schneidermann@gmail.com>
 
 ;; Author: steckerhalter
 ;; URL: https://github.com/quelpa/quelpa
@@ -80,6 +81,9 @@
 
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
+
+(defvar quelpa-force-update-p nil
+  "When non-nil, `quelpa' will force an update.")
 
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
 
@@ -213,6 +217,21 @@ Return the recipe if it exists, otherwise nil."
      (or (quelpa-get-melpa-recipe arg)
          (error "Quelpa cannot find a package named %s" arg)))))
 
+(defun quelpa-parse-plist (plist)
+  "Parse the optional PLIST argument of `quelpa'.
+Recognized keywords are:
+
+\:update
+
+If t, `quelpa' is forced to do an update.
+"
+  (while plist
+    (let ((key (car plist))
+          (value (cadr plist)))
+      (pcase key
+        (:update (setq quelpa-force-update-p value))))
+    (setq plist (cddr plist))))
+
 (defun quelpa-package-install (arg)
   "Build and install package from ARG.
 If the package has dependencies recursively call this function to
@@ -233,10 +252,12 @@ install them."
 ;; --- public interface ------------------------------------------------------
 
 ;;;###autoload
-(defun quelpa (arg)
+(defun quelpa (arg &rest plist)
   "Build and install a package with quelpa.
-ARG can be a package name (symbol) or a melpa recipe (lins)."
+ARG can be a package name (symbol) or a melpa recipe (list).
+PLIST is a plist that may modify the build and/or fetch process."
   (run-hooks 'quelpa-before-hook)
+  (quelpa-parse-plist plist)
   (quelpa-package-install arg)
   (run-hooks 'quelpa-after-hook))
 
