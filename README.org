@@ -83,4 +83,4 @@ You can use the Emacs package management interface with =quelpa= . Just start =M
 
 ** Why "quelpa"?
 
-German =Quelle= means =source=, =Quellcode= means =source code= and =ELPA= is short for Emacs Lisp Package Archive, you get the idea. So =quelpa= is your package archive with packages built from source.
+German =Quelle= means =spring= (water source) but also =source=. For example =source code= is translated =Quellcode=. =ELPA= is short for Emacs Lisp Package Archive. You get the idea. So =quelpa= is your package archive with packages coming from the source.
