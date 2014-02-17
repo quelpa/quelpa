@@ -23,7 +23,7 @@ You can build and install packages from all the sources the melpa build script (
 
 ** Requirements
 
-- Emacs 24.3
+- Emacs 24.3.50 (we will support 24.3 as soon as [[https://github.com/quelpa/quelpa/issues/15][Issue #15]] is resolved)
 - git: http://git-scm.com/
 
 For any build source you need the corresponding tool. So if you want to install a =subversion= hosted package you need to have =subversion= installed locally.
