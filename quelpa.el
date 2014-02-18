@@ -64,22 +64,24 @@
 
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
 
-(if quelpa-legacy-p
-
-    (cl-defstruct (quelpa-package-desc
-                   ;; convert legacy package desc into PACKAGE-DESC
-                   (:constructor
-                    quelpa-package-desc-from-legacy
-                    (pkg-info
-                     &aux
-                     (name (intern (aref pkg-info 0)))
-                     (reqs  (aref pkg-info 1))
-                     (summary (if (string= (aref pkg-info 2) "")
-                                  "No description available."
-                                (aref pkg-info 2)))
-                     (version (version-to-list (aref pkg-info 3))))))
-      "Create struct for legacy `package.el'.
-See Emacs 24.4 for the details of this struct."
+(defun quelpa-setup-package-structs ()
+  "Setup the structs `package-desc' and `package--ac-desc'.
+We want to keep the compat cruft at a minimal level so we just
+add these structs if they are not available."
+  (unless (functionp 'package-desc-p)
+    (cl-defstruct
+        (package-desc
+         (:constructor
+          ;; convert legacy package desc into PACKAGE-DESC
+          package-desc-from-legacy
+          (pkg-info
+           &aux
+           (name (intern (aref pkg-info 0)))
+           (version (version-to-list (aref pkg-info 3)))
+           (summary (if (string= (aref pkg-info 2) "")
+                        "No description available."
+                      (aref pkg-info 2)))
+           (reqs  (aref pkg-info 1)))))
       name
       version
       (summary "No description available.")
@@ -88,11 +90,7 @@ See Emacs 24.4 for the details of this struct."
       archive
       dir
       extras
-      signed)
-
-  (cl-defstruct (quelpa-package-desc
-                 (:include package-desc))
-    "For Emacs 24.4 include the struct `package-desc'."))
+      signed)))
 
 ;; --- archive-contents building ---------------------------------------------
 
@@ -111,13 +109,16 @@ packages, or nil, if FILE is not a package."
 Return a package index entry."
   (let ((pkg-desc (quelpa-get-package-desc file)))
     (when pkg-desc
-      (let* ((file-type (quelpa-package-desc-kind pkg-desc))
-             (pkg-name (quelpa-package-desc-name pkg-desc))
-             (requires (quelpa-package-desc-reqs pkg-desc))
-             (desc (quelpa-package-desc-summary pkg-desc))
-             (split-version (quelpa-package-desc-version pkg-desc))
-             (extras (quelpa-package-desc-extras pkg-desc)))
-        (cons pkg-name (package-make-ac-desc split-version requires desc file-type extras))))))
+      (let* ((file-type (package-desc-kind pkg-desc))
+             (pkg-name (package-desc-name pkg-desc))
+             (requires (package-desc-reqs pkg-desc))
+             (desc (package-desc-summary pkg-desc))
+             (split-version (package-desc-version pkg-desc))
+             (extras (package-desc-extras pkg-desc))
+             (ac-desc (list split-version requires desc file-type extras)))
+        (cons pkg-name (if quelpa-legacy-p
+                           (vconcat ac-desc)
+                         `(,package-make-ac-desc ,@ac-desc)))))))
 
 (defun quelpa-get-package-desc (file)
   "Extract and return the PACKAGE-DESC struct from FILE.
@@ -128,8 +129,9 @@ On error return nil."
                   (pcase (quelpa-package-type file)
                     (`single (package-buffer-info))
                     (`tar (tar-mode)
-                          (with-no-warnings (package-tar-file-info))))))))
-    (when desc (if quelpa-legacy-p (quelpa-package-desc-from-legacy desc) desc))))
+                          (if quelpa-legacy-p (package-tar-file-info file)
+                            (with-no-warnings (package-tar-file-info)))))))))
+    (when desc (if quelpa-legacy-p (package-desc-from-legacy desc) desc))))
 
 (defun quelpa-create-index (directory)
   "Generate a package index for DIRECTORY."
@@ -207,6 +209,7 @@ Return the recipe if it exists, otherwise nil."
 (defun quelpa-init ()
   "Setup what we need for quelpa if not done."
   (unless quelpa-initialized-p
+    (quelpa-setup-package-structs)
     (add-to-list
      'package-archives
      `("quelpa" . ,quelpa-packages-dir))
@@ -236,12 +239,12 @@ install them."
       (let* ((rcp (quelpa-arg-rcp arg))
              (file (quelpa-build-package rcp))
              (pkg-desc (quelpa-get-package-desc file))
-             (requires (quelpa-package-desc-reqs pkg-desc)))
+             (requires (package-desc-reqs pkg-desc)))
         (when requires
           (mapc (lambda (req)
                   (unless (equal 'emacs (car req))
                     (quelpa-package-install (car req))))
-                  requires))
+                requires))
         (quelpa-build-archive-contents)
         (quelpa-refresh-contents)
         (package-install pkg)))))
