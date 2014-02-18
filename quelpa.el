@@ -115,11 +115,12 @@ Return a package index entry."
              (requires (package-desc-reqs pkg-desc))
              (desc (package-desc-summary pkg-desc))
              (split-version (package-desc-version pkg-desc))
-             (extras (package-desc-extras pkg-desc)))
+             (extras (package-desc-extras pkg-desc))
+             (ac-desc (list split-version requires desc file-type extras)))
         (cons pkg-name
-	      (if quelpa-legacy-p
-		  (vector split-version requires desc file-type extras)
-		(package-make-ac-desc split-version requires desc file-type extras)))))))
+              (if quelpa-legacy-p
+                  (vconcat ac-desc)
+                (apply 'package-make-ac-desc ac-desc)))))))
 
 (defun quelpa-get-package-desc (file)
   "Extract and return the PACKAGE-DESC struct from FILE.
