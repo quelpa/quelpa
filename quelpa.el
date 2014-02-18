@@ -40,6 +40,7 @@
 ;;; Code:
 
 (require 'package-build)
+(require 'cl-lib)
 
 ;; --- variables -------------------------------------------------------------
 
@@ -57,6 +58,40 @@
 
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
+
+(defvar quelpa-legacy-p (version< emacs-version "24.3.50")
+  "Non-nil if Emacs version is below 24.3.50.")
+
+;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
+
+(defun quelpa-setup-package-structs ()
+  "Setup the structs `package-desc' and `package--ac-desc'.
+We want to keep the compat cruft at a minimal level so we just
+add these structs if they are not available."
+  (unless (functionp 'package-desc-p)
+    (cl-defstruct
+        (package-desc
+         (:constructor
+          ;; convert legacy package desc into PACKAGE-DESC
+          package-desc-from-legacy
+          (pkg-info kind
+                    &aux
+                    (name (intern (aref pkg-info 0)))
+                    (version (version-to-list (aref pkg-info 3)))
+                    (summary (if (string= (aref pkg-info 2) "")
+                                 "No description available."
+                               (aref pkg-info 2)))
+                    (reqs  (aref pkg-info 1))
+                    (kind kind))))
+      name
+      version
+      (summary "No description available.")
+      reqs
+      kind
+      archive
+      dir
+      extras
+      signed)))
 
 ;; --- archive-contents building ---------------------------------------------
 
@@ -80,19 +115,27 @@ Return a package index entry."
              (requires (package-desc-reqs pkg-desc))
              (desc (package-desc-summary pkg-desc))
              (split-version (package-desc-version pkg-desc))
-             (extras (package-desc-extras pkg-desc)))
-        (cons pkg-name (package-make-ac-desc split-version requires desc file-type extras))))))
+             (extras (package-desc-extras pkg-desc))
+             (ac-desc (list split-version requires desc file-type extras)))
+        (cons pkg-name (if quelpa-legacy-p
+                           (vconcat ac-desc)
+                         `(,package-make-ac-desc ,@ac-desc)))))))
 
 (defun quelpa-get-package-desc (file)
   "Extract and return the PACKAGE-DESC struct from FILE.
 On error return nil."
-  (with-demoted-errors "Error getting PACKAGE-DESC: %s"
-    (with-temp-buffer
-      (insert-file-contents-literally file)
-      (pcase (quelpa-package-type file)
-        (`single (package-buffer-info))
-        (`tar (tar-mode)
-              (with-no-warnings (package-tar-file-info)))))))
+  (let* ((kind (quelpa-package-type file))
+         (desc (with-demoted-errors "Error getting PACKAGE-DESC: %s"
+                 (with-temp-buffer
+                   (insert-file-contents-literally file)
+                   (pcase kind
+                     (`single (package-buffer-info))
+                     (`tar (tar-mode)
+                           (if quelpa-legacy-p (package-tar-file-info file)
+                             (with-no-warnings (package-tar-file-info)))))))))
+    (pcase desc
+      ((pred package-desc-p) desc)
+      ((pred vectorp) (package-desc-from-legacy desc kind)))))
 
 (defun quelpa-create-index (directory)
   "Generate a package index for DIRECTORY."
@@ -170,6 +213,7 @@ Return the recipe if it exists, otherwise nil."
 (defun quelpa-init ()
   "Setup what we need for quelpa if not done."
   (unless quelpa-initialized-p
+    (quelpa-setup-package-structs)
     (add-to-list
      'package-archives
      `("quelpa" . ,quelpa-packages-dir))
@@ -204,7 +248,7 @@ install them."
           (mapc (lambda (req)
                   (unless (equal 'emacs (car req))
                     (quelpa-package-install (car req))))
-                  requires))
+                requires))
         (quelpa-build-archive-contents)
         (quelpa-refresh-contents)
         (package-install pkg)))))
