@@ -74,14 +74,15 @@ add these structs if they are not available."
          (:constructor
           ;; convert legacy package desc into PACKAGE-DESC
           package-desc-from-legacy
-          (pkg-info
-           &aux
-           (name (intern (aref pkg-info 0)))
-           (version (version-to-list (aref pkg-info 3)))
-           (summary (if (string= (aref pkg-info 2) "")
-                        "No description available."
-                      (aref pkg-info 2)))
-           (reqs  (aref pkg-info 1)))))
+          (pkg-info kind
+                    &aux
+                    (name (intern (aref pkg-info 0)))
+                    (version (version-to-list (aref pkg-info 3)))
+                    (summary (if (string= (aref pkg-info 2) "")
+                                 "No description available."
+                               (aref pkg-info 2)))
+                    (reqs  (aref pkg-info 1))
+                    (kind kind))))
       name
       version
       (summary "No description available.")
@@ -123,15 +124,18 @@ Return a package index entry."
 (defun quelpa-get-package-desc (file)
   "Extract and return the PACKAGE-DESC struct from FILE.
 On error return nil."
-  (let ((desc (with-demoted-errors "Error getting PACKAGE-DESC: %s"
-                (with-temp-buffer
-                  (insert-file-contents-literally file)
-                  (pcase (quelpa-package-type file)
-                    (`single (package-buffer-info))
-                    (`tar (tar-mode)
-                          (if quelpa-legacy-p (package-tar-file-info file)
-                            (with-no-warnings (package-tar-file-info)))))))))
-    (when desc (if quelpa-legacy-p (package-desc-from-legacy desc) desc))))
+  (let* ((kind (quelpa-package-type file))
+         (desc (with-demoted-errors "Error getting PACKAGE-DESC: %s"
+                 (with-temp-buffer
+                   (insert-file-contents-literally file)
+                   (pcase kind
+                     (`single (package-buffer-info))
+                     (`tar (tar-mode)
+                           (if quelpa-legacy-p (package-tar-file-info file)
+                             (with-no-warnings (package-tar-file-info)))))))))
+    (pcase desc
+      ((pred package-desc-p) desc)
+      ((pred vectorp) (package-desc-from-legacy desc kind)))))
 
 (defun quelpa-create-index (directory)
   "Generate a package index for DIRECTORY."
