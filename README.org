@@ -49,6 +49,8 @@ To bootstrap =quelpa= now just evaluate this expression in your =*scratch*= buff
 
 Cool. Now that we are all setup, enjoy the ride.
 
+To get an idea how =quelpa= can be used, you might take a look at the Emacs configuration [[http://steckerhalter.co.vu/steckemacs.html][steckemacs]], especially the [[http://steckerhalter.co.vu/steckemacs.html#sec-2-10][Modes section]] where =quelpa= loads and installs the required packages just before they are configured.
+
 There are two ways to install packages with =quelpa=:
 
 *** Installing with a package name
