@@ -13,6 +13,9 @@
 
 (require 'package)
 
+(defvar quelpa-ci-dir nil
+  "If non-nil, another directory will be used by Travis.")
+
 ;; `package' has to be initialized to install pkgs
 (package-initialize)
 
