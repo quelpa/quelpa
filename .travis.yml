@@ -1,0 +1,3 @@
+language: emacs-lisp
+script:
+  ./ci/run.sh
