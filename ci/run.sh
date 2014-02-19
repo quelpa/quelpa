@@ -17,11 +17,14 @@ export OUELPA_DIR="$dir"
 if ! dpkg -l | grep python-software-properties; then
     sudo apt-get update
     sudo apt-get install -qq python-software-properties
+fi
+
+if ! find /etc/apt/sources.list.d/ -name 'cassou*'; then
     sudo add-apt-repository -y ppa:cassou/emacs
+    sudo apt-get update
 fi
 
 if ! dpkg -l | grep emacs24; then
-    sudo apt-get update
     sudo apt-get install -qq git mercurial subversion bzr cvs emacs24 emacs24-el emacs24-common-non-dfsg emacs-snapshot-el emacs-snapshot-gtk emacs-snapshot
 fi
 
