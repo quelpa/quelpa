@@ -1,6 +1,5 @@
 ;; bootstrap
 (unless (require 'quelpa nil t)
-  (setq quelpa-bootstrap-file (concat (getenv "QUELPA_DIR") "/bootstrap.el"))
   (load quelpa-bootstrap-file))
 
 ;; wiki
