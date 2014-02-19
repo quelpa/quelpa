@@ -1,6 +1,6 @@
 ;; bootstrap
 (unless (require 'quelpa nil t)
-  (load quelpa-bootstrap-file))
+  (load (concat quelpa-ci-dir "/bootstrap.el")))
 
 ;; wiki
 (quelpa '(key-chord :fetcher wiki))
