@@ -1,8 +1,7 @@
 ;; bootstrap
 (unless (require 'quelpa nil t)
-  (with-temp-buffer
-    (url-insert-file-contents "https://raw.github.com/quelpa/quelpa/master/bootstrap.el")
-    (eval-buffer)))
+  (setq quelpa-bootstrap-file (concat (getenv "QUELPA_DIR") "/bootstrap.el"))
+  (load quelpa-bootstrap-file))
 
 ;; wiki
 (quelpa '(key-chord :fetcher wiki))

@@ -35,8 +35,10 @@
 
 ;; since we have package-build now, we can install the quelpa package
 (unless (require 'quelpa nil t)
-  (let ((file (expand-file-name (concat temporary-file-directory "quelpa.el"))))
-    (url-copy-file "https://raw.github.com/quelpa/quelpa/master/quelpa.el" file t)
+  (let ((file (or quelpa-bootstrap-file
+                  (expand-file-name (concat temporary-file-directory "quelpa.el")))))
+    (unless quelpa-bootstrap-file
+      (url-copy-file "https://raw.github.com/quelpa/quelpa/master/quelpa.el" file t))
     (package-install-file file)))
 
 ;;; bootstrap.el ends here
