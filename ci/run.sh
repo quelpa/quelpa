@@ -19,7 +19,7 @@ if ! dpkg -l | grep python-software-properties; then
     sudo apt-get install -qq python-software-properties
 fi
 
-if ! find /etc/apt/sources.list.d/ -name 'cassou*'; then
+if ! grep cassou /etc/apt/sources.list.d/*; then
     sudo add-apt-repository -y ppa:cassou/emacs
     sudo apt-get update
 fi
