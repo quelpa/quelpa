@@ -179,7 +179,7 @@ Return the path to the created file."
     (quelpa-archive-file-name
      (package-build-package (symbol-name name)
                             version
-                            (pb/config-file-list rcp)
+                            (pb/config-file-list (cdr rcp))
                             quelpa-build-dir
                             quelpa-packages-dir))))
 
