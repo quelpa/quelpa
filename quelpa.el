@@ -65,9 +65,9 @@
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
 
 (defun quelpa-setup-package-structs ()
-  "Setup the structs `package-desc' and `package--ac-desc'.
-We want to keep the compat cruft at a minimal level so we just
-add these structs if they are not available."
+  "Setup the struct `package-desc' when not available.
+`package-desc-from-legacy' is provided to convert the legacy
+vector desc into a valid PACKAGE-DESC."
   (unless (functionp 'package-desc-p)
     (cl-defstruct
         (package-desc
