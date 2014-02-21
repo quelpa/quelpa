@@ -42,25 +42,47 @@
 (require 'package-build)
 (require 'cl-lib)
 
-;; --- variables -------------------------------------------------------------
+;; --- customs / variables ---------------------------------------------------
 
-(defvar quelpa-dir (expand-file-name (concat user-emacs-directory "quelpa"))
-  "Where quelpa builds and stores packages.")
+(defgroup quelpa nil
+  "Build and install packages from source code"
+  :group 'package)
 
-(defvar quelpa-build-dir (concat quelpa-dir "/build")
-  "Where quelpa builds packages.")
+(defcustom quelpa-dir (expand-file-name (concat user-emacs-directory "quelpa"))
+  "Where quelpa builds and stores packages."
+  :group 'quelpa
+  :type 'string)
 
-(defvar quelpa-packages-dir (concat quelpa-dir "/packages")
-  "Where quelpa buts built packages.")
+(defcustom quelpa-build-dir (concat quelpa-dir "/build")
+  "Where quelpa builds packages."
+  :group 'quelpa
+  :type 'string)
 
-(defvar quelpa-melpa-dir (concat quelpa-dir "/melpa")
-  "Where melpa is checked out (to get the recipes).")
+(defcustom quelpa-packages-dir (concat quelpa-dir "/packages")
+  "Where quelpa buts built packages."
+  :group 'quelpa
+  :type 'string)
 
-(defvar quelpa-initialized-p nil
-  "Non-nil when quelpa has been initialized.")
+(defcustom quelpa-melpa-dir (concat quelpa-dir "/melpa")
+  "Where melpa is checked out (to get the recipes)."
+  :group 'quelpa
+  :type 'string)
+
+(defcustom quelpa-before-hook '(quelpa-init)
+  "List of functions to be called before quelpa."
+  :group 'quelpa
+  :type 'hook)
+
+(defcustom quelpa-after-hook '(quelpa-shutdown)
+  "List of functions to be called after quelpa."
+  :group 'quelpa
+  :type 'hook)
 
 (defvar quelpa-legacy-p (version< emacs-version "24.3.50")
   "Non-nil if Emacs version is below 24.3.50.")
+
+(defvar quelpa-initialized-p nil
+  "Non-nil when quelpa has been initialized.")
 
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
 
@@ -215,9 +237,9 @@ install them."
 (defun quelpa (arg)
   "Build and install a package with quelpa.
 ARG can be a package name (symbol) or a melpa recipe (lins)."
-  (quelpa-init)
+  (run-hooks 'quelpa-before-hook)
   (quelpa-package-install arg)
-  (quelpa-shutdown))
+  (run-hooks 'quelpa-after-hook))
 
 (provide 'quelpa)
 
