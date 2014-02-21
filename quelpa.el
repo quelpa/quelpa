@@ -78,9 +78,6 @@
   :group 'quelpa
   :type 'hook)
 
-(defvar quelpa-legacy-p (version< emacs-version "24.3.50")
-  "Non-nil if Emacs version is below 24.3.50.")
-
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
 
@@ -137,7 +134,9 @@ On error return nil."
                    (pcase kind
                      (`single (package-buffer-info))
                      (`tar (tar-mode)
-                           (if quelpa-legacy-p (package-tar-file-info file)
+                           (if (help-function-arglist 'package-tar-file-info)
+                               ;; legacy `package-tar-file-info' requires an arg
+                               (package-tar-file-info file)
                              (with-no-warnings (package-tar-file-info)))))))))
     (pcase desc
       ((pred package-desc-p) desc)
@@ -191,7 +190,7 @@ Return the recipe if it exists, otherwise nil."
 (defun quelpa-init ()
   "Setup what we need for quelpa."
   (unless (file-exists-p quelpa-packages-dir)
-      (make-directory quelpa-packages-dir t))
+    (make-directory quelpa-packages-dir t))
   (unless quelpa-initialized-p
     (quelpa-setup-package-structs)
     (quelpa-checkout-melpa)
