@@ -1,4 +1,4 @@
-;;; quelpa.el --- Your personal ELPA with packages built directly from source
+;;; quelpa.el --- Emacs Lisp packages built directly from source
 
 ;; Copyright 2014, Steckerhalter
 
