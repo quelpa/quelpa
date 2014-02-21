@@ -2,17 +2,17 @@
 
 [[https://travis-ci.org/quelpa/quelpa.png?branch=master]]
 
-Your personal local Emacs Lisp Package Archive (ELPA) with packages built on-the-fly directly from source.
+Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
-If you want to help with the development of quelpa, check the [[https://github.com/quelpa/quelpa/issues][issues.]] The more people we get to work on quelpa, the better :)
+If you want to help with the development of quelpa, check the [[https://github.com/quelpa/quelpa/issues][issues.]]
 
 ** Overview
 
 =quelpa= brings the power over your Emacs packages back to you. The [[http://melpa.milkbox.net/packages/][melpa]] archive is great because it has so many packages but why should an external build service control what packages you can install?
 
-Rather =quelpa= uses recipes in the [[https://github.com/milkypostman/melpa#recipe-format][melpa-format]] to build the packages you want from the source code and installs them to a directory-based local package archive that we call =quelpa=.
+Rather =quelpa= uses recipes in the [[https://github.com/milkypostman/melpa#recipe-format][melpa-format]] to build the packages you want from the source code and installs them using the built-in Emacs package manager.
 
-You can build and install packages from all the sources the melpa build script (=package-build=) supports:
+You can build and install packages from all the sources the melpa build script =package-build= supports:
 
 - git: http://git-scm.com/
 - github: https://github.com/
@@ -45,7 +45,7 @@ To bootstrap =quelpa=  use this code:
     (eval-buffer)))
 #+END_SRC
 
-To bootstrap =quelpa= now just evaluate this expression in your =*scratch*= buffer. Add it to your Emacs init file to make sure =quelpa= will be installed automatically if necessary.
+Evaluate this expression in your =*scratch*= buffer to bootstrap =quelpa= now. Add it to your Emacs init file to make sure =quelpa= will be installed automatically if necessary.
 
 ** Usage
 
@@ -63,9 +63,7 @@ Check http://melpa.milkbox.net/ for any packages you would like to install. You 
 (quelpa 'magit)
 #+END_SRC
 
-Running this expression will fetch the source code from Github, build a package in elpa format and put it into the local =quelpa=  packages directory =~/.emacs.d/quelpa/packages=. 
-
-The package is installed via the normal =package-install= command behind the scenes.
+Running this expression will fetch the =magit= source code from Github, build a package in elpa format and install it.
 
 If the package has dependencies it will install them first.
 
@@ -83,8 +81,8 @@ Don't forget the quote before the recipe.
 
 *** Managing packages
 
-You can use the Emacs package management interface with =quelpa= . Just start =M-x list-packages= and work with your packages as you normally do.
+Because =quelpa= installs packages using the built-in Emacs package management system, you can use the regular interface =M-x list-packages= and work with your packages as you normally do.
 
 ** Why "quelpa"?
 
-German =Quelle= means =spring= (water source) but also =source=. For example =source code= is translated =Quellcode=. =ELPA= is short for Emacs Lisp Package Archive. You get the idea. So =quelpa= is your package archive with packages coming from the source.
+German =Quelle= means =spring= (water source) but also =source=. For example =source code= is translated =Quellcode=. =ELPA= is short for Emacs Lisp Package Archive. You get the idea.

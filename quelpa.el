@@ -1,4 +1,4 @@
-;;; quelpa.el --- Your personal ELPA with packages built directly from source
+;;; quelpa.el --- Emacs Lisp packages built directly from source
 
 ;; Copyright 2014, Steckerhalter
 
@@ -42,25 +42,44 @@
 (require 'package-build)
 (require 'cl-lib)
 
-;; --- variables -------------------------------------------------------------
+;; --- customs / variables ---------------------------------------------------
 
-(defvar quelpa-dir (expand-file-name (concat user-emacs-directory "quelpa"))
-  "Where quelpa builds and stores packages.")
+(defgroup quelpa nil
+  "Build and install packages from source code"
+  :group 'package)
 
-(defvar quelpa-build-dir (concat quelpa-dir "/build")
-  "Where quelpa builds packages.")
+(defcustom quelpa-dir (expand-file-name (concat user-emacs-directory "quelpa"))
+  "Where quelpa builds and stores packages."
+  :group 'quelpa
+  :type 'string)
 
-(defvar quelpa-packages-dir (concat quelpa-dir "/packages")
-  "The quelpa package archive.")
+(defcustom quelpa-build-dir (concat quelpa-dir "/build")
+  "Where quelpa builds packages."
+  :group 'quelpa
+  :type 'string)
 
-(defvar quelpa-melpa-dir (concat quelpa-dir "/melpa")
-  "Where melpa is checked out (to get the recipes).")
+(defcustom quelpa-packages-dir (concat quelpa-dir "/packages")
+  "Where quelpa buts built packages."
+  :group 'quelpa
+  :type 'string)
+
+(defcustom quelpa-melpa-dir (concat quelpa-dir "/melpa")
+  "Where melpa is checked out (to get the recipes)."
+  :group 'quelpa
+  :type 'string)
+
+(defcustom quelpa-before-hook '(quelpa-init)
+  "List of functions to be called before quelpa."
+  :group 'quelpa
+  :type 'hook)
+
+(defcustom quelpa-after-hook '(quelpa-shutdown)
+  "List of functions to be called after quelpa."
+  :group 'quelpa
+  :type 'hook)
 
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
-
-(defvar quelpa-legacy-p (version< emacs-version "24.3.50")
-  "Non-nil if Emacs version is below 24.3.50.")
 
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
 
@@ -93,7 +112,7 @@ vector desc into a valid PACKAGE-DESC."
       extras
       signed)))
 
-;; --- archive-contents building ---------------------------------------------
+;; --- package building ------------------------------------------------------
 
 (defun quelpa-package-type (file)
   "Determine the package type of FILE.
@@ -105,23 +124,6 @@ packages, or nil, if FILE is not a package."
      ((string= ext "el") 'single)
      (:else nil))))
 
-(defun quelpa-create-index-entry (file)
-  "Create a package index entry for the package at FILE.
-Return a package index entry."
-  (let ((pkg-desc (quelpa-get-package-desc file)))
-    (when pkg-desc
-      (let* ((file-type (package-desc-kind pkg-desc))
-             (pkg-name (package-desc-name pkg-desc))
-             (requires (package-desc-reqs pkg-desc))
-             (desc (package-desc-summary pkg-desc))
-             (split-version (package-desc-version pkg-desc))
-             (extras (package-desc-extras pkg-desc))
-             (ac-desc (list split-version requires desc file-type extras)))
-        (cons pkg-name
-              (if quelpa-legacy-p
-                  (vconcat ac-desc)
-                (apply 'package-make-ac-desc ac-desc)))))))
-
 (defun quelpa-get-package-desc (file)
   "Extract and return the PACKAGE-DESC struct from FILE.
 On error return nil."
@@ -132,30 +134,13 @@ On error return nil."
                    (pcase kind
                      (`single (package-buffer-info))
                      (`tar (tar-mode)
-                           (if quelpa-legacy-p (package-tar-file-info file)
+                           (if (help-function-arglist 'package-tar-file-info)
+                               ;; legacy `package-tar-file-info' requires an arg
+                               (package-tar-file-info file)
                              (with-no-warnings (package-tar-file-info)))))))))
     (pcase desc
       ((pred package-desc-p) desc)
       ((pred vectorp) (package-desc-from-legacy desc kind)))))
-
-(defun quelpa-create-index (directory)
-  "Generate a package index for DIRECTORY."
-  (let* ((package-files (delq nil (mapcar (lambda (f) (when (quelpa-package-type f) f))
-                                          (directory-files directory t))))
-         (entries (delq nil (mapcar 'quelpa-create-index-entry package-files))))
-    (append (list 1) entries)))
-
-(defun quelpa-create-index-string (directory)
-  "Generate a package index for DIRECTORY as string."
-  (let ((print-level nil)
-        (print-length nil))
-    (concat "\n" (prin1-to-string (quelpa-create-index directory)))))
-
-(defun quelpa-build-archive-contents ()
-  (with-temp-file (concat quelpa-packages-dir "/archive-contents")
-    (insert (quelpa-create-index-string quelpa-packages-dir))))
-
-;; --- package building ------------------------------------------------------
 
 (defun quelpa-archive-file-name (archive-entry)
   "Return the path of the file in which the package for ARCHIVE-ENTRY is stored."
@@ -185,15 +170,6 @@ Return the path to the created file."
 
 ;; --- helpers ---------------------------------------------------------------
 
-(defun quelpa-refresh-contents ()
-  "Refresh the elpa package archive cache."
-  (let ((archive `("quelpa" . ,quelpa-packages-dir)))
-    (condition-case-unless-debug nil
-        (package--download-one-archive archive "archive-contents")
-      (error (message "Failed to download `%s' archive."
-                      (car archive))))
-    (package-read-archive-contents (car archive))))
-
 (defun quelpa-checkout-melpa ()
   "Fetch or update the melpa source code from Github."
   (pb/checkout-git 'melpa
@@ -212,16 +188,18 @@ Return the recipe if it exists, otherwise nil."
         (read (buffer-string))))))
 
 (defun quelpa-init ()
-  "Setup what we need for quelpa if not done."
+  "Setup what we need for quelpa."
+  (unless (file-exists-p quelpa-packages-dir)
+    (make-directory quelpa-packages-dir t))
   (unless quelpa-initialized-p
     (quelpa-setup-package-structs)
-    (add-to-list
-     'package-archives
-     `("quelpa" . ,quelpa-packages-dir))
-    (unless (file-exists-p quelpa-packages-dir)
-      (make-directory quelpa-packages-dir t))
     (quelpa-checkout-melpa)
     (setq quelpa-initialized-p t)))
+
+(defun quelpa-shutdown ()
+  "Do things that need to be done after running quelpa."
+  ;; remove the packages dir because we are done with the built pkgs
+  (ignore-errors (delete-directory quelpa-packages-dir t)))
 
 (defun quelpa-arg-pkg (arg)
   (pcase arg
@@ -250,9 +228,7 @@ install them."
                   (unless (equal 'emacs (car req))
                     (quelpa-package-install (car req))))
                 requires))
-        (quelpa-build-archive-contents)
-        (quelpa-refresh-contents)
-        (package-install pkg)))))
+        (package-install-file file)))))
 
 ;; --- public interface ------------------------------------------------------
 
@@ -260,8 +236,9 @@ install them."
 (defun quelpa (arg)
   "Build and install a package with quelpa.
 ARG can be a package name (symbol) or a melpa recipe (lins)."
-  (quelpa-init)
-  (quelpa-package-install arg))
+  (run-hooks 'quelpa-before-hook)
+  (quelpa-package-install arg)
+  (run-hooks 'quelpa-after-hook))
 
 (provide 'quelpa)
 
