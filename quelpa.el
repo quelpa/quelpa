@@ -168,13 +168,13 @@ Return nil if the package is already installed and should not be upgraded."
     (unless (or (and (package-installed-p name) (not quelpa-upgrade-p))
                 (and (package-built-in-p name) (not config)))
       (let ((version (package-build-checkout name config dir)))
-        (unless (or (let ((pkg-descs (cdr (assq name package-alist))))
-                      (and pkg-descs
+        (unless (or (let ((pkg-desc (cdr (assq name package-alist))))
+                      (and pkg-desc
                            (version-list-<=
                             (version-to-list version)
                             (if (functionp 'package-desc-vers)
-                                (package-desc-vers (cdr pkg-desc)) ; old implementation
-                              (package-desc-version (car pkg-descs))))))
+                                (package-desc-vers pkg-desc) ; old implementation
+                              (package-desc-version (car pkg-desc))))))
                     ;; Also check built-in packages.
                     (package-built-in-p name (version-to-list version)))
           version)))))
