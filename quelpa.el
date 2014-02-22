@@ -64,11 +64,6 @@
   :group 'quelpa
   :type 'string)
 
-(defcustom quelpa-melpa-dir (concat quelpa-dir "/melpa")
-  "Where melpa is checked out (to get the recipes)."
-  :group 'quelpa
-  :type 'string)
-
 (defcustom quelpa-before-hook '(quelpa-init)
   "List of functions to be called before quelpa."
   :group 'quelpa
@@ -201,14 +196,14 @@ already and should not be upgraded etc)."
 
 (defun quelpa-checkout-melpa ()
   "Fetch or update the melpa source code from Github."
-  (pb/checkout-git 'melpa
+  (pb/checkout-git 'package-build
                    '(:url "git://github.com/milkypostman/melpa.git")
-                   quelpa-melpa-dir))
+                   (concat quelpa-build-dir "/package-build")))
 
 (defun quelpa-get-melpa-recipe (name)
   "Read recipe with NAME for melpa git checkout.
 Return the recipe if it exists, otherwise nil."
-  (let* ((recipes-path (concat quelpa-melpa-dir "/recipes"))
+  (let* ((recipes-path (concat quelpa-build-dir "/package-build/recipes"))
          (files (directory-files recipes-path nil "^[^\.]+"))
          (file (assoc-string name files)))
     (when file
