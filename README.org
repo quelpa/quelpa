@@ -102,9 +102,16 @@ or by using the customize inferface =M-x customize-variable quelpa-upgrade-p RET
 To override this default behavior for individual packages you can use:
 
 #+BEGIN_SRC emacs-lisp
-(quelpa 'company :upgrade t) ; quelpa will try to upgrade `company' no matter what
-(quelpa '(ag :repo "Wilfred/ag.el" :fetcher github) :upgrade nil) ; quelpa will not upgrade `helm'
+(quelpa 'company :upgrade t)
 #+END_SRC
+
+=quelpa= will try to upgrade =company= even if upgrading is disabled globally.
+
+#+BEGIN_SRC emacs-lisp
+(quelpa '(ag :repo "Wilfred/ag.el" :fetcher github) :upgrade nil)
+#+END_SRC
+
+=quelpa= will not upgrade =ag=.
 
 *** Managing packages
 
