@@ -82,8 +82,8 @@
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
 
-(defvar quelpa-force-update-p nil
-  "When non-nil, `quelpa' will force an update.")
+(defvar quelpa-upgrade-p nil
+  "When non-nil, `quelpa' will try to upgrade.")
 
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
 
@@ -221,15 +221,15 @@ Return the recipe if it exists, otherwise nil."
   "Parse the optional PLIST argument of `quelpa'.
 Recognized keywords are:
 
-\:update
+:upgrade
 
-If t, `quelpa' is forced to do an update.
+If t, `quelpa' tries to do an upgrade.
 "
   (while plist
     (let ((key (car plist))
           (value (cadr plist)))
       (pcase key
-        (:update (setq quelpa-force-update-p value))))
+        (:upgrade (setq quelpa-upgrade-p value))))
     (setq plist (cddr plist))))
 
 (defun quelpa-package-install (arg)
