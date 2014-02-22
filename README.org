@@ -77,7 +77,24 @@ For example I like the package [[http://www.emacswiki.org/emacs/eval-sexp-fu.el]
 (quelpa '(eval-sexp-fu :fetcher wiki :files ("eval-sexp-fu.el")))
 #+END_SRC
 
-Don't forget the quote before the recipe. 
+Don't forget the quote before the recipe.
+
+*** Upgrading packages
+
+Per default =quelpa= does not do anything if a package is already installed. You can customize this behavior globally by setting the variable =quelpa-upgrade-p= to =t= manually:
+
+#+BEGIN_SRC emacs-lisp
+(setq quelpa-upgrade-p t)
+#+END_SRC
+
+or by using the customize inferface =M-x customize-variable quelpa-upgrade-p RET= and switching the variable to =on=.
+
+To override this default behavior for individual packages you can use:
+
+#+BEGIN_SRC emacs-lisp
+(quelpa 'company :upgrade t) ; quelpa will try to upgrade `company' no matter what
+(quelpa '(ag :repo "Wilfred/ag.el" :fetcher github) :upgrade nil) ; quelpa will not upgrade `helm'
+#+END_SRC
 
 *** Managing packages
 
