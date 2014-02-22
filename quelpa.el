@@ -1,6 +1,7 @@
 ;;; quelpa.el --- Emacs Lisp packages built directly from source
 
 ;; Copyright 2014, Steckerhalter
+;; Copyright 2014, Vasilij Schneidermann <v.schneidermann@gmail.com>
 
 ;; Author: steckerhalter
 ;; URL: https://github.com/quelpa/quelpa
@@ -35,7 +36,7 @@
 
 ;;; Requirements:
 
-;; Emacs 24.
+;; Emacs 24.3.1
 
 ;;; Code:
 
@@ -77,6 +78,13 @@
   "List of functions to be called after quelpa."
   :group 'quelpa
   :type 'hook)
+
+(defcustom quelpa-upgrade-p nil
+  "When non-nil, `quelpa' will try to upgrade packages.
+The global value can be overridden for each package by supplying
+the `:upgrade' argument."
+  :group 'quelpa
+  :type 'boolean)
 
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
@@ -152,21 +160,42 @@ On error return nil."
      (format "%s-%s.%s" name version (if (eq flavour 'single) "el" "tar"))
      quelpa-packages-dir)))
 
+(defun quelpa-checkout (rcp dir)
+  "Return the version of the new package given a RCP.
+Return nil if the package is already installed and should not be upgraded."
+  (let ((name (car rcp))
+        (config (cdr rcp)))
+    (unless (or (and (package-installed-p name) (not quelpa-upgrade-p))
+                (and (package-built-in-p name) (not config)))
+      (let ((version (package-build-checkout name config dir)))
+        (unless (or (let ((pkg-desc (cdr (assq name package-alist))))
+                      (and pkg-desc
+                           (version-list-<=
+                            (version-to-list version)
+                            (if (functionp 'package-desc-vers)
+                                (package-desc-vers pkg-desc) ; old implementation
+                              (package-desc-version (car pkg-desc))))))
+                    ;; Also check built-in packages.
+                    (package-built-in-p name (version-to-list version)))
+          version)))))
+
 (defun quelpa-build-package (rcp)
   "Build a package from the given recipe RCP.
 Uses the `package-build' library to get the source code and build
 an elpa compatible package in `quelpa-build-dir' storing it in
-`quelpa-packages-dir'.
-Return the path to the created file."
-  (ignore-errors (delete-directory quelpa-build-dir t))
+`quelpa-packages-dir'. Return the path to the created file or nil
+if no action is necessary (like when the package is installed
+already and should not be upgraded etc)."
   (let* ((name (car rcp))
-         (version (package-build-checkout name (cdr rcp) quelpa-build-dir)))
-    (quelpa-archive-file-name
-     (package-build-package (symbol-name name)
-                            version
-                            (pb/config-file-list (cdr rcp))
-                            quelpa-build-dir
-                            quelpa-packages-dir))))
+         (build-dir (expand-file-name (format "%s/%s" quelpa-build-dir name)))
+         (version (quelpa-checkout rcp build-dir)))
+    (when version
+      (quelpa-archive-file-name
+       (package-build-package (symbol-name name)
+                              version
+                              (pb/config-file-list (cdr rcp))
+                              build-dir
+                              quelpa-packages-dir)))))
 
 ;; --- helpers ---------------------------------------------------------------
 
@@ -189,8 +218,8 @@ Return the recipe if it exists, otherwise nil."
 
 (defun quelpa-init ()
   "Setup what we need for quelpa."
-  (unless (file-exists-p quelpa-packages-dir)
-    (make-directory quelpa-packages-dir t))
+  (dolist (dir (list quelpa-packages-dir quelpa-build-dir))
+    (unless (file-exists-p dir) (make-directory dir t)))
   (unless quelpa-initialized-p
     (quelpa-setup-package-structs)
     (quelpa-checkout-melpa)
@@ -201,27 +230,35 @@ Return the recipe if it exists, otherwise nil."
   ;; remove the packages dir because we are done with the built pkgs
   (ignore-errors (delete-directory quelpa-packages-dir t)))
 
-(defun quelpa-arg-pkg (arg)
-  (pcase arg
-    ((pred listp) (car arg))
-    ((pred symbolp) arg)))
-
 (defun quelpa-arg-rcp (arg)
+  "Given recipe or package name, return an alist '(NAME . RCP).
+If RCP cannot be found it will be set to nil"
   (pcase arg
     ((pred listp) arg)
-    ((pred symbolp)
-     (or (quelpa-get-melpa-recipe arg)
-         (error "Quelpa cannot find a package named %s" arg)))))
+    ((pred symbolp) (cons arg (cdr (quelpa-get-melpa-recipe arg))))))
+
+(defun quelpa-parse-plist (plist)
+  "Parse the optional PLIST argument of `quelpa'.
+Recognized keywords are:
+
+:upgrade
+
+If t, `quelpa' tries to do an upgrade.
+"
+  (while plist
+    (let ((key (car plist))
+          (value (cadr plist)))
+      (pcase key
+        (:upgrade (setq quelpa-upgrade-p value))))
+    (setq plist (cddr plist))))
 
 (defun quelpa-package-install (arg)
-  "Build and install package from ARG.
+  "Build and install package from ARG (a recipe or package name).
 If the package has dependencies recursively call this function to
 install them."
-  (let ((pkg (quelpa-arg-pkg arg)))
-    (unless (package-installed-p pkg)
-      (let* ((rcp (quelpa-arg-rcp arg))
-             (file (quelpa-build-package rcp))
-             (pkg-desc (quelpa-get-package-desc file))
+  (let ((file (quelpa-build-package (quelpa-arg-rcp arg))))
+    (when file
+      (let* ((pkg-desc (quelpa-get-package-desc file))
              (requires (package-desc-reqs pkg-desc)))
         (when requires
           (mapc (lambda (req)
@@ -233,11 +270,15 @@ install them."
 ;; --- public interface ------------------------------------------------------
 
 ;;;###autoload
-(defun quelpa (arg)
+(defun quelpa (arg &rest plist)
   "Build and install a package with quelpa.
-ARG can be a package name (symbol) or a melpa recipe (lins)."
+ARG can be a package name (symbol) or a melpa recipe (list).
+PLIST is a plist that may modify the build and/or fetch process."
   (run-hooks 'quelpa-before-hook)
-  (quelpa-package-install arg)
+  ;; shadow `quelpa-upgrade-p' taking the default from the global var
+  (let ((quelpa-upgrade-p quelpa-upgrade-p))
+    (quelpa-parse-plist plist)
+    (quelpa-package-install arg))
   (run-hooks 'quelpa-after-hook))
 
 (provide 'quelpa)

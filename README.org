@@ -36,7 +36,19 @@ Important here is to note that if the source for a package is fetched with =git=
 
 First =quelpa= needs to be bootstrapped, that means melpa's =package-build= has to be installed, then =quelpa= itself.
 
-To bootstrap =quelpa=  use this code:
+To bootstrap =quelpa= use this code:
+
+#+BEGIN_SRC emacs-lisp
+(if (require 'quelpa nil t)
+    (quelpa '(quelpa :repo "quelpa/quelpa" :fetcher github) :upgrade t)
+  (with-temp-buffer
+    (url-insert-file-contents "https://raw.github.com/quelpa/quelpa/master/bootstrap.el")
+    (eval-buffer)))
+#+END_SRC
+
+Evaluate this expression in your =*scratch*= buffer to bootstrap =quelpa= now. Add it to your Emacs init file to make sure =quelpa= will be installed and upgraded automatically if necessary.
+
+If you don't like =quelpa= doing self-upgrades (although this is recommended) shorten it to:
 
 #+BEGIN_SRC emacs-lisp
 (unless (require 'quelpa nil t)
@@ -44,8 +56,6 @@ To bootstrap =quelpa=  use this code:
     (url-insert-file-contents "https://raw.github.com/quelpa/quelpa/master/bootstrap.el")
     (eval-buffer)))
 #+END_SRC
-
-Evaluate this expression in your =*scratch*= buffer to bootstrap =quelpa= now. Add it to your Emacs init file to make sure =quelpa= will be installed automatically if necessary.
 
 ** Usage
 
@@ -77,7 +87,24 @@ For example I like the package [[http://www.emacswiki.org/emacs/eval-sexp-fu.el]
 (quelpa '(eval-sexp-fu :fetcher wiki :files ("eval-sexp-fu.el")))
 #+END_SRC
 
-Don't forget the quote before the recipe. 
+Don't forget the quote before the recipe.
+
+*** Upgrading packages
+
+Per default =quelpa= does not do anything if a package is already installed. You can customize this behavior globally by setting the variable =quelpa-upgrade-p= to =t= manually:
+
+#+BEGIN_SRC emacs-lisp
+(setq quelpa-upgrade-p t)
+#+END_SRC
+
+or by using the customize inferface =M-x customize-variable quelpa-upgrade-p RET= and switching the variable to =on=.
+
+To override this default behavior for individual packages you can use:
+
+#+BEGIN_SRC emacs-lisp
+(quelpa 'company :upgrade t) ; quelpa will try to upgrade `company' no matter what
+(quelpa '(ag :repo "Wilfred/ag.el" :fetcher github) :upgrade nil) ; quelpa will not upgrade `helm'
+#+END_SRC
 
 *** Managing packages
 
