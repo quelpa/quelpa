@@ -167,7 +167,7 @@ Return nil if the package is already installed and should not be upgraded."
         (config (cdr rcp)))
     (unless (or (and (package-installed-p name) (not quelpa-upgrade-p))
                 (and (not config)
-                     (quelpa-message "no recipe found for package `%s'" name)))
+                     (quelpa-message t "no recipe found for package `%s'" name)))
       (let ((version (package-build-checkout name config dir)))
         (unless (or (let ((pkg-desc (cdr (assq name package-alist))))
                       (and pkg-desc
@@ -200,12 +200,15 @@ already and should not be upgraded etc)."
 
 ;; --- helpers ---------------------------------------------------------------
 
-(defun quelpa-message (format-string &rest args)
+(defun quelpa-message (wait format-string &rest args)
   "Log a message with FORMAT-STRING and ARGS when `quelpa-verbose' is non-nil.
+If WAIT is nil don't wait after showing the message. If it is a
+number, wait so many seconds. If WAIT is t wait the default time.
 Return t in each case."
   (when quelpa-verbose
     (message "Quelpa: %s" (apply 'format format-string args))
-    (sit-for 1.5 t))
+    (when (or (not noninteractive) wait) ; no wait if emacs is noninteractive
+      (sit-for (or (and (numberp wait) wait) 1.5) t)))
   t)
 
 (defun quelpa-checkout-melpa ()
