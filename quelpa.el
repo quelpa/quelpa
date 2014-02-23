@@ -49,20 +49,17 @@
   "Build and install packages from source code"
   :group 'package)
 
-(defcustom quelpa-dir (expand-file-name (concat user-emacs-directory "quelpa"))
-  "Where quelpa builds and stores packages."
+(defcustom quelpa-upgrade-p nil
+  "When non-nil, `quelpa' will try to upgrade packages.
+The global value can be overridden for each package by supplying
+the `:upgrade' argument."
   :group 'quelpa
-  :type 'string)
+  :type 'boolean)
 
-(defcustom quelpa-build-dir (concat quelpa-dir "/build")
-  "Where quelpa builds packages."
+(defcustom quelpa-verbose t
+  "When non-nil, `quelpa' prints log messages."
   :group 'quelpa
-  :type 'string)
-
-(defcustom quelpa-packages-dir (concat quelpa-dir "/packages")
-  "Where quelpa buts built packages."
-  :group 'quelpa
-  :type 'string)
+  :type 'boolean)
 
 (defcustom quelpa-before-hook '(quelpa-init)
   "List of functions to be called before quelpa."
@@ -74,12 +71,20 @@
   :group 'quelpa
   :type 'hook)
 
-(defcustom quelpa-upgrade-p nil
-  "When non-nil, `quelpa' will try to upgrade packages.
-The global value can be overridden for each package by supplying
-the `:upgrade' argument."
+(defcustom quelpa-dir (expand-file-name "quelpa" user-emacs-directory)
+  "Where quelpa builds and stores packages."
   :group 'quelpa
-  :type 'boolean)
+  :type 'string)
+
+(defcustom quelpa-build-dir (expand-file-name "build" quelpa-dir)
+  "Where quelpa builds packages."
+  :group 'quelpa
+  :type 'string)
+
+(defcustom quelpa-packages-dir (expand-file-name "packages" quelpa-dir)
+  "Where quelpa buts built packages."
+  :group 'quelpa
+  :type 'string)
 
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
@@ -161,7 +166,8 @@ Return nil if the package is already installed and should not be upgraded."
   (let ((name (car rcp))
         (config (cdr rcp)))
     (unless (or (and (package-installed-p name) (not quelpa-upgrade-p))
-                (and (package-built-in-p name) (not config)))
+                (and (not config)
+                     (quelpa-message "no recipe found for package `%s'" name)))
       (let ((version (package-build-checkout name config dir)))
         (unless (or (let ((pkg-desc (cdr (assq name package-alist))))
                       (and pkg-desc
@@ -182,7 +188,7 @@ an elpa compatible package in `quelpa-build-dir' storing it in
 if no action is necessary (like when the package is installed
 already and should not be upgraded etc)."
   (let* ((name (car rcp))
-         (build-dir (expand-file-name (format "%s/%s" quelpa-build-dir name)))
+         (build-dir (expand-file-name (symbol-name name) quelpa-build-dir))
          (version (quelpa-checkout rcp build-dir)))
     (when version
       (quelpa-archive-file-name
@@ -194,21 +200,29 @@ already and should not be upgraded etc)."
 
 ;; --- helpers ---------------------------------------------------------------
 
+(defun quelpa-message (format-string &rest args)
+  "Log a message with FORMAT-STRING and ARGS when `quelpa-verbose' is non-nil.
+Return t in each case."
+  (when quelpa-verbose
+    (message "Quelpa: %s" (apply 'format format-string args))
+    (sit-for 1.5 t))
+  t)
+
 (defun quelpa-checkout-melpa ()
   "Fetch or update the melpa source code from Github."
   (pb/checkout-git 'package-build
                    '(:url "git://github.com/milkypostman/melpa.git")
-                   (concat quelpa-build-dir "/package-build")))
+                   (expand-file-name "package-build" quelpa-build-dir)))
 
 (defun quelpa-get-melpa-recipe (name)
   "Read recipe with NAME for melpa git checkout.
 Return the recipe if it exists, otherwise nil."
-  (let* ((recipes-path (concat quelpa-build-dir "/package-build/recipes"))
+  (let* ((recipes-path (expand-file-name "package-build/recipes" quelpa-build-dir))
          (files (directory-files recipes-path nil "^[^\.]+"))
          (file (assoc-string name files)))
     (when file
       (with-temp-buffer
-        (insert-file-contents-literally (concat recipes-path "/" file))
+        (insert-file-contents-literally (expand-file-name file recipes-path))
         (read (buffer-string))))))
 
 (defun quelpa-init ()
