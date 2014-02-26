@@ -285,12 +285,23 @@ install them."
 (defun quelpa (arg &rest plist)
   "Build and install a package with quelpa.
 ARG can be a package name (symbol) or a melpa recipe (list).
-PLIST is a plist that may modify the build and/or fetch process."
+PLIST is a plist that may modify the build and/or fetch process.
+If called interactively, `quelpa' will prompt for a MELPA package
+to install."
+  (interactive (list 'interactive))
   (run-hooks 'quelpa-before-hook)
   ;; shadow `quelpa-upgrade-p' taking the default from the global var
-  (let ((quelpa-upgrade-p quelpa-upgrade-p))
+  (let* ((quelpa-upgrade-p quelpa-upgrade-p)
+         (recipes (directory-files
+                   (expand-file-name "package-build/recipes" quelpa-build-dir)
+                   ;; this regexp matches all files except dotfiles
+                   nil "^[^.].+$"))
+         (candidate (if (eq arg 'interactive)
+                        (intern (completing-read "Choose MELPA recipe: "
+                                                 recipes nil t))
+                      arg)))
     (quelpa-parse-plist plist)
-    (quelpa-package-install arg))
+    (quelpa-package-install candidate))
   (run-hooks 'quelpa-after-hook))
 
 (provide 'quelpa)

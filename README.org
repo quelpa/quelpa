@@ -75,6 +75,8 @@ Check http://melpa.milkbox.net/ for any packages you would like to install. You 
 
 Running this expression will fetch the =magit= source code from Github, build a package in elpa format and install it.
 
+Interactive installation is supported as well. Just type =M-x quelpa= and select a recipe name.
+
 If the package has dependencies it will install them first.
 
 *** Installing with a recipe
