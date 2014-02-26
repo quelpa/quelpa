@@ -303,6 +303,7 @@ to install."
     (quelpa-parse-plist plist)
     (quelpa-package-install candidate))
   (run-hooks 'quelpa-after-hook))
+
 (provide 'quelpa)
 
 ;;; quelpa.el ends here
