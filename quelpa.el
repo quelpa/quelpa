@@ -170,7 +170,11 @@ Return nil if the package is already installed and should not be upgraded."
                      (quelpa-message t "no recipe found for package `%s'" name)))
       (let ((version (condition-case-unless-debug err
                          (package-build-checkout name config dir)
-                       (error (quelpa-message t "failed to checkout `%s'. Check your internet." name (error-message-string err)) nil))))
+                       (error (quelpa-message t
+                                              "failed to checkout `%s': `%s'"
+                                              name
+                                              (error-message-string err))
+                              nil))))
         (unless (or (not version)
                     (let ((pkg-desc (cdr (assq name package-alist))))
                       (and pkg-desc
@@ -224,7 +228,7 @@ If there is an error and no existing checkout return nil."
         (pb/checkout-git 'package-build
                          '(:url "git://github.com/milkypostman/melpa.git")
                          dir)
-      (error (quelpa-message t "failed to checkout melpa git repo" (error-message-string err))
+      (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
              (file-exists-p (expand-file-name ".git" dir))))))
 
 (defun quelpa-get-melpa-recipe (name)
