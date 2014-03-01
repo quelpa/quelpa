@@ -61,7 +61,7 @@ the `:upgrade' argument."
   :group 'quelpa
   :type 'boolean)
 
-(defcustom quelpa-before-hook '(quelpa-init)
+(defcustom quelpa-before-hook nil
   "List of functions to be called before quelpa."
   :group 'quelpa
   :type 'hook)
@@ -168,8 +168,11 @@ Return nil if the package is already installed and should not be upgraded."
     (unless (or (and (package-installed-p name) (not quelpa-upgrade-p))
                 (and (not config)
                      (quelpa-message t "no recipe found for package `%s'" name)))
-      (let ((version (package-build-checkout name config dir)))
-        (unless (or (let ((pkg-desc (cdr (assq name package-alist))))
+      (let ((version (condition-case-unless-debug err
+                         (package-build-checkout name config dir)
+                       (error (quelpa-message t "failed to checkout `%s'. Check your internet." name (error-message-string err)) nil))))
+        (unless (or (not version)
+                    (let ((pkg-desc (cdr (assq name package-alist))))
                       (and pkg-desc
                            (version-list-<=
                             (version-to-list version)
@@ -212,10 +215,17 @@ Return t in each case."
   t)
 
 (defun quelpa-checkout-melpa ()
-  "Fetch or update the melpa source code from Github."
-  (pb/checkout-git 'package-build
-                   '(:url "git://github.com/milkypostman/melpa.git")
-                   (expand-file-name "package-build" quelpa-build-dir)))
+  "Fetch or update the melpa source code from Github.
+If there is no error return non-nil.
+If there is an error but melpa is already checked out return non-nil.
+If there is an error and no existing checkout return nil."
+  (let ((dir (expand-file-name "package-build" quelpa-build-dir)))
+    (condition-case-unless-debug err
+        (pb/checkout-git 'package-build
+                         '(:url "git://github.com/milkypostman/melpa.git")
+                         dir)
+      (error (quelpa-message t "failed to checkout melpa git repo" (error-message-string err))
+             (file-exists-p (expand-file-name ".git" dir))))))
 
 (defun quelpa-get-melpa-recipe (name)
   "Read recipe with NAME for melpa git checkout.
@@ -229,7 +239,8 @@ Return the recipe if it exists, otherwise nil."
         (read (buffer-string))))))
 
 (defun quelpa-init ()
-  "Setup what we need for quelpa."
+  "Setup what we need for quelpa.
+Return "
   (dolist (dir (list quelpa-packages-dir quelpa-build-dir))
     (unless (file-exists-p dir) (make-directory dir t)))
   (unless quelpa-initialized-p
@@ -290,18 +301,20 @@ If called interactively, `quelpa' will prompt for a MELPA package
 to install."
   (interactive (list 'interactive))
   (run-hooks 'quelpa-before-hook)
-  ;; shadow `quelpa-upgrade-p' taking the default from the global var
-  (let* ((quelpa-upgrade-p quelpa-upgrade-p)
-         (recipes (directory-files
-                   (expand-file-name "package-build/recipes" quelpa-build-dir)
-                   ;; this regexp matches all files except dotfiles
-                   nil "^[^.].+$"))
-         (candidate (if (eq arg 'interactive)
-                        (intern (completing-read "Choose MELPA recipe: "
-                                                 recipes nil t))
-                      arg)))
-    (quelpa-parse-plist plist)
-    (quelpa-package-install candidate))
+  ;; if init fails we do nothing
+  (unless (quelpa-init)
+    ;; shadow `quelpa-upgrade-p' taking the default from the global var
+    (let* ((quelpa-upgrade-p quelpa-upgrade-p)
+           (recipes (directory-files
+                     (expand-file-name "package-build/recipes" quelpa-build-dir)
+                     ;; this regexp matches all files except dotfiles
+                     nil "^[^.].+$"))
+           (candidate (if (eq arg 'interactive)
+                          (intern (completing-read "Choose MELPA recipe: "
+                                                   recipes nil t))
+                        arg)))
+      (quelpa-parse-plist plist)
+      (quelpa-package-install candidate)))
   (run-hooks 'quelpa-after-hook))
 
 (provide 'quelpa)
