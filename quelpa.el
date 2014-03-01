@@ -32,7 +32,7 @@
 ;; built on-the-fly directly from source.
 
 ;; See the README.org for more info:
-;; https://github.com/steckerhalter/quelpa/README.org
+;; https://github.com/quelpa/quelpa/README.org
 
 ;;; Requirements:
 
@@ -88,6 +88,9 @@ the `:upgrade' argument."
 
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
+
+(defvar quelpa-cache nil
+  "The `quelpa' command stores processed pkgs/recipes in the cache.")
 
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
 
@@ -299,6 +302,17 @@ install them."
 ;; --- public interface ------------------------------------------------------
 
 ;;;###autoload
+(defun quelpa-upgrade ()
+  "Upgrade all packages found in `quelpa-cache'.
+This provides an easy way to upgrade all the packages for which
+the `quelpa' command has been run in the current Emacs session."
+  (interactive)
+  (let ((quelpa-upgrade-p t))
+    (mapc (lambda (item)
+              (when (package-installed-p (car (quelpa-arg-rcp item)))
+                (quelpa item))) quelpa-cache)))
+
+;;;###autoload
 (defun quelpa (arg &rest plist)
   "Build and install a package with quelpa.
 ARG can be a package name (symbol) or a melpa recipe (list).
@@ -320,7 +334,8 @@ to install."
                                                    recipes nil t))
                         arg)))
       (quelpa-parse-plist plist)
-      (quelpa-package-install candidate)))
+      (quelpa-package-install candidate)
+      (add-to-list 'quelpa-cache candidate)))
   (run-hooks 'quelpa-after-hook))
 
 (provide 'quelpa)

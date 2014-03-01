@@ -91,7 +91,7 @@ For example I like the package [[http://www.emacswiki.org/emacs/eval-sexp-fu.el]
 
 Don't forget the quote before the recipe.
 
-*** Upgrading packages
+*** Upgrading individual packages
 
 Per default =quelpa= does not do anything if a package is already installed. You can customize this behavior globally by setting the variable =quelpa-upgrade-p= to =t= manually:
 
@@ -114,6 +114,16 @@ To override this default behavior for individual packages you can use:
 #+END_SRC
 
 =quelpa= will not upgrade =ag=.
+
+*** Upgrading all packages
+
+Since having =quelpa= upgrade packages on startup can be a bit slow, upgrading can be also done afterwards using the cached recipes/package names:
+
+=M-x quelpa-upgrade=
+
+This will go through all registered packages and try to upgrade the ones that have not been removed in the meantime. So instead of having to delay the Emacs init process one can just start this command before a coffee break for example.
+
+To provide this command, every time the =quelpa= command runs it saves the given recipe or package name in the variable =quelpa-cache= which is used to feed =quelpa-upgrade=.
 
 *** Managing packages
 
