@@ -238,15 +238,17 @@ Return the recipe if it exists, otherwise nil."
         (insert-file-contents-literally (expand-file-name file recipes-path))
         (read (buffer-string))))))
 
-(defun quelpa-init ()
+(defun quelpa-init-p ()
   "Setup what we need for quelpa.
-Return "
-  (dolist (dir (list quelpa-packages-dir quelpa-build-dir))
-    (unless (file-exists-p dir) (make-directory dir t)))
-  (unless quelpa-initialized-p
-    (quelpa-setup-package-structs)
-    (quelpa-checkout-melpa)
-    (setq quelpa-initialized-p t)))
+Return non-nil if quelpa has been initialized properly."
+  (catch 'quit
+    (dolist (dir (list quelpa-packages-dir quelpa-build-dir))
+      (unless (file-exists-p dir) (make-directory dir t)))
+    (unless quelpa-initialized-p
+      (quelpa-setup-package-structs)
+      (unless (quelpa-checkout-melpa) (throw 'quit nil))
+      (setq quelpa-initialized-p t))
+    t))
 
 (defun quelpa-shutdown ()
   "Do things that need to be done after running quelpa."
@@ -302,7 +304,7 @@ to install."
   (interactive (list 'interactive))
   (run-hooks 'quelpa-before-hook)
   ;; if init fails we do nothing
-  (unless (quelpa-init)
+  (when (quelpa-init-p)
     ;; shadow `quelpa-upgrade-p' taking the default from the global var
     (let* ((quelpa-upgrade-p quelpa-upgrade-p)
            (recipes (directory-files
