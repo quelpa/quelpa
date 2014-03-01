@@ -168,7 +168,7 @@ Return nil if the package is already installed and should not be upgraded."
     (unless (or (and (package-installed-p name) (not quelpa-upgrade-p))
                 (and (not config)
                      (quelpa-message t "no recipe found for package `%s'" name)))
-      (let ((version (condition-case-unless-debug err
+      (let ((version (condition-case err
                          (package-build-checkout name config dir)
                        (error (quelpa-message t
                                               "failed to checkout `%s': `%s'"
@@ -224,7 +224,7 @@ If there is no error return non-nil.
 If there is an error but melpa is already checked out return non-nil.
 If there is an error and no existing checkout return nil."
   (let ((dir (expand-file-name "package-build" quelpa-build-dir)))
-    (condition-case-unless-debug err
+    (condition-case err
         (pb/checkout-git 'package-build
                          '(:url "git://github.com/milkypostman/melpa.git")
                          dir)
