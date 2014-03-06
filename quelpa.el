@@ -233,7 +233,8 @@ Return t in each case."
 
 (defun quelpa-read-cache ()
   "Read from `quelpa-persistent-cache-file' in `quelpa-cache'."
-  (when quelpa-persistent-cache-p
+  (when (and quelpa-persistent-cache-p
+             (file-exists-p quelpa-persistent-cache-file))
     (with-temp-buffer
       (insert-file-contents-literally quelpa-persistent-cache-file)
       (setq quelpa-cache
