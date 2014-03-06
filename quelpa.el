@@ -358,10 +358,18 @@ to install."
            (candidate (if (eq arg 'interactive)
                           (intern (completing-read "Choose MELPA recipe: "
                                                    recipes nil t))
-                        arg)))
+                        arg))
+           (simple-recipe-p (symbolp candidate))
+           (match (if simple-recipe-p
+                      (assq candidate quelpa-cache)
+                    (assq (car candidate) quelpa-cache))))
       (quelpa-parse-plist plist)
       (quelpa-package-install candidate)
-      (add-to-list 'quelpa-cache candidate)))
+      (when match
+        (setq quelpa-cache (remove match quelpa-cache)))
+      (if simple-recipe-p
+          (add-to-list 'quelpa-cache (list candidate))
+        (add-to-list 'quelpa-cache candidate))))
   (run-hooks 'quelpa-after-hook))
 
 (provide 'quelpa)
