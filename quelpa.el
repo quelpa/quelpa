@@ -66,7 +66,7 @@ the `:upgrade' argument."
   :group 'quelpa
   :type 'hook)
 
-(defcustom quelpa-after-hook '(quelpa-shutdown)
+(defcustom quelpa-after-hook '(quelpa-shutdown quelpa-save-cache)
   "List of functions to be called after quelpa."
   :group 'quelpa
   :type 'hook)
@@ -85,6 +85,16 @@ the `:upgrade' argument."
   "Where quelpa buts built packages."
   :group 'quelpa
   :type 'string)
+
+(defcustom quelpa-persistent-cache-file (expand-file-name "cache" quelpa-dir)
+  "Location of the persistent cache file."
+  :group 'quelpa
+  :type 'string)
+
+(defcustom quelpa-persistent-cache-p nil
+  "Non-nil when quelpa's cache is saved on and read from disk."
+  :group 'quelpa
+  :type 'boolean)
 
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
@@ -221,6 +231,20 @@ Return t in each case."
       (sit-for (or (and (numberp wait) wait) 1.5) t)))
   t)
 
+(defun quelpa-read-cache ()
+  "Read from `quelpa-persistent-cache-file' in `quelpa-cache'."
+  (when quelpa-persistent-cache-p
+    (with-temp-buffer
+      (insert-file-contents-literally quelpa-persistent-cache-file)
+      (setq quelpa-cache
+            (read (buffer-substring-no-properties (point-min) (point-max)))))))
+
+(defun quelpa-save-cache ()
+  "Write `quelpa-cache' to `quelpa-persistent-cache-file'."
+  (when quelpa-persistent-cache-p
+    (with-temp-file quelpa-persistent-cache-file
+      (insert (prin1-to-string quelpa-cache)))))
+
 (defun quelpa-checkout-melpa ()
   "Fetch or update the melpa source code from Github.
 If there is no error return non-nil.
@@ -252,6 +276,7 @@ Return non-nil if quelpa has been initialized properly."
     (dolist (dir (list quelpa-packages-dir quelpa-build-dir))
       (unless (file-exists-p dir) (make-directory dir t)))
     (unless quelpa-initialized-p
+      (quelpa-read-cache)
       (quelpa-setup-package-structs)
       (unless (quelpa-checkout-melpa) (throw 'quit nil))
       (setq quelpa-initialized-p t))
