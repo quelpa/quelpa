@@ -66,7 +66,7 @@ the `:upgrade' argument."
   :group 'quelpa
   :type 'hook)
 
-(defcustom quelpa-after-hook '(quelpa-shutdown)
+(defcustom quelpa-after-hook nil
   "List of functions to be called after quelpa."
   :group 'quelpa
   :type 'hook)
@@ -85,6 +85,16 @@ the `:upgrade' argument."
   "Where quelpa buts built packages."
   :group 'quelpa
   :type 'string)
+
+(defcustom quelpa-persistent-cache-file (expand-file-name "cache" quelpa-dir)
+  "Location of the persistent cache file."
+  :group 'quelpa
+  :type 'string)
+
+(defcustom quelpa-persistent-cache-p t
+  "Non-nil when quelpa's cache is saved on and read from disk."
+  :group 'quelpa
+  :type 'boolean)
 
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
@@ -221,6 +231,21 @@ Return t in each case."
       (sit-for (or (and (numberp wait) wait) 1.5) t)))
   t)
 
+(defun quelpa-read-cache ()
+  "Read from `quelpa-persistent-cache-file' in `quelpa-cache'."
+  (when (and quelpa-persistent-cache-p
+             (file-exists-p quelpa-persistent-cache-file))
+    (with-temp-buffer
+      (insert-file-contents-literally quelpa-persistent-cache-file)
+      (setq quelpa-cache
+            (read (buffer-substring-no-properties (point-min) (point-max)))))))
+
+(defun quelpa-save-cache ()
+  "Write `quelpa-cache' to `quelpa-persistent-cache-file'."
+  (when quelpa-persistent-cache-p
+    (with-temp-file quelpa-persistent-cache-file
+      (insert (prin1-to-string quelpa-cache)))))
+
 (defun quelpa-checkout-melpa ()
   "Fetch or update the melpa source code from Github.
 If there is no error return non-nil.
@@ -252,6 +277,7 @@ Return non-nil if quelpa has been initialized properly."
     (dolist (dir (list quelpa-packages-dir quelpa-build-dir))
       (unless (file-exists-p dir) (make-directory dir t)))
     (unless quelpa-initialized-p
+      (quelpa-read-cache)
       (quelpa-setup-package-structs)
       (unless (quelpa-checkout-melpa) (throw 'quit nil))
       (setq quelpa-initialized-p t))
@@ -332,10 +358,20 @@ to install."
            (candidate (if (eq arg 'interactive)
                           (intern (completing-read "Choose MELPA recipe: "
                                                    recipes nil t))
-                        arg)))
+                        arg))
+           (simple-recipe-p (symbolp candidate))
+           (match (if simple-recipe-p
+                      (assq candidate quelpa-cache)
+                    (assq (car candidate) quelpa-cache))))
       (quelpa-parse-plist plist)
       (quelpa-package-install candidate)
-      (add-to-list 'quelpa-cache candidate)))
+      (when match
+        (setq quelpa-cache (remove match quelpa-cache)))
+      (if simple-recipe-p
+          (add-to-list 'quelpa-cache (list candidate))
+        (add-to-list 'quelpa-cache candidate))))
+  (quelpa-save-cache)
+  (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
 
 (provide 'quelpa)
