@@ -66,7 +66,7 @@ the `:upgrade' argument."
   :group 'quelpa
   :type 'hook)
 
-(defcustom quelpa-after-hook '(quelpa-shutdown quelpa-save-cache)
+(defcustom quelpa-after-hook nil
   "List of functions to be called after quelpa."
   :group 'quelpa
   :type 'hook)
@@ -370,6 +370,8 @@ to install."
       (if simple-recipe-p
           (add-to-list 'quelpa-cache (list candidate))
         (add-to-list 'quelpa-cache candidate))))
+  (quelpa-save-cache)
+  (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
 
 (provide 'quelpa)
