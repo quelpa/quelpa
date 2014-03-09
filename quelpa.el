@@ -91,7 +91,7 @@ the `:upgrade' argument."
   :group 'quelpa
   :type 'string)
 
-(defcustom quelpa-persistent-cache-p nil
+(defcustom quelpa-persistent-cache-p t
   "Non-nil when quelpa's cache is saved on and read from disk."
   :group 'quelpa
   :type 'boolean)
