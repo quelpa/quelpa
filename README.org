@@ -4,15 +4,15 @@
 
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
-If you want to help with the development of quelpa, check the [[https://github.com/quelpa/quelpa/issues][issues.]]
+If you want to help out with the development of quelpa, check out the [[https://github.com/quelpa/quelpa/issues][issues]].
 
 ** Overview
 
-=quelpa= brings the power over your Emacs packages back to you. The [[http://melpa.milkbox.net/packages/][melpa]] archive is great because it has so many packages but why should an external build service control what packages you can install?
+=quelpa= brings the power over your Emacs packages back to you. The [[http://melpa.milkbox.net/packages/][MELPA]] archive is great because it is the fastest growing collection of recipes, but why should an external build service control what packages you are able to install?
 
-Rather =quelpa= uses recipes in the [[https://github.com/milkypostman/melpa#recipe-format][melpa-format]] to build the packages you want from the source code and installs them using the built-in Emacs package manager.
+=quelpa= uses recipes in [[https://github.com/milkypostman/melpa#recipe-format][MELPA's format]] to build your desired packages from source and installs them using the built-in Emacs package manager. Basically, it's a standards-complying [[https://github.com/dimitri/el-get][el-get]][[el][]]. Or a local MELPA that doesn't require waiting for new builds.
 
-You can build and install packages from all the sources the melpa build script =package-build= supports:
+You can build and install packages from all the sources MELPA's build script =package-build= supports:
 
 - git: http://git-scm.com/
 - github: https://github.com/
@@ -23,20 +23,22 @@ You can build and install packages from all the sources the melpa build script =
 - darcs: http://darcs.net/
 - Emacs Wiki (wiki): http://www.emacswiki.org/
 
+Additional fetchers will be added soon.
+
 ** Requirements
 
 - Emacs 24.3.1
 - git: http://git-scm.com/
 
-For any build source you need the corresponding tool. So if you want to install a =subversion= hosted package you need to have =subversion= installed locally.
+Every build requires the corresponding build tool. To install a =subversion= hosted package, you need to have =subversion= installed.
 
-Important here is to note that if the source for a package is fetched with =git=, it still can have a dependency that may have to be fetched with =mercurial= so you better install the most common ones, i.e. =git=, =bzr=, =hg=, and =svn=.
+Note: Even if the sources of a package are fetched with a VCS tool you have installed, they might have dependencies that require a different VCS tool. Better install the most common ones before proceeding.
 
 ** Installation
 
-First =quelpa= needs to be bootstrapped, that means melpa's =package-build= has to be installed, then =quelpa= itself.
+First =quelpa= needs to be bootstrapped. This means MELPA's =package-build= has to be installed first, then =quelpa= itself.
 
-To bootstrap =quelpa= use this code:
+To bootstrap =quelpa= use this code snippet:
 
 #+BEGIN_SRC emacs-lisp
 (if (require 'quelpa nil t)
@@ -46,9 +48,9 @@ To bootstrap =quelpa= use this code:
     (eval-buffer)))
 #+END_SRC
 
-Evaluate this expression in your =*scratch*= buffer to bootstrap =quelpa= now. Add it to your Emacs init file to make sure =quelpa= will be installed and upgraded automatically if necessary.
+Evaluate this expression in your =*scratch*= buffer to bootstrap =quelpa=. Add it to your Emacs init file to make sure =quelpa= will be installed and upgraded automatically when needed.
 
-If you don't like =quelpa= doing self-upgrades (although this is recommended) shorten it to:
+If you don't like =quelpa= doing self-upgrades (although this is recommended), use the following snippet instead:
 
 #+BEGIN_SRC emacs-lisp
 (unless (require 'quelpa nil t)
@@ -61,7 +63,7 @@ If you don't like =quelpa= doing self-upgrades (although this is recommended) sh
 
 Cool. Now that we are all setup, enjoy the ride.
 
-To get an idea how =quelpa= can be used, you might take a look at the Emacs configuration [[http://steckerhalter.co.vu/steckemacs.html][steckemacs]], especially the [[http://steckerhalter.co.vu/steckemacs.html#sec-2-10][Modes section]] where =quelpa= loads and installs the required packages just before they are configured.
+=quelpa= can be used in many ways, for example to manage your personal packages, testing development versions of other packages or as a helper when developing a package. Take a look at the [[http://steckerhalter.co.vu/steckemacs.html][steckemacs configuration]], especially the [[http://steckerhalter.co.vu/steckemacs.html#sec-2-10][Modes section]] where =quelpa= loads and installs the required packages just before they are configured.
 
 There are two ways to install packages with =quelpa=:
 
@@ -73,17 +75,17 @@ Check http://melpa.milkbox.net/ for any packages you would like to install. You 
 (quelpa 'magit)
 #+END_SRC
 
-Running this expression will fetch the =magit= source code from Github, build a package in elpa format and install it.
+Running this expression will fetch the =magit= source code from Github, build a package in the ELPA format and install it.
 
-Interactive installation is supported as well. Just type =M-x quelpa= and select a recipe name.
+Interactive installation is supported as well. Just execute =M-x quelpa= and select a recipe name from MELPA.
 
-If the package has dependencies it will install them first.
+If the package has dependencies they will be installed first.
 
 *** Installing with a recipe
 
-You can also install packages that are not on melpa. For this you need to provide a recipe in the melpa-format.
+You can also install packages that are not on MELPA. For this you need to provide a recipe in MELPA's format.
 
-For example I like the package [[http://www.emacswiki.org/emacs/eval-sexp-fu.el][eval-sexp-fu.el]] which is located on the Emacs Wiki but not available on melpa. I just need to provide a valid recipe instead of a package name:
+For example if I'd like to install the [[http://www.emacswiki.org/emacs/eval-sexp-fu.el][eval-sexp-fu.el package]] which is located on the Emacs Wiki but not available on MELPA, I just need to provide a valid recipe instead of a package name:
 
 #+BEGIN_SRC emacs-lisp
 (quelpa '(eval-sexp-fu :fetcher wiki :files ("eval-sexp-fu.el")))
@@ -99,36 +101,32 @@ Per default =quelpa= does not do anything if a package is already installed. You
 (setq quelpa-upgrade-p t)
 #+END_SRC
 
-or by using the customize inferface =M-x customize-variable quelpa-upgrade-p RET= and switching the variable to =on=.
+Alternatively customize this variable by executing =M-x customize-variable quelpa-upgrade-p RET=.
 
-To override this default behavior for individual packages you can use:
+To override the default behavior for individual packages you can use:
 
 #+BEGIN_SRC emacs-lisp
 (quelpa 'company :upgrade t)
 #+END_SRC
 
-=quelpa= will try to upgrade =company= even if upgrading is disabled globally.
+This way =quelpa= will try to upgrade =company= even if upgrading is disabled globally.
 
 #+BEGIN_SRC emacs-lisp
 (quelpa '(ag :repo "Wilfred/ag.el" :fetcher github) :upgrade nil)
 #+END_SRC
 
-=quelpa= will not upgrade =ag=.
+When used that way, =quelpa= will not upgrade =ag=. This can be used to "pin" packages when evaluating a buffer with =quelpa= invocations.
 
 *** Upgrading all packages
 
-Since having =quelpa= upgrade packages on startup can be a bit slow, upgrading can be also done afterwards using the cached recipes/package names:
+Upgrading all your =quelpa= packages at init is one option to keep them up to date, but can slow it down considerably. Alternatively you can execute =M-x quelpa-upgrade= and upgrade every cached package.
 
-=M-x quelpa-upgrade=
-
-This will go through all registered packages and try to upgrade the ones that have not been removed in the meantime. So instead of having to delay the Emacs init process one can just start this command before a coffee break for example.
-
-To provide this command, every time the =quelpa= command runs it saves the given recipe or package name in the variable =quelpa-cache= which is used to feed =quelpa-upgrade=.
+This command relies on an intact cache file which is set in the =quelpa-cache-file= variable. It is updated after every =quelpa= invocation. To reset it for debugging purposes, just delete the file and better keep a backup.
 
 *** Managing packages
 
-Because =quelpa= installs packages using the built-in Emacs package management system, you can use the regular interface =M-x list-packages= and work with your packages as you normally do.
+Because =quelpa= installs packages using the built-in Emacs package management system, you can use its regular interface by executing =M-x list-packages= and work with your packages as you would normally do. Deleting a package does not affect the =quelpa= cache yet.
 
 ** Why "quelpa"?
 
-German =Quelle= means =spring= (water source) but also =source=. For example =source code= is translated =Quellcode=. =ELPA= is short for Emacs Lisp Package Archive. You get the idea.
+The german word =Quelle= means =spring= (as in: water source) but also =source=. =source code= is translated to =Quellcode=. =ELPA= is the abbreviation for Emacs Lisp Package Archive. You get the idea.
