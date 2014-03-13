@@ -10,7 +10,7 @@ If you want to help out with the development of quelpa, check out the [[https://
 
 =quelpa= brings the power over your Emacs packages back to you. The [[http://melpa.milkbox.net/packages/][MELPA]] archive is great because it is the fastest growing collection of recipes, but why should an external build service control what packages you are able to install?
 
-=quelpa= uses recipes in [[https://github.com/milkypostman/melpa#recipe-format][MELPA's format]] to build your desired packages from source and installs them using the built-in Emacs package manager. Basically, it's a standards-complying [[https://github.com/dimitri/el-get][el-get]][[el][]]. Or a local MELPA that doesn't require waiting for new builds.
+=quelpa= uses recipes in [[https://github.com/milkypostman/melpa#recipe-format][MELPA's format]] to build your desired packages from source and installs them using the built-in Emacs package manager. Basically, it's a standards-complying [[https://github.com/dimitri/el-get][el-get]]. Or a local MELPA that doesn't require waiting for new builds.
 
 You can build and install packages from all the sources MELPA's build script =package-build= supports:
 
