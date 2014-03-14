@@ -344,11 +344,12 @@ install them."
 If called interactively, let the user choose a recipe name and
 insert the result into the current buffer."
   (interactive (list (quelpa-interactive-candidate)))
-  (let* ((recipe (quelpa-get-melpa-recipe recipe-name)))
-    (when recipe
-      (if (interactive-p)
-          (insert (format "%s" recipe))
-        recipe))))
+  (when (quelpa-init-p)
+    (let* ((recipe (quelpa-get-melpa-recipe recipe-name)))
+      (when recipe
+        (if (interactive-p)
+            (insert (format "%s" recipe))
+          recipe)))))
 
 ;;;###autoload
 (defun quelpa-upgrade ()
