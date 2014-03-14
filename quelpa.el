@@ -327,7 +327,7 @@ install them."
         (package-install-file file)))))
 
 (defun quelpa-interactive-candidate ()
-  "Querpa the user for a melpa recipe and return the name."
+  "Query the user for a recipe and return the name."
   (when (quelpa-init-p)
     (let  ((recipes (directory-files
                      (expand-file-name "package-build/recipes" quelpa-build-dir)
