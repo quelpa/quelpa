@@ -274,9 +274,9 @@ Return the recipe if it exists, otherwise nil."
   "Setup what we need for quelpa.
 Return non-nil if quelpa has been initialized properly."
   (catch 'quit
-    (dolist (dir (list quelpa-packages-dir quelpa-build-dir))
-      (unless (file-exists-p dir) (make-directory dir t)))
     (unless quelpa-initialized-p
+      (dolist (dir (list quelpa-packages-dir quelpa-build-dir))
+        (unless (file-exists-p dir) (make-directory dir t)))
       (quelpa-read-cache)
       (quelpa-setup-package-structs)
       (unless (quelpa-checkout-melpa) (throw 'quit nil))
@@ -285,6 +285,7 @@ Return non-nil if quelpa has been initialized properly."
 
 (defun quelpa-shutdown ()
   "Do things that need to be done after running quelpa."
+  (quelpa-save-cache)
   ;; remove the packages dir because we are done with the built pkgs
   (ignore-errors (delete-directory quelpa-packages-dir t)))
 
@@ -325,7 +326,29 @@ install them."
                 requires))
         (package-install-file file)))))
 
+(defun quelpa-interactive-candidate ()
+  "Querpa the user for a melpa recipe and return the name."
+  (when (qulpa-init-p)
+    (let  ((recipes (directory-files
+                     (expand-file-name "package-build/recipes" quelpa-build-dir)
+                     ;; this regexp matches all files except dotfiles
+                     nil "^[^.].+$")))
+      (intern (completing-read "Choose MELPA recipe: "
+                               recipes nil t)))))
+
 ;; --- public interface ------------------------------------------------------
+
+;;;###autoload
+(defun quelpa-expand-recipe (recipe-name)
+  "Expand a given recipe name into full recipe.
+If called interactively, let the user choose a recipe name and
+insert the result into the current buffer."
+  (interactive (list (quelpa-interactive-candidate)))
+  (let* ((recipe (quelpa-get-melpa-recipe recipe-name)))
+    (when recipe
+      (if (interactive-p)
+          (insert (format "%s" recipe))
+        recipe))))
 
 ;;;###autoload
 (defun quelpa-upgrade ()
@@ -345,32 +368,18 @@ ARG can be a package name (symbol) or a melpa recipe (list).
 PLIST is a plist that may modify the build and/or fetch process.
 If called interactively, `quelpa' will prompt for a MELPA package
 to install."
-  (interactive (list 'interactive))
+  (interactive (list (quelpa-interactive-candidate)))
   (run-hooks 'quelpa-before-hook)
   ;; if init fails we do nothing
   (when (quelpa-init-p)
     ;; shadow `quelpa-upgrade-p' taking the default from the global var
     (let* ((quelpa-upgrade-p quelpa-upgrade-p)
-           (recipes (directory-files
-                     (expand-file-name "package-build/recipes" quelpa-build-dir)
-                     ;; this regexp matches all files except dotfiles
-                     nil "^[^.].+$"))
-           (candidate (if (eq arg 'interactive)
-                          (intern (completing-read "Choose MELPA recipe: "
-                                                   recipes nil t))
-                        arg))
-           (simple-recipe-p (symbolp candidate))
-           (match (if simple-recipe-p
-                      (assq candidate quelpa-cache)
-                    (assq (car candidate) quelpa-cache))))
+           (rcp (quelpa-arg-rcp arg))
+           (match (assq (car rcp) quelpa-cache)))
       (quelpa-parse-plist plist)
-      (quelpa-package-install candidate)
-      (when match
-        (setq quelpa-cache (remove match quelpa-cache)))
-      (if simple-recipe-p
-          (add-to-list 'quelpa-cache (list candidate))
-        (add-to-list 'quelpa-cache candidate))))
-  (quelpa-save-cache)
+      (quelpa-package-install arg)
+      (setq quelpa-cache (remove match quelpa-cache))
+      (add-to-list 'quelpa-cache arg)))
   (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
 
