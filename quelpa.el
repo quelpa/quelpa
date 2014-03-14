@@ -274,9 +274,9 @@ Return the recipe if it exists, otherwise nil."
   "Setup what we need for quelpa.
 Return non-nil if quelpa has been initialized properly."
   (catch 'quit
+    (dolist (dir (list quelpa-packages-dir quelpa-build-dir))
+      (unless (file-exists-p dir) (make-directory dir t)))
     (unless quelpa-initialized-p
-      (dolist (dir (list quelpa-packages-dir quelpa-build-dir))
-        (unless (file-exists-p dir) (make-directory dir t)))
       (quelpa-read-cache)
       (quelpa-setup-package-structs)
       (unless (quelpa-checkout-melpa) (throw 'quit nil))
