@@ -328,7 +328,7 @@ install them."
 
 (defun quelpa-interactive-candidate ()
   "Querpa the user for a melpa recipe and return the name."
-  (when (qulpa-init-p)
+  (when (quelpa-init-p)
     (let  ((recipes (directory-files
                      (expand-file-name "package-build/recipes" quelpa-build-dir)
                      ;; this regexp matches all files except dotfiles
