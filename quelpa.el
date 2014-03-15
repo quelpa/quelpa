@@ -357,10 +357,11 @@ insert the result into the current buffer."
 This provides an easy way to upgrade all the packages for which
 the `quelpa' command has been run in the current Emacs session."
   (interactive)
-  (let ((quelpa-upgrade-p t))
-    (mapc (lambda (item)
+  (when quelpa-upgrade-p
+    (let ((quelpa-upgrade-p t))
+      (mapc (lambda (item)
               (when (package-installed-p (car (quelpa-arg-rcp item)))
-                (quelpa item))) quelpa-cache)))
+                (quelpa item))) quelpa-cache))))
 
 ;;;###autoload
 (defun quelpa (arg &rest plist)
