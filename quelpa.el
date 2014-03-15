@@ -293,7 +293,8 @@ Return non-nil if quelpa has been initialized properly."
   "Given recipe or package name, return an alist '(NAME . RCP).
 If RCP cannot be found it will be set to nil"
   (pcase arg
-    ((pred listp) arg)
+    (`(,a . nil) (cons (car arg) (cdr (quelpa-get-melpa-recipe (car arg)))))
+    (`(,a . ,_) arg)
     ((pred symbolp) (cons arg (cdr (quelpa-get-melpa-recipe arg))))))
 
 (defun quelpa-parse-plist (plist)
