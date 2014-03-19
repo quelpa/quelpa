@@ -270,7 +270,7 @@ Return the recipe if it exists, otherwise nil."
         (insert-file-contents-literally (expand-file-name file recipes-path))
         (read (buffer-string))))))
 
-(defun quelpa-init-p ()
+(defun quelpa-setup-p ()
   "Setup what we need for quelpa.
 Return non-nil if quelpa has been initialized properly."
   (catch 'quit
@@ -329,7 +329,7 @@ install them."
 
 (defun quelpa-interactive-candidate ()
   "Query the user for a recipe and return the name."
-  (when (quelpa-init-p)
+  (when (quelpa-setup-p)
     (let  ((recipes (directory-files
                      (expand-file-name "package-build/recipes" quelpa-build-dir)
                      ;; this regexp matches all files except dotfiles
@@ -345,7 +345,7 @@ install them."
 If called interactively, let the user choose a recipe name and
 insert the result into the current buffer."
   (interactive (list (quelpa-interactive-candidate)))
-  (when (quelpa-init-p)
+  (when (quelpa-setup-p)
     (let* ((recipe (quelpa-get-melpa-recipe recipe-name)))
       (when recipe
         (if (interactive-p)
@@ -358,7 +358,7 @@ insert the result into the current buffer."
 This provides an easy way to upgrade all the packages for which
 the `quelpa' command has been run in the current Emacs session."
   (interactive)
-  (when quelpa-upgrade-p
+  (when (quelpa-setup-p)
     (let ((quelpa-upgrade-p t))
       (mapc (lambda (item)
               (when (package-installed-p (car (quelpa-arg-rcp item)))
@@ -374,7 +374,7 @@ to install."
   (interactive (list (quelpa-interactive-candidate)))
   (run-hooks 'quelpa-before-hook)
   ;; if init fails we do nothing
-  (when (quelpa-init-p)
+  (when (quelpa-setup-p)
     ;; shadow `quelpa-upgrade-p' taking the default from the global var
     (let* ((quelpa-upgrade-p quelpa-upgrade-p)
            (rcp (quelpa-arg-rcp arg))
