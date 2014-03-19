@@ -378,11 +378,13 @@ to install."
     ;; shadow `quelpa-upgrade-p' taking the default from the global var
     (let* ((quelpa-upgrade-p quelpa-upgrade-p)
            (rcp (quelpa-arg-rcp arg))
-           (match (assq (car rcp) quelpa-cache)))
+           (match (assq (list (car rcp)) quelpa-cache)))
       (quelpa-parse-plist plist)
       (quelpa-package-install arg)
       (setq quelpa-cache (remove match quelpa-cache))
-      (add-to-list 'quelpa-cache arg)))
+      (if (symbolp arg)
+          (add-to-list 'quelpa-cache (list arg))
+        (add-to-list 'quelpa-cache arg))))
   (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
 
