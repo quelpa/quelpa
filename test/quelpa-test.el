@@ -1,5 +1,6 @@
 (unless (require 'quelpa nil t)
-  (load (concat quelpa-ci-dir "/bootstrap.el")))
+  (load (concat quelpa-ci-dir "/bootstrap.el"))
+  (require 'quelpa))
 
 (require 'ert nil t)
 
