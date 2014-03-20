@@ -14,6 +14,7 @@
     (should (equal t (quelpa-setup-p))))
 
 (ert-deftest quelpa-arg-rcp-test ()
+  (should (equal t (quelpa-setup-p)))
   (should
    (equal
     (quelpa-arg-rcp '(quelpa :repo "quelpa/quelpa" :fetcher github))
