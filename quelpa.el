@@ -270,15 +270,19 @@ to install."
   ;; TODO check "API" for correctness
   (let* ((url (plist-get config :url))
          (type (file-name-extension url))
-         (file (file-name-nondirectory
+         (remote-file-name (file-name-nondirectory
                 (url-filename (url-generic-parse-url url))))
+         (local-path (expand-file-name remote-file-name dir))
          (mm-attachment-file-modes (default-file-modes)))
     (unless (file-directory-p dir)
-      ;; TODO fix permissions
       (make-directory (file-name-directory dir)))
     (pcase type
-      ;; TODO make it return a timestamp
-      ("el" (url-copy-file url (expand-file-name file dir) t))
+      ("el" (progn
+              (url-copy-file url local-path t)
+              (mapconcat #'number-to-string
+                         (package-desc-version
+                          (quelpa-get-package-desc local-path))
+                         ".")))
       ;; TODO implement archive and directory handling
       ((or "tar" "zip") 'archive)
       (`nil 'directory))))
