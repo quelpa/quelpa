@@ -271,13 +271,14 @@ to install."
   (let* ((url (plist-get config :url))
          (type (file-name-extension url))
          (file (file-name-nondirectory
-                (url-filename (url-generic-parse-url url)))))
+                (url-filename (url-generic-parse-url url))))
+         (mm-attachment-file-modes (default-file-modes)))
     (unless (file-directory-p dir)
       ;; TODO fix permissions
       (make-directory (file-name-directory dir)))
     (pcase type
       ;; TODO make it return a timestamp
-      ("el" (url-copy-file url (concat dir file) t))
+      ("el" (url-copy-file url (expand-file-name file dir) t))
       ;; TODO implement archive and directory handling
       ((or "tar" "zip") 'archive)
       (`nil 'directory))))
