@@ -222,6 +222,66 @@ already and should not be upgraded etc)."
                               build-dir
                               quelpa-packages-dir)))))
 
+;; --- package-build.el integration ------------------------------------------
+
+(defun pb/checkout-url (name config dir)
+  "Build according to an URL with config CONFIG into DIR as NAME.
+Generic URL handler for packagebuild.el.
+
+Handles the following cases:
+
+local file:
+
+Installs a single-file package from a local file.  Use the :url
+attribute with an URL like \"file:///path/to/file.el\".
+
+local files:
+
+Installs a multi-file package from a local directory.  Use
+the :url attribute with an URL like \"file://path/to/directory\".
+When necessary, the :files attribute can be used to specify what
+files to install.
+
+local archive:
+
+Installs a package from a local archive.  Use the :url attribute
+with an URL like \"file://path/to/archive.tar\". When necessary, the
+:files attribute can be used to specify what files to install.
+
+remote file:
+
+Installs a single-file package from a remote file.  Use the :url
+attribute with an URL like \"http://domain.tld/path/to/file.el\".
+
+remote files:
+
+Installs a multi-file package from a remote directory.  Use
+the :url attribute with an URL like
+\"http://domain.tld/path/to/directory\".  The :files attribute
+can be used to specify what files to install.  If the remote
+server does not list the files, it is required.
+
+remote archive:
+
+Installs a package from a remote archive.  Use the :url attribute
+with an URL like \"http://domain.tld/path/to/archive.tar\".  When
+necessary, the :files attribute can be used to specify what files
+to install."
+  ;; TODO check "API" for correctness
+  (let* ((url (plist-get config :url))
+         (type (file-name-extension url))
+         (file (file-name-nondirectory
+                (url-filename (url-generic-parse-url url)))))
+    (unless (file-directory-p dir)
+      ;; TODO fix permissions
+      (make-directory (file-name-directory dir)))
+    (pcase type
+      ;; TODO make it return a timestamp
+      ("el" (url-copy-file url (concat dir file) t))
+      ;; TODO implement archive and directory handling
+      ((or "tar" "zip") 'archive)
+      (`nil 'directory))))
+
 ;; --- helpers ---------------------------------------------------------------
 
 (defun quelpa-message (wait format-string &rest args)
