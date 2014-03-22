@@ -19,14 +19,14 @@
    (should
     (equal
      (quelpa-expand-recipe 'package-build)
-     package-build-rcp)))
+     package-build-rcp))
  (should
   (equal
    (with-temp-buffer
      (flet ((quelpa-interactive-candidate () 'package-build))
        (call-interactively 'quelpa-expand-recipe))
      (buffer-string))
-   package-build-rcp)))
+   package-build-rcp))))
 
 (quelpa-deftest
  quelpa-arg-rcp-test ()
