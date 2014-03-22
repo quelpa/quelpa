@@ -12,26 +12,35 @@
        ,@body)))
 
 (quelpa-deftest
- quelpa-exand-recipe-test ()
+ quelpa-expand-recipe-test ()
  "Should be expanding correctly as return value and into buffer."
- ;; TODO add test for interactive call checking output in buffer
+ (let ((package-build-rcp '(package-build :repo "milkypostman/melpa" :fetcher github :files ("package-build.el" "json-fix.el"))))
+   (should
+    (equal
+     (quelpa-expand-recipe 'package-build)
+     package-build-rcp)))
  (should
   (equal
-   (quelpa-expand-recipe 'package-build)
-   '(package-build :repo "milkypostman/melpa" :fetcher github :files ("package-build.el" "json-fix.el")))))
+   (with-temp-buffer
+     (flet ((quelpa-interactive-candidate () 'package-build))
+       (call-interactively 'quelpa-expand-recipe))
+     (buffer-string))
+   package-build-rcp)))
 
 (quelpa-deftest
  quelpa-arg-rcp-test ()
  "Ensure `quelpa-arg-rcp' always returns the correct RCP format."
- (should
-  (equal
-   (quelpa-arg-rcp '(quelpa :repo "quelpa/quelpa" :fetcher github))
-   '(quelpa :repo "quelpa/quelpa" :fetcher github)))
- (should
-  (equal
-   (quelpa-arg-rcp 'package-build)
-   '(package-build :repo "milkypostman/melpa" :fetcher github :files ("package-build.el" "json-fix.el"))))
- (should
-  (equal
-   (quelpa-arg-rcp '(package-build))
-   '(package-build :repo "milkypostman/melpa" :fetcher github :files ("package-build.el" "json-fix.el")))))
+ (let ((quelpa-rcp '(quelpa :repo "quelpa/quelpa" :fetcher github))
+       (package-build-rcp '(package-build :repo "milkypostman/melpa" :fetcher github :files ("package-build.el" "json-fix.el"))))
+   (should
+    (equal
+     (quelpa-arg-rcp quelpa-rcp)
+     quelpa-rcp))
+   (should
+    (equal
+     (quelpa-arg-rcp 'package-build)
+     package-build-rcp))
+   (should
+    (equal
+     (quelpa-arg-rcp '(package-build))
+     package-build-rcp))))
