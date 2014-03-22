@@ -26,7 +26,7 @@
      (flet ((quelpa-interactive-candidate () 'package-build))
        (call-interactively 'quelpa-expand-recipe))
      (buffer-string))
-   package-build-rcp))))
+   (prin1-to-string package-build-rcp)))))
 
 (quelpa-deftest
  quelpa-arg-rcp-test ()
