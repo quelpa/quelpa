@@ -2,6 +2,7 @@
   (load (concat quelpa-ci-dir "/bootstrap.el"))
   (require 'quelpa))
 
+(require 'cl)
 (require 'ert nil t)
 
 (defmacro quelpa-deftest (name arglist &optional docstring &rest body)
