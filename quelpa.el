@@ -348,9 +348,9 @@ insert the result into the current buffer."
   (when (quelpa-setup-p)
     (let* ((recipe (quelpa-get-melpa-recipe recipe-name)))
       (when recipe
-        (if (interactive-p)
-            (insert (format "%s" recipe))
-          recipe)))))
+        (if (called-interactively-p)
+            (prin1 recipe (current-buffer)))
+          recipe))))
 
 ;;;###autoload
 (defun quelpa-upgrade ()
