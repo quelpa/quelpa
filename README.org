@@ -14,7 +14,7 @@ If you want to help out with the development of quelpa, check out the [[https://
 
 To get an idea how to use it to manage your Emacs setup, take a look at the [[http://steckerhalter.co.vu/steckemacs.html][steckemacs configuration]], especially the [[http://steckerhalter.co.vu/steckemacs.html#sec-2-10][Modes section]] where =quelpa= loads and installs the required packages just before they are configured.
 
-You can build and install packages from all the sources MELPA's build script =package-build= supports: =git=, =github=, bazaar (=bzr=), mercurial (=hg=), subversion (=svn=), =cvs=, =darcs= and Emacs Wiki (=wiki=).
+You can build and install packages from all the sources MELPA's build script =package-build= supports: Git, Github, Bazaar (bzr), Mercurial (hg), Subversion (svn), CVS, Darcs, Emacs Wiki (wiki)
 
 Additional fetchers will be added soon.
 
