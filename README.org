@@ -8,20 +8,13 @@ If you want to help out with the development of quelpa, check out the [[https://
 
 ** Overview
 
-=quelpa= brings the power over your Emacs packages back to you. The [[http://melpa.milkbox.net/packages/][MELPA]] archive is great because it is the fastest growing collection of recipes, but why should an external build service control what packages you are able to install?
-
 =quelpa= uses recipes in [[https://github.com/milkypostman/melpa#recipe-format][MELPA's format]] to build your desired packages from source and installs them using the built-in Emacs package manager. Basically, it's a standards-complying [[https://github.com/dimitri/el-get][el-get]]. Or a local MELPA that doesn't require waiting for new builds.
 
-You can build and install packages from all the sources MELPA's build script =package-build= supports:
+=quelpa= can be used in many ways, for example to manage your personal packages with less limitations than a package archive would impose on you, testing development versions of other packages or as a helper when developing a package.
 
-- git: http://git-scm.com/
-- github: https://github.com/
-- bazaar (bzr): http://bazaar.canonical.com/en/
-- mercurial (hg): http://mercurial.selenic.com/
-- subversion (svn): http://subversion.apache.org/
-- cvs: http://www.nongnu.org/cvs/
-- darcs: http://darcs.net/
-- Emacs Wiki (wiki): http://www.emacswiki.org/
+To get an idea how to use it to manage your Emacs setup, take a look at the [[http://steckerhalter.co.vu/steckemacs.html][steckemacs configuration]], especially the [[http://steckerhalter.co.vu/steckemacs.html#sec-2-10][Modes section]] where =quelpa= loads and installs the required packages just before they are configured.
+
+You can build and install packages from all the sources MELPA's build script =package-build= supports: Git, Github, Bazaar (bzr), Mercurial (hg), Subversion (svn), CVS, Darcs, Emacs Wiki (wiki)
 
 Additional fetchers will be added soon.
 
@@ -62,8 +55,6 @@ If you don't like =quelpa= doing self-upgrades (although this is recommended), u
 ** Usage
 
 Cool. Now that we are all setup, enjoy the ride.
-
-=quelpa= can be used in many ways, for example to manage your personal packages, testing development versions of other packages or as a helper when developing a package. Take a look at the [[http://steckerhalter.co.vu/steckemacs.html][steckemacs configuration]], especially the [[http://steckerhalter.co.vu/steckemacs.html#sec-2-10][Modes section]] where =quelpa= loads and installs the required packages just before they are configured.
 
 There are two ways to install packages with =quelpa=:
 
