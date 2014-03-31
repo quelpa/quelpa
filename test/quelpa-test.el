@@ -2,7 +2,6 @@
   (load (concat quelpa-ci-dir "/bootstrap.el"))
   (require 'quelpa))
 
-(require 'cl)
 (require 'ert nil t)
 
 (defmacro quelpa-deftest (name arglist &optional docstring &rest body)
@@ -24,7 +23,9 @@
     (should
      (equal
       (with-temp-buffer
-        (flet ((quelpa-interactive-candidate () 'package-build))
+        (cl-letf (((symbol-function 'quelpa-interactive-candidate) (lambda ()
+                                                                     (interactive)
+                                                                     'package-build)))
           (call-interactively 'quelpa-expand-recipe))
         (buffer-string))
       (prin1-to-string package-build-rcp)))))
