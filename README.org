@@ -1,6 +1,6 @@
 [[https://raw.github.com/quelpa/quelpa/master/logo/quelpa-logo-h128.png]]
 
-[[https://travis-ci.org/quelpa/quelpa.png?branch=master]]
+[[https://travis-ci.org/quelpa/quelpa][https://travis-ci.org/quelpa/quelpa.png?branch=master]]
 
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
