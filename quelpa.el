@@ -42,6 +42,7 @@
 
 (require 'package-build)
 (require 'cl-lib)
+(require 'help-fns)
 
 ;; --- customs / variables ---------------------------------------------------
 
