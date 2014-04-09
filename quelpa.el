@@ -174,11 +174,23 @@ On error return nil."
      (format "%s-%s.%s" name version (if (eq flavour 'single) "el" "tar"))
      quelpa-packages-dir)))
 
+(defun quelpa-version>-p (name version)
+  "Return non-nil if VERSION of pkg with NAME is newer than what is currently installed."
+  (not (or (not version)
+           (let ((pkg-desc (cdr (assq name package-alist))))
+             (and pkg-desc
+                  (version-list-<=
+                   (version-to-list version)
+                   (if (functionp 'package-desc-vers)
+                       (package-desc-vers pkg-desc) ; old implementation
+                     (package-desc-version (car pkg-desc))))))
+           ;; Also check built-in packages.
+           (package-built-in-p name (version-to-list version)))))
+
 (defun quelpa-checkout (rcp dir)
   "Return the version of the new package given a RCP.
 Return nil if the package is already installed and should not be upgraded."
-  (let ((name (car rcp))
-        (config (cdr rcp)))
+  (pcase-let ((`(name . config) rcp))
     (unless (or (and (package-installed-p name) (not quelpa-upgrade-p))
                 (and (not config)
                      (quelpa-message t "no recipe found for package `%s'" name)))
@@ -189,16 +201,7 @@ Return nil if the package is already installed and should not be upgraded."
                                               name
                                               (error-message-string err))
                               nil))))
-        (unless (or (not version)
-                    (let ((pkg-desc (cdr (assq name package-alist))))
-                      (and pkg-desc
-                           (version-list-<=
-                            (version-to-list version)
-                            (if (functionp 'package-desc-vers)
-                                (package-desc-vers pkg-desc) ; old implementation
-                              (package-desc-version (car pkg-desc))))))
-                    ;; Also check built-in packages.
-                    (package-built-in-p name (version-to-list version)))
+        (when (quelpa-version>-p name version)
           version)))))
 
 (defun quelpa-build-package (rcp)
@@ -317,7 +320,8 @@ If t, `quelpa' tries to do an upgrade.
   "Build and install package from ARG (a recipe or package name).
 If the package has dependencies recursively call this function to
 install them."
-  (let ((file (quelpa-build-package (quelpa-arg-rcp arg))))
+  (let* ((rcp (quelpa-arg-rcp arg))
+         (file (and rcp (quelpa-build-package rcp))))
     (when file
       (let* ((pkg-desc (quelpa-get-package-desc file))
              (requires (package-desc-reqs pkg-desc)))
