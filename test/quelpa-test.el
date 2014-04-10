@@ -50,12 +50,19 @@
 (quelpa-deftest quelpa-version>-p-test ()
   "Passed version should correctly tested against `package-alist'
 and built-in packages."
-  (let ((package-alist '((quelpa
-                          [cl-struct-package-desc
-                           quelpa
-                           (20140406 1613)
-                           "Emacs Lisp packages built directly from source"
-                           ((package-build (0))) nil nil "test" nil nil]))))
+  (let ((package-alist (if (functionp 'package-desc-vers)
+                           ;; old package-alist format
+                           '((quelpa . [(20140406 1613)
+                                        ((package-build
+                                          (0)))
+                                        "Emacs Lisp packages built directly from source"]))
+                         ;; new package-alist format
+                         '((quelpa
+                            [cl-struct-package-desc
+                             quelpa
+                             (20140406 1613)
+                             "Emacs Lisp packages built directly from source"
+                             ((package-build (0))) nil nil "test" nil nil])))))
     (should-not (quelpa-version>-p 'quelpa "0"))
     (should-not (quelpa-version>-p 'quelpa "20140406.1613"))
     (should (quelpa-version>-p 'quelpa "20140406.1614"))
