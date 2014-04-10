@@ -190,7 +190,7 @@ On error return nil."
 (defun quelpa-checkout (rcp dir)
   "Return the version of the new package given a RCP.
 Return nil if the package is already installed and should not be upgraded."
-  (pcase-let ((`(name . config) rcp))
+  (pcase-let ((`(,name . ,config) rcp))
     (unless (or (and (package-installed-p name) (not quelpa-upgrade-p))
                 (and (not config)
                      (quelpa-message t "no recipe found for package `%s'" name)))
