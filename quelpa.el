@@ -250,10 +250,12 @@ attribute with an URL like \"http://domain.tld/path/to/file.el\"."
     (pcase type
       ("el" (progn
               (url-copy-file url local-path t)
-              (mapconcat #'number-to-string
-                         (package-desc-version
-                          (quelpa-get-package-desc local-path))
-                         ".")))
+              (concat (mapconcat #'number-to-string
+                                 (package-desc-version
+                                  (quelpa-get-package-desc local-path))
+                                 ".") "."
+                      (pb/parse-time (format-time-string
+                                      "%Y/%m/%d %H:%M:%S")))))
       ((or "tar" "zip") 'archive)
       (`nil 'directory))))
 
