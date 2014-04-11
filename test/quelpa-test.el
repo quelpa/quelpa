@@ -4,13 +4,12 @@
 
 (require 'ert nil t)
 
-(defmacro quelpa-deftest (name arglist &optional docstring &rest body)
+(defmacro quelpa-deftest (name arglist docstring &rest body)
   "Add `quelpa-setup-p' as initial test to the given test body."
   (declare (doc-string 3) (indent 2))
-  (let ((args (when docstring (list name docstring) (list name))))
-    `(ert-deftest ,@args ()
-       (should (equal t (quelpa-setup-p)))
-       ,@body)))
+  `(ert-deftest ,name ()
+     (should (equal t (quelpa-setup-p)))
+     ,@body))
 
 (quelpa-deftest quelpa-expand-recipe-test ()
   "Should be expanding correctly as return value and into buffer."
