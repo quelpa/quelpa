@@ -224,6 +224,45 @@ already and should not be upgraded etc)."
 
 ;; --- package-build.el integration ------------------------------------------
 
+(defun quelpa-package-buffer-info ()
+  "Uses almost the same code as in 24.3.
+The difference is that it returns \"0.0.0\" if the version number
+is missing."
+  (goto-char (point-min))
+  (unless (re-search-forward "^;;; \\([^ ]*\\)\\.el ---[ \t]*\\(.*?\\)[ \t]*\\(-\\*-.*-\\*-[ \t]*\\)?$" nil t)
+    (error "Packages lacks a file header"))
+  (let ((file-name (match-string-no-properties 1))
+        (desc      (match-string-no-properties 2))
+        (start     (line-beginning-position)))
+    (unless (search-forward (concat ";;; " file-name ".el ends here"))
+      (error "Package lacks a terminating comment"))
+    ;; Try to include a trailing newline.
+    (forward-line)
+    (narrow-to-region start (point))
+    (require 'lisp-mnt)
+    ;; Use some headers we've invented to drive the process.
+    (let* ((requires-str (lm-header "package-requires"))
+           (requires (if requires-str
+                         (package-read-from-string requires-str)))
+           ;; Prefer Package-Version; if defined, the package author
+           ;; probably wants us to use it.  Otherwise try Version.
+           (pkg-version
+            (or (package-strip-rcs-id (lm-header "package-version"))
+                (package-strip-rcs-id (lm-header "version"))
+                "0.0.0"))
+           (commentary (lm-commentary)))
+      (unless pkg-version
+        (error
+         "Package lacks a \"Version\" or \"Package-Version\" header"))
+      ;; Turn string version numbers into list form.
+      (setq requires
+            (mapcar
+             (lambda (elt)
+               (list (car elt)
+                     (version-to-list (car (cdr elt)))))
+             requires))
+      (vector file-name requires desc pkg-version commentary))))
+
 (defun pb/checkout-url (name config dir)
   "Build according to an URL with config CONFIG into DIR as NAME.
 Generic URL handler for packagebuild.el.
