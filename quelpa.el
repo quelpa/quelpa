@@ -286,17 +286,19 @@ attribute with an URL like \"http://domain.tld/path/to/file.el\"."
          (mm-attachment-file-modes (default-file-modes)))
     (unless (file-directory-p dir)
       (make-directory (file-name-directory dir)))
-    (pcase type
-      ("el" (progn
-              (url-copy-file url local-path t)
-              (concat (mapconcat #'number-to-string
-                                 (package-desc-version
-                                  (quelpa-get-package-desc local-path))
-                                 ".") "."
-                      (pb/parse-time (format-time-string
-                                      "%Y/%m/%d %H:%M:%S")))))
-      ((or "tar" "zip") 'archive)
-      (`nil 'directory))))
+    (cl-letf (((symbol-function 'package-buffer-info)
+               (lambda () (quelpa-package-buffer-info))))
+      (pcase type
+        ("el" (progn
+                (url-copy-file url local-path t)
+                (concat (mapconcat #'number-to-string
+                                   (package-desc-version
+                                    (quelpa-get-package-desc local-path))
+                                   ".")
+                        "." (pb/parse-time (format-time-string
+                                            "%Y/%m/%d %H:%M:%S")))))
+        ((or "tar" "zip") 'archive)
+        (`nil 'directory)))))
 
 ;; --- helpers ---------------------------------------------------------------
 
