@@ -4,14 +4,12 @@
 
 (require 'ert nil t)
 
-(defmacro quelpa-deftest (name arglist &optional docstring &rest body)
+(defmacro quelpa-deftest (name arglist docstring &rest body)
   "Add `quelpa-setup-p' as initial test to the given test body."
-  (declare (doc-string 3)
-           (indent 2))
-  (let ((args (when docstring (list name docstring) (list name))))
-    `(ert-deftest ,@args ()
-       (should (equal t (quelpa-setup-p)))
-       ,@body)))
+  (declare (doc-string 3) (indent 2))
+  `(ert-deftest ,name ()
+     (should (equal t (quelpa-setup-p)))
+     ,@body))
 
 (quelpa-deftest quelpa-expand-recipe-test ()
   "Should be expanding correctly as return value and into buffer."
@@ -23,9 +21,10 @@
     (should
      (equal
       (with-temp-buffer
-        (cl-letf (((symbol-function 'quelpa-interactive-candidate) (lambda ()
-                                                                     (interactive)
-                                                                     'package-build)))
+        (cl-letf (((symbol-function 'quelpa-interactive-candidate)
+                   (lambda ()
+                     (interactive)
+                     'package-build)))
           (call-interactively 'quelpa-expand-recipe))
         (buffer-string))
       (prin1-to-string package-build-rcp)))))
@@ -46,3 +45,28 @@
      (equal
       (quelpa-arg-rcp '(package-build))
       package-build-rcp))))
+
+(quelpa-deftest quelpa-version>-p-test ()
+  "Passed version should correctly tested against `package-alist'
+and built-in packages."
+  (let ((package-alist (if (functionp 'package-desc-vers)
+                           ;; old package-alist format
+                           '((quelpa . [(20140406 1613)
+                                        ((package-build
+                                          (0)))
+                                        "Emacs Lisp packages built directly from source"]))
+                         ;; new package-alist format
+                         '((quelpa
+                            [cl-struct-package-desc
+                             quelpa
+                             (20140406 1613)
+                             "Emacs Lisp packages built directly from source"
+                             ((package-build (0))) nil nil "test" nil nil])))))
+    (should-not (quelpa-version>-p 'quelpa "0"))
+    (should-not (quelpa-version>-p 'quelpa "20140406.1613"))
+    (should (quelpa-version>-p 'quelpa "20140406.1614"))
+    (cl-letf (((symbol-function 'package-built-in-p)
+               (lambda (name version) (version-list-<= version '(20140406 1613)))))
+      (should-not (quelpa-version>-p 'foobar "0"))
+      (should-not (quelpa-version>-p 'foobar "20140406.1613"))
+      (should (quelpa-version>-p 'foobar "20140406.1614")))))
