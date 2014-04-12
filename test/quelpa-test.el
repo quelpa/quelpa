@@ -47,8 +47,8 @@
       package-build-rcp))))
 
 (quelpa-deftest quelpa-version>-p-test ()
-  "Passed version should correctly tested against `package-alist'
-and built-in packages."
+  "Passed version should correctly be tested against the mocked
+`package-alist' and built-in packages."
   (let ((package-alist (if (functionp 'package-desc-vers)
                            ;; old package-alist format
                            '((quelpa . [(20140406 1613)
