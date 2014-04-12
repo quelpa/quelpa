@@ -242,16 +242,16 @@ attribute with an URL like \"http://domain.tld/path/to/file.el\"."
   (let* ((url (plist-get config :url))
          (type (file-name-extension url))
          (remote-file-name (file-name-nondirectory
-                (url-filename (url-generic-parse-url url))))
+                            (url-filename (url-generic-parse-url url))))
          (local-path (expand-file-name remote-file-name dir))
          (mm-attachment-file-modes (default-file-modes)))
     (unless (file-directory-p dir)
       (make-directory (file-name-directory dir)))
-    (cl-letf ((psri (symbol-function 'package-strip-rcs-id))
+    (cl-letf ((package-strip-rcs-id-orig (symbol-function 'package-strip-rcs-id))
               ((symbol-function 'package-strip-rcs-id)
                (lambda (str)
-                 (or (funcall psri (lm-header "package-version"))
-                     (funcall psri (lm-header "version"))
+                 (or (funcall package-strip-rcs-id-orig (lm-header "package-version"))
+                     (funcall package-strip-rcs-id-orig (lm-header "version"))
                      "0.0.0"))))
       (pcase type
         ("el" (progn
