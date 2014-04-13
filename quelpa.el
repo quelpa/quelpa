@@ -224,6 +224,23 @@ already and should not be upgraded etc)."
 
 ;; --- package-build.el integration ------------------------------------------
 
+(defun quelpa-check-file-hash (file)
+  "Check if hash of FILE is different as in STAMP-FILE.
+If it is different save the new hash and timestapm to STAMP-FILE
+and return NEW-STAMP-INFO, otherwise return OLD-STAMP-INFO."
+  (let* ((new-content-hash (secure-hash 'sha1 (pb/slurp-file file)))
+         (stamp-file (concat file ".stamp"))
+         (time-stamp (pb/parse-time (format-time-string "%Y/%m/%d %H:%M:%S")))
+         (old-stamp-info (pb/read-from-file stamp-file))
+         (new-stamp-info (cons time-stamp new-content-hash))
+         (old-content-hash (cdr old-stamp-info)))
+    (if (or (not old-content-hash)
+            (not (string= new-content-hash old-content-hash)))
+        (progn
+          (pb/dump new-stamp-info stamp-file)
+          new-stamp-info)
+      old-stamp-info)))
+
 (defun pb/checkout-url (name config dir)
   "Build according to an URL with config CONFIG into DIR as NAME.
 Generic URL handler for packagebuild.el.
