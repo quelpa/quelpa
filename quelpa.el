@@ -226,7 +226,7 @@ already and should not be upgraded etc)."
 
 (defun quelpa-check-file-hash (file)
   "Check if hash of FILE is different as in STAMP-FILE.
-If it is different save the new hash and timestapm to STAMP-FILE
+If it is different save the new hash and timestamp to STAMP-FILE
 and return NEW-STAMP-INFO, otherwise return OLD-STAMP-INFO."
   (let* ((new-content-hash (secure-hash 'sha1 (pb/slurp-file file)))
          (stamp-file (concat file ".stamp"))
