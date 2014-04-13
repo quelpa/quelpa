@@ -277,8 +277,7 @@ attribute with an URL like \"http://domain.tld/path/to/file.el\"."
                                    (package-desc-version
                                     (quelpa-get-package-desc local-path))
                                    ".")
-                        "." (pb/parse-time (format-time-string
-                                            "%Y/%m/%d %H:%M:%S")))))
+                        "." (car (quelpa-check-file-hash local-path)))))
         ((or "tar" "zip") 'archive)
         (`nil 'directory)))))
 
