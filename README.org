@@ -94,7 +94,17 @@ Per default =quelpa= does not do anything if a package is already installed. You
 
 Alternatively customize this variable by executing =M-x customize-variable quelpa-upgrade-p RET=.
 
-To override the default behavior for individual packages you can use:
+It is also possible to override this default behavior for individual packages:
+
+**** Interactive Overriding
+
+When =quelpa= is called interactively with a prefix argument (e.g =C-u M-x quelpa=) it will try to upgrade the given package even if the global variable =quelpa-upgrade-p= is set to nil.
+
+That means =C-u M-x quelpa magit RET= will upgrade magit.
+
+Please note that the =:upgrade= parameter described below is still preferred over the prefix argument.
+
+**** Non-Interactive Overriding
 
 #+BEGIN_SRC emacs-lisp
 (quelpa 'company :upgrade t)
