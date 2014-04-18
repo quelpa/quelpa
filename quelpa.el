@@ -375,13 +375,18 @@ the `quelpa' command has been run in the current Emacs session."
 ARG can be a package name (symbol) or a melpa recipe (list).
 PLIST is a plist that may modify the build and/or fetch process.
 If called interactively, `quelpa' will prompt for a MELPA package
-to install."
+to install.
+
+When `quelpa' is called interactively with a prefix argument (e.g
+C-u M-x quelpa) it will try to upgrade the given package even if
+the global var `quelpa-upgrade-p' is set to nil."
+
   (interactive (list (quelpa-interactive-candidate)))
   (run-hooks 'quelpa-before-hook)
   ;; if init fails we do nothing
   (when (quelpa-setup-p)
     ;; shadow `quelpa-upgrade-p' taking the default from the global var
-    (let* ((quelpa-upgrade-p quelpa-upgrade-p)
+    (let* ((quelpa-upgrade-p (when current-prefix-arg t quelpa-upgrade-p))
            (rcp (quelpa-arg-rcp arg))
            (match (assq (list (car rcp)) quelpa-cache)))
       (quelpa-parse-plist plist)
