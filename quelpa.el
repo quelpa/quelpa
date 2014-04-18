@@ -386,7 +386,7 @@ the global var `quelpa-upgrade-p' is set to nil."
   ;; if init fails we do nothing
   (when (quelpa-setup-p)
     ;; shadow `quelpa-upgrade-p' taking the default from the global var
-    (let* ((quelpa-upgrade-p (when current-prefix-arg t quelpa-upgrade-p))
+    (let* ((quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p))
            (rcp (quelpa-arg-rcp arg))
            (match (assq (list (car rcp)) quelpa-cache)))
       (quelpa-parse-plist plist)
