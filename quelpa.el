@@ -277,7 +277,7 @@ attribute with an URL like \"http://domain.tld/path/to/file.el\"."
                                    (package-desc-version
                                     (quelpa-get-package-desc local-path))
                                    ".")
-                        "." (car (quelpa-check-file-hash local-path)))))
+                        "snapshot0." (car (quelpa-check-file-hash local-path)))))
         ((or "tar" "zip") 'archive)
         (`nil 'directory)))))
 
