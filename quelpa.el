@@ -269,7 +269,7 @@ attribute with an URL like \"http://domain.tld/path/to/file.el\"."
                (lambda (str)
                  (or (funcall package-strip-rcs-id-orig (lm-header "package-version"))
                      (funcall package-strip-rcs-id-orig (lm-header "version"))
-                     "0.0.0"))))
+                     "0"))))
       (pcase type
         ("el" (progn
                 (url-copy-file url local-path t)
@@ -277,7 +277,7 @@ attribute with an URL like \"http://domain.tld/path/to/file.el\"."
                                    (package-desc-version
                                     (quelpa-get-package-desc local-path))
                                    ".")
-                        "snapshot0." (car (quelpa-check-file-hash local-path)))))
+                        "pre0." (car (quelpa-check-file-hash local-path)))))
         ((or "tar" "zip") 'archive)
         (`nil 'directory)))))
 
