@@ -32,5 +32,9 @@
 (quelpa '(swbuff :fetcher cvs :url ":pserver:anonymous@emhacks.cvs.sourceforge.net:/cvsroot/emhacks" :module "emhacks/swbuff.el"))
 (quelpa 'matlab-mode)
 
+;; url
+(quelpa '(ox-rss :url "http://orgmode.org/cgit.cgi/org-mode.git/plain/contrib/lisp/ox-rss.el" :fetcher url))
+(quelpa '(rainbow-mode :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el" :fetcher url))
+
 ;; upgrade-test
 (quelpa '(quelpa :repo "quelpa/quelpa" :fetcher github) :upgrade t)

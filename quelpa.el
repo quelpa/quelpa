@@ -222,6 +222,65 @@ already and should not be upgraded etc)."
                               build-dir
                               quelpa-packages-dir)))))
 
+;; --- package-build.el integration ------------------------------------------
+
+(defun quelpa-check-file-hash (file)
+  "Check if hash of FILE is different as in STAMP-FILE.
+If it is different save the new hash and timestamp to STAMP-FILE
+and return NEW-STAMP-INFO, otherwise return OLD-STAMP-INFO."
+  (let* ((new-content-hash (secure-hash 'sha1 (pb/slurp-file file)))
+         (stamp-file (concat file ".stamp"))
+         (time-stamp (pb/parse-time (format-time-string "%Y/%m/%d %H:%M:%S")))
+         (old-stamp-info (pb/read-from-file stamp-file))
+         (new-stamp-info (cons time-stamp new-content-hash))
+         (old-content-hash (cdr old-stamp-info)))
+    (if (or (not old-content-hash)
+            (not (string= new-content-hash old-content-hash)))
+        (progn
+          (pb/dump new-stamp-info stamp-file)
+          new-stamp-info)
+      old-stamp-info)))
+
+(defun pb/checkout-url (name config dir)
+  "Build according to an URL with config CONFIG into DIR as NAME.
+Generic URL handler for packagebuild.el.
+
+Handles the following cases:
+
+local file:
+
+Installs a single-file package from a local file.  Use the :url
+attribute with an URL like \"file:///path/to/file.el\".
+
+remote file:
+
+Installs a single-file package from a remote file.  Use the :url
+attribute with an URL like \"http://domain.tld/path/to/file.el\"."
+  (let* ((url (plist-get config :url))
+         (type (file-name-extension url))
+         (remote-file-name (file-name-nondirectory
+                            (url-filename (url-generic-parse-url url))))
+         (local-path (expand-file-name remote-file-name dir))
+         (mm-attachment-file-modes (default-file-modes)))
+    (unless (file-directory-p dir)
+      (make-directory (file-name-directory dir)))
+    (cl-letf ((package-strip-rcs-id-orig (symbol-function 'package-strip-rcs-id))
+              ((symbol-function 'package-strip-rcs-id)
+               (lambda (str)
+                 (or (funcall package-strip-rcs-id-orig (lm-header "package-version"))
+                     (funcall package-strip-rcs-id-orig (lm-header "version"))
+                     "0"))))
+      (pcase type
+        ("el" (progn
+                (url-copy-file url local-path t)
+                (concat (mapconcat #'number-to-string
+                                   (package-desc-version
+                                    (quelpa-get-package-desc local-path))
+                                   ".")
+                        "pre0." (car (quelpa-check-file-hash local-path)))))
+        ((or "tar" "zip") 'archive)
+        (`nil 'directory)))))
+
 ;; --- helpers ---------------------------------------------------------------
 
 (defun quelpa-message (wait format-string &rest args)

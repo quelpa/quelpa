@@ -47,8 +47,8 @@
       package-build-rcp))))
 
 (quelpa-deftest quelpa-version>-p-test ()
-  "Passed version should correctly tested against `package-alist'
-and built-in packages."
+  "Passed version should correctly be tested against the mocked
+`package-alist' and built-in packages."
   (let ((package-alist (if (functionp 'package-desc-vers)
                            ;; old package-alist format
                            '((quelpa . [(20140406 1613)
@@ -70,3 +70,15 @@ and built-in packages."
       (should-not (quelpa-version>-p 'foobar "0"))
       (should-not (quelpa-version>-p 'foobar "20140406.1613"))
       (should (quelpa-version>-p 'foobar "20140406.1614")))))
+
+(quelpa-deftest quelpa-check-file-hash-test ()
+  "Make sure that old file hash is correctly compared with the new one
+  and only when it has changed the new stamp-info is returned."
+  (cl-letf* ((stamp-info '("20140413.907" . "7e4c099e65d254f62e64b581c42ddeb3c487064b"))
+             (hash "4935a306e358cbd0d9bd200e13ceb1e44942b323")
+             ((symbol-function 'pb/read-from-file) (lambda (file) stamp-info))
+             ((symbol-function 'pb/dump) (lambda (content file)))
+             ((symbol-function 'secure-hash) (lambda (&rest args) hash)))
+    (should-not (equal (quelpa-check-file-hash "foobar") stamp-info))
+    (setq hash (cdr stamp-info))
+    (should (equal (quelpa-check-file-hash "foobar") stamp-info))))
