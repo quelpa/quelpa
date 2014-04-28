@@ -16,8 +16,6 @@ To get an idea how to use it to manage your Emacs setup, take a look at the [ste
 
 You can build and install packages from all the sources MELPA's build script `package-build` supports: Git, Github, Bazaar (bzr), Mercurial (hg), Subversion (svn), CVS, Darcs, Emacs Wiki (wiki)
 
-Additional fetchers will be added soon.
-
 ## Requirements
 
 -   Emacs 24.3.1
@@ -137,6 +135,26 @@ Currently `quelpa` does not remove obsolete packages after upgrades. To delete a
 -   `M-x list-packages RET`
 -   press  `~` to mark all obsolete packages for deletion
 -   press `x` and confirm deletion
+
+### Additional fetchers
+
+One fetcher has been added to build packages from single `.el` files. It's still *experimental* so use it with care. It works like this:
+
+```cl
+(quelpa '(rainbow-mode :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el" :fetcher url))
+```
+
+You specify the `:url` (either a remote or local one like `file:///path/to/file.el`) of the file and as `:fetcher` `url`.
+
+Another example:
+
+
+```cl
+(quelpa '(ox-rss :url "http://orgmode.org/cgit.cgi/org-mode.git/plain/contrib/lisp/ox-rss.el" :fetcher url))
+
+```
+
+Upgrades are managed through file hashes, so if the content changed, `quelpa` will upgrade the package. Existing versions are retained. `quelpa` uses a version suffix that still allows the original version to have priority. So if you should install a package from another source with the same version it will be preferred.
 
 ## Why "quelpa"?
 
