@@ -97,11 +97,20 @@ the `:upgrade' argument."
   :group 'quelpa
   :type 'boolean)
 
+(defcustom quelpa-update-melpa-p t
+  "If non-nil the MELPA git repo is updated when quelpa is initialized.
+If nil the update is disabled and the repo is only updated on `quelpa-upgrade'."
+  :group 'quelpa
+  :type 'boolean)
+
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
 
 (defvar quelpa-cache nil
   "The `quelpa' command stores processed pkgs/recipes in the cache.")
+
+(defvar quelpa-repo '(quelpa :repo "quelpa/quelpa" :fetcher github)
+  "The recipe for quelpa.")
 
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
 
@@ -301,7 +310,9 @@ Return t in each case."
     (with-temp-buffer
       (insert-file-contents-literally quelpa-persistent-cache-file)
       (setq quelpa-cache
-            (read (buffer-substring-no-properties (point-min) (point-max)))))))
+            (read (buffer-substring-no-properties (point-min) (point-max))))))
+  ;; quelpa should always be part of the cache
+  (add-to-list 'quelpa-cache quelpa-repo))
 
 (defun quelpa-save-cache ()
   "Write `quelpa-cache' to `quelpa-persistent-cache-file'."
@@ -315,12 +326,14 @@ If there is no error return non-nil.
 If there is an error but melpa is already checked out return non-nil.
 If there is an error and no existing checkout return nil."
   (let ((dir (expand-file-name "package-build" quelpa-build-dir)))
-    (condition-case err
-        (pb/checkout-git 'package-build
-                         '(:url "git://github.com/milkypostman/melpa.git")
-                         dir)
-      (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
-             (file-exists-p (expand-file-name ".git" dir))))))
+    (or (and (null quelpa-update-melpa-p)
+             (file-exists-p (expand-file-name ".git" dir)))
+        (condition-case err
+            (pb/checkout-git 'package-build
+                             '(:url "git://github.com/milkypostman/melpa.git")
+                             dir)
+          (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
+                 (file-exists-p (expand-file-name ".git" dir)))))))
 
 (defun quelpa-get-melpa-recipe (name)
   "Read recipe with NAME for melpa git checkout.
