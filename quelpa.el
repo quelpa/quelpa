@@ -99,7 +99,8 @@ the `:upgrade' argument."
 
 (defcustom quelpa-update-melpa-p t
   "If non-nil the MELPA git repo is updated when quelpa is initialized.
-If nil the update is disabled and the repo is only updated on `quelpa-upgrade'."
+If nil the update is disabled and the repo is only updated on
+`quelpa-upgrade' or `quelpa-self-upgrade'."
   :group 'quelpa
   :type 'boolean)
 
@@ -428,11 +429,12 @@ insert the result into the current buffer."
           recipe))))
 
 ;;;###autoload
-(defun quelpa-self-upgrade ()
-  "Upgrade quelpa itself."
+(defun quelpa-self-upgrade (&optional args)
+  "Upgrade quelpa itself.
+ARGS are additional options for the quelpa recipe."
   (interactive)
   (when (quelpa-setup-p)
-    (quelpa quelpa-recipe :upgrade t)))
+    (quelpa (append quelpa-recipe args) :upgrade t)))
 
 ;;;###autoload
 (defun quelpa-upgrade ()
