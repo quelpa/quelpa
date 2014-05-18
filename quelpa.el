@@ -109,7 +109,7 @@ If nil the update is disabled and the repo is only updated on `quelpa-upgrade'."
 (defvar quelpa-cache nil
   "The `quelpa' command stores processed pkgs/recipes in the cache.")
 
-(defvar quelpa-repo '(quelpa :repo "quelpa/quelpa" :fetcher github)
+(defvar quelpa-recipe '(quelpa :repo "quelpa/quelpa" :fetcher github)
   "The recipe for quelpa.")
 
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
@@ -310,9 +310,7 @@ Return t in each case."
     (with-temp-buffer
       (insert-file-contents-literally quelpa-persistent-cache-file)
       (setq quelpa-cache
-            (read (buffer-substring-no-properties (point-min) (point-max))))))
-  ;; quelpa should always be part of the cache
-  (add-to-list 'quelpa-cache quelpa-repo))
+            (read (buffer-substring-no-properties (point-min) (point-max)))))))
 
 (defun quelpa-save-cache ()
   "Write `quelpa-cache' to `quelpa-persistent-cache-file'."
@@ -430,6 +428,13 @@ insert the result into the current buffer."
           recipe))))
 
 ;;;###autoload
+(defun quelpa-self-upgrade ()
+  "Upgrade quelpa itself."
+  (interactive)
+  (when (quelpa-setup-p)
+    (quelpa quelpa-recipe :upgrade t)))
+
+;;;###autoload
 (defun quelpa-upgrade ()
   "Upgrade all packages found in `quelpa-cache'.
 This provides an easy way to upgrade all the packages for which
@@ -437,9 +442,11 @@ the `quelpa' command has been run in the current Emacs session."
   (interactive)
   (when (quelpa-setup-p)
     (let ((quelpa-upgrade-p t))
+      (quelpa-self-upgrade)
       (mapc (lambda (item)
               (when (package-installed-p (car (quelpa-arg-rcp item)))
-                (quelpa item))) quelpa-cache))))
+                (quelpa item)))
+            quelpa-cache))))
 
 ;;;###autoload
 (defun quelpa (arg &rest plist)
