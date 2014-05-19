@@ -83,7 +83,7 @@ the `:upgrade' argument."
   :type 'string)
 
 (defcustom quelpa-packages-dir (expand-file-name "packages" quelpa-dir)
-  "Where quelpa buts built packages."
+  "Where quelpa puts built packages."
   :group 'quelpa
   :type 'string)
 
