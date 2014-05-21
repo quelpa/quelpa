@@ -154,7 +154,7 @@ Another example:
 
 ```
 
-Upgrades are managed through file hashes, so if the content changed, `quelpa` will upgrade the package. Existing versions are retained. `quelpa` uses a version suffix that still allows the original version to have priority. So if you should install a package from another source with the same version it will be preferred.
+Upgrades are managed through file hashes, so if the content changed, `quelpa` will upgrade the package. Existing version numbers are retained. `quelpa` uses a version suffix that still allows the original version to have priority. So if you should install a package from another source with the same version it will be preferred.
 
 ## Why "quelpa"?
 
