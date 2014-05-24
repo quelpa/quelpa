@@ -97,11 +97,21 @@ the `:upgrade' argument."
   :group 'quelpa
   :type 'boolean)
 
+(defcustom quelpa-update-melpa-p t
+  "If non-nil the MELPA git repo is updated when quelpa is initialized.
+If nil the update is disabled and the repo is only updated on
+`quelpa-upgrade' or `quelpa-self-upgrade'."
+  :group 'quelpa
+  :type 'boolean)
+
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
 
 (defvar quelpa-cache nil
   "The `quelpa' command stores processed pkgs/recipes in the cache.")
+
+(defvar quelpa-recipe '(quelpa :repo "quelpa/quelpa" :fetcher github)
+  "The recipe for quelpa.")
 
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
 
@@ -315,12 +325,14 @@ If there is no error return non-nil.
 If there is an error but melpa is already checked out return non-nil.
 If there is an error and no existing checkout return nil."
   (let ((dir (expand-file-name "package-build" quelpa-build-dir)))
-    (condition-case err
-        (pb/checkout-git 'package-build
-                         '(:url "git://github.com/milkypostman/melpa.git")
-                         dir)
-      (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
-             (file-exists-p (expand-file-name ".git" dir))))))
+    (or (and (null quelpa-update-melpa-p)
+             (file-exists-p (expand-file-name ".git" dir)))
+        (condition-case err
+            (pb/checkout-git 'package-build
+                             '(:url "git://github.com/milkypostman/melpa.git")
+                             dir)
+          (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
+                 (file-exists-p (expand-file-name ".git" dir)))))))
 
 (defun quelpa-get-melpa-recipe (name)
   "Read recipe with NAME for melpa git checkout.
@@ -417,6 +429,14 @@ insert the result into the current buffer."
           recipe))))
 
 ;;;###autoload
+(defun quelpa-self-upgrade (&optional args)
+  "Upgrade quelpa itself.
+ARGS are additional options for the quelpa recipe."
+  (interactive)
+  (when (quelpa-setup-p)
+    (quelpa (append quelpa-recipe args) :upgrade t)))
+
+;;;###autoload
 (defun quelpa-upgrade ()
   "Upgrade all packages found in `quelpa-cache'.
 This provides an easy way to upgrade all the packages for which
@@ -424,9 +444,11 @@ the `quelpa' command has been run in the current Emacs session."
   (interactive)
   (when (quelpa-setup-p)
     (let ((quelpa-upgrade-p t))
+      (quelpa-self-upgrade)
       (mapc (lambda (item)
               (when (package-installed-p (car (quelpa-arg-rcp item)))
-                (quelpa item))) quelpa-cache))))
+                (quelpa item)))
+            quelpa-cache))))
 
 ;;;###autoload
 (defun quelpa (arg &rest plist)

@@ -34,7 +34,7 @@ To bootstrap `quelpa` use this code snippet:
 ```cl
 (package-initialize)
 (if (require 'quelpa nil t)
-    (quelpa '(quelpa :repo "quelpa/quelpa" :fetcher github) :upgrade t)
+    (quelpa-self-upgrade)
   (with-temp-buffer
     (url-insert-file-contents "https://raw.github.com/quelpa/quelpa/master/bootstrap.el")
     (eval-buffer)))
@@ -155,6 +155,17 @@ Another example:
 ```
 
 Upgrades are managed through file hashes, so if the content changed, `quelpa` will upgrade the package. Existing version numbers are retained. `quelpa` uses a version suffix that still allows the original version to have priority. So if you should install a package from another source with the same version it will be preferred.
+
+### Additional options
+#### Inhibit MELPA updates on init
+
+Upon initialization `quelpa` usually updates the MELPA git repo (stored in `quelpa-build-dir`/`package-build`) which ensures you always have the latest recipes from MELPA available. This causes as small delay and some people don't like that (presumably people that do not use or know `emacs --daemon` and `emacsclient`).
+
+You can disable these updates by setting `quelpa-update-melpa-p` to `nil` before requiring `quelpa`:
+
+```cl
+(setq quelpa-update-melpa-p nil)
+```
 
 ## Why "quelpa"?
 
