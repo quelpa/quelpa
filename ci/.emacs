@@ -29,7 +29,6 @@
 
 ;; cvs
 (quelpa '(w3m :url ":pserver:anonymous@cvs.namazu.org:/storage/cvsroot" :module "emacs-w3m" :fetcher cvs))
-(quelpa '(swbuff :fetcher cvs :url ":pserver:anonymous@emhacks.cvs.sourceforge.net:/cvsroot/emhacks" :module "emhacks/swbuff.el"))
 (quelpa 'matlab-mode)
 
 ;; url
