@@ -138,7 +138,7 @@ Currently `quelpa` does not remove obsolete packages after upgrades. To delete a
 
 ### Additional fetchers
 
-One fetcher has been added to build packages from single `.el` files. It's still *experimental* so use it with care. It works like this:
+One fetcher has been added to build packages from single `.el` files. It works like this:
 
 ```cl
 (quelpa '(rainbow-mode :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el" :fetcher url))
@@ -154,7 +154,13 @@ Another example:
 
 ```
 
-Upgrades are managed through file hashes, so if the content changed, `quelpa` will upgrade the package. Existing version numbers are retained. `quelpa` uses a version suffix that still allows the original version to have priority. So if you should install a package from another source with the same version it will be preferred.
+By default upgrades are managed through file hashes, so if the content changed, `quelpa` will upgrade the package. Existing version numbers are retained. `quelpa` uses a version suffix that still allows the original version to have priority. So if you should install a package from another source with the same version it will be preferred.
+
+To keep the original version unmodified use the parameter `:version original`. For example:
+
+```cl
+(quelpa '(queue :url "http://www.dr-qubit.org/download.php?file=predictive/queue.el" :fetcher url :version original))
+```
 
 ### Additional options
 #### Inhibit MELPA updates on init

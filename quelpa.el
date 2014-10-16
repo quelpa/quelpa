@@ -267,6 +267,7 @@ remote file:
 Installs a single-file package from a remote file.  Use the :url
 attribute with an URL like \"http://domain.tld/path/to/file.el\"."
   (let* ((url (plist-get config :url))
+         (version (plist-get config :version))
          (type (file-name-extension url))
          (remote-file-name (file-name-nondirectory
                             (url-filename (url-generic-parse-url url))))
@@ -287,7 +288,9 @@ attribute with an URL like \"http://domain.tld/path/to/file.el\"."
                                    (package-desc-version
                                     (quelpa-get-package-desc local-path))
                                    ".")
-                        "pre0." (car (quelpa-check-file-hash local-path)))))
+                        (pcase version
+                          (`original "")
+                          (_ (concat "pre0." (car (quelpa-check-file-hash local-path))))))))
         ((or "tar" "zip") 'archive)
         (`nil 'directory)))))
 
