@@ -12,7 +12,7 @@ If you want to help out with the development of quelpa, check out the [issues](h
 
 `quelpa` can be used in many ways, for example to manage your personal packages with less limitations than a package archive would impose on you, testing development versions of other packages or as a helper when developing a package.
 
-To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](http://steckerhalter.co.vu/steckemacs.html), especially the [Modes section](http://steckerhalter.co.vu/steckemacs.html#sec-2-10) where `quelpa` loads and installs the required packages just before they are configured.
+To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](https://github.com/steckerhalter/steckemacs.el/blob/master/steckemacs.el), where `quelpa` loads and installs the required packages just before they are configured.
 
 You can build and install packages from all the sources MELPA's build script `package-build` supports: Git, Github, Bazaar (bzr), Mercurial (hg), Subversion (svn), CVS, Darcs, Emacs Wiki (wiki)
 
