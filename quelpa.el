@@ -104,6 +104,11 @@ If nil the update is disabled and the repo is only updated on
   :group 'quelpa
   :type 'boolean)
 
+(defcustom quelpa-melpa-repository-url "git://github.com/milkypostman/melpa.git"
+  "MELPA git repository url from which to install package-build."
+  :group 'quelpa
+  :type 'string)
+
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
 
@@ -332,7 +337,7 @@ If there is an error and no existing checkout return nil."
              (file-exists-p (expand-file-name ".git" dir)))
         (condition-case err
             (pb/checkout-git 'package-build
-                             '(:url "git://github.com/milkypostman/melpa.git")
+                             '(:url quelpa-melpa-repository-url)
                              dir)
           (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
                  (file-exists-p (expand-file-name ".git" dir)))))))
