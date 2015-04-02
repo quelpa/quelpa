@@ -319,8 +319,9 @@ Return t in each case."
 (defun quelpa-save-cache ()
   "Write `quelpa-cache' to `quelpa-persistent-cache-file'."
   (when quelpa-persistent-cache-p
-    (with-temp-file quelpa-persistent-cache-file
-      (insert (prin1-to-string quelpa-cache)))))
+    (let (print-level print-length)
+      (with-temp-file quelpa-persistent-cache-file
+        (insert (prin1-to-string quelpa-cache))))))
 
 (defun quelpa-checkout-melpa ()
   "Fetch or update the melpa source code from Github.
