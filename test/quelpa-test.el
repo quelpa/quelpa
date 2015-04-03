@@ -13,7 +13,7 @@
 
 (quelpa-deftest quelpa-expand-recipe-test ()
   "Should be expanding correctly as return value and into buffer."
-  (let ((package-build-rcp '(package-build :repo "milkypostman/melpa" :fetcher github :files ("package-build.el" "json-fix.el"))))
+  (let ((package-build-rcp '(package-build :repo "milkypostman/melpa" :fetcher github :files ("package-build.el"))))
     (should
      (equal
       (quelpa-expand-recipe 'package-build)
@@ -32,7 +32,7 @@
 (quelpa-deftest quelpa-arg-rcp-test ()
   "Ensure `quelpa-arg-rcp' always returns the correct RCP format."
   (let ((quelpa-rcp '(quelpa :repo "quelpa/quelpa" :fetcher github))
-        (package-build-rcp '(package-build :repo "milkypostman/melpa" :fetcher github :files ("package-build.el" "json-fix.el"))))
+        (package-build-rcp '(package-build :repo "milkypostman/melpa" :fetcher github :files ("package-build.el"))))
     (should
      (equal
       (quelpa-arg-rcp quelpa-rcp)
