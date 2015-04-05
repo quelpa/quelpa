@@ -9,7 +9,7 @@
 
 ;; github
 (quelpa '(discover-my-major :fetcher github :repo "steckerhalter/discover-my-major"))
-(quelpa '(circe :repo "jorgenschaefer/circe" :fetcher github :files ("lisp/circe*.el")))
+(quelpa '(circe :repo "jorgenschaefer/circe" :fetcher github :files ("lisp/*.el")))
 (quelpa 'ag)
 
 ;; hg
