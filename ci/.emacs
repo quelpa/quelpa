@@ -39,6 +39,7 @@
 (quelpa '(quelpa :repo "quelpa/quelpa" :fetcher github) :upgrade t)
 
 ;; stable packages
-(quelpa 'ag :stable t)
-(quelpa 'nose :stable t)
 (quelpa 'anzu :stable t)
+(quelpa 'magit :stable t)
+(quelpa '(company :repo "company-mode/company-mode" :fetcher github) :stable t)
+(quelpa '(scss-mode :repo "antonj/scss-mode" :fetcher github) :stable t)
