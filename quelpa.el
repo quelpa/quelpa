@@ -57,6 +57,11 @@ the `:upgrade' argument."
   :group 'quelpa
   :type 'boolean)
 
+(defcustom quelpa-stable-p nil
+  "When non-nil, try to build stable packages like MELPA does."
+  :group 'quelpa
+  :type 'boolean)
+
 (defcustom quelpa-verbose t
   "When non-nil, `quelpa' prints log messages."
   :group 'quelpa
@@ -200,7 +205,8 @@ On error return nil."
 (defun quelpa-checkout (rcp dir)
   "Return the version of the new package given a RCP.
 Return nil if the package is already installed and should not be upgraded."
-  (pcase-let ((`(,name . ,config) rcp))
+  (pcase-let ((`(,name . ,config) rcp)
+              (package-build-stable quelpa-stable-p))
     (unless (or (and (package-installed-p name) (not quelpa-upgrade-p))
                 (and (not config)
                      (quelpa-message t "no recipe found for package `%s'" name)))
@@ -388,7 +394,8 @@ If t, `quelpa' tries to do an upgrade.
     (let ((key (car plist))
           (value (cadr plist)))
       (pcase key
-        (:upgrade (setq quelpa-upgrade-p value))))
+        (:upgrade (setq quelpa-upgrade-p value))
+        (:stable (setq quelpa-stable-p value))))
     (setq plist (cddr plist))))
 
 (defun quelpa-package-install (arg)
@@ -472,6 +479,8 @@ the global var `quelpa-upgrade-p' is set to nil."
   (when (quelpa-setup-p)
     ;; shadow `quelpa-upgrade-p' taking the default from the global var
     (let* ((quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p))
+           ;; shadow `quelpa-stable-p'
+           (quelpa-stable-p quelpa-stable-p)
            (rcp (quelpa-arg-rcp arg))
            (match (assq (list (car rcp)) quelpa-cache)))
       (quelpa-parse-plist plist)

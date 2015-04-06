@@ -126,6 +126,22 @@ Upgrading all your `quelpa` packages at init is one option to keep them up to da
 
 This command relies on an intact cache file which is set in the `quelpa-cache-file` variable. It is updated after every `quelpa` invocation. To reset it for debugging purposes, just delete the file and better keep a backup.
 
+### Stable Packages
+
+We can plug into [MELPA's way of building stable packages](https://github.com/milkypostman/melpa#stable-packages).
+
+There is a global variable where building of stable packages can be enabled:
+
+```cl
+(setq quelpa-stable-p t)
+```
+
+or you can set it just for one package by supplying `stable` as an argument:
+
+```cl
+(quelpa 'anzu :stable t)
+```
+
 ### Managing packages
 
 Because `quelpa` installs packages using the built-in Emacs package management system, you can use its regular interface by executing `M-x list-packages` and work with your packages as you would normally do. Deleting a package does not affect the `quelpa` cache yet.
