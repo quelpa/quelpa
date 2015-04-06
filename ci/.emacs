@@ -40,12 +40,10 @@
 
 ;; stable packages
 (quelpa 'anzu :stable t)
-(quelpa '(magit :fetcher github :repo "magit/magit") :stable t)
 (quelpa '(company :repo "company-mode/company-mode" :fetcher github) :stable t)
 (quelpa '(scss-mode :repo "antonj/scss-mode" :fetcher github) :stable t)
 
 ;; try upgrading the stable packages to dev
 (quelpa 'anzu :upgrade t)
-(quelpa '(magit :fetcher github :repo "magit/magit") :upgrade t)
 (quelpa '(company :repo "company-mode/company-mode" :fetcher github) :upgrade t)
 (quelpa '(scss-mode :repo "antonj/scss-mode" :fetcher github) :upgrade t)
