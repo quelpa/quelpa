@@ -39,7 +39,6 @@
 (quelpa '(quelpa :repo "quelpa/quelpa" :fetcher github) :upgrade t)
 
 ;; stable packages
-(quelpa '(cider :fetcher github :repo "clojure-emacs/cider" :files ("*.el" (:exclude ".dir-locals.el")) :old-names (nrepl)) :stable t)
 (quelpa 'ag :stable t)
 (quelpa 'nose :stable t)
 (quelpa 'anzu :stable t)
