@@ -6,6 +6,34 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 If you want to help out with the development of quelpa, check out the [issues](https://github.com/quelpa/quelpa/issues).
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+---
+
+- [Overview](#overview)
+- [Requirements](#requirements)
+- [Installation](#installation)
+  - [Windows](#windows)
+    - [Install Cygwin](#install-cygwin)
+    - [Install a sane package manager](#install-a-sane-package-manager)
+    - [Install Emacs](#install-emacs)
+      - [Fix issue on 32-bit Cygwin](#fix-issue-on-32-bit-cygwin)
+    - [Enjoy](#enjoy)
+- [Usage](#usage)
+  - [Installing with a package name](#installing-with-a-package-name)
+  - [Installing with a recipe](#installing-with-a-recipe)
+  - [Upgrading individual packages](#upgrading-individual-packages)
+    - [Interactive Overriding](#interactive-overriding)
+    - [Non-Interactive Overriding](#non-interactive-overriding)
+  - [Upgrading all packages](#upgrading-all-packages)
+  - [Managing packages](#managing-packages)
+  - [Additional fetchers](#additional-fetchers)
+  - [Additional options](#additional-options)
+    - [Inhibit MELPA updates on init](#inhibit-melpa-updates-on-init)
+- [Why "quelpa"?](#why-quelpa)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Overview
 
 `quelpa` uses recipes in [MELPA's format](https://github.com/milkypostman/melpa#recipe-format) to build your desired packages from source and installs them using the built-in Emacs package manager. Basically, it's a standards-complying [el-get](https://github.com/dimitri/el-get). Or a local MELPA that doesn't require waiting for new builds.
@@ -53,6 +81,55 @@ If you don't like `quelpa` doing self-upgrades (although this is recommended), u
 ```
 
 **Note**: `(package-initialize)` can be omitted if you are already running the command before the snippet in your init file.
+
+### Windows
+
+The GNU Windows build of Emacs has many issues with the `quelpa` tool chain. We suggest that you use Emacs from [Cygwin](http://cygwin.com) which usually works out of the box even with complicated init files. Please follow these instructions to install it:
+
+#### Install Cygwin ####
+
+Download either the 64-bit or 32-bit setup file from <http://cygwin.com/install.html>. If your Windows version is 64-bit then make sure to use the 64-bit installer to avoid some problems that only happen with the 32-bit version.
+
+It is usually better to install Cygwin just for the current user, not system-wide:
+
+- Open the location where you have downloaded the setup executable in Explorer
+- Press shift and right-click -> open command prompt here
+
+Run for example:
+
+    setup-x86.exe --no-admin
+
+Just leave the default packages selected and finish the installer
+
+#### Install a sane package manager ####
+
+Install apt-cyg from https://github.com/transcode-open/apt-cyg:
+
+Open the Cygwin terminal and execute:
+
+    lynx -source rawgit.com/transcode-open/apt-cyg/master/apt-cyg > apt-cyg
+    install apt-cyg /bin
+
+#### Install Emacs ####
+
+Then install Emacs like this:
+
+    apt-cyg install wget git emacs-w32 emacs-el
+
+This will take quite a while...
+
+##### Fix issue on 32-bit Cygwin ####
+
+Using the 32-bit version of Cygwin I've got weird vfork errors and had to a *rebase* (see http://cygwin.wikia.com/wiki/Rebaseall):
+
+- Close the Cygwin terminal
+- Start/Run: "C:\cygwin\bin\dash.exe" (adapt the path to your Cygwin install)
+- Run: `/bin/rebaseall -v`
+- Close dash
+
+#### Enjoy ####
+
+So then everything should work with `quelpa`. Open the Cygwin terminal, install your init file and enjoy Emacs on Windows (even `emacs --daemon` works with the Cygwin build)
 
 ## Usage
 
