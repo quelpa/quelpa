@@ -112,7 +112,7 @@ This will take quite a while...
 
 ##### Fix issue on 32-bit Cygwin ####
 
-Using the 32-bit version of Cygwin I've got weird vfork errors and had to a *rebase* (see http://cygwin.wikia.com/wiki/Rebaseall):
+Using the 32-bit version of Cygwin I've got weird vfork errors and had to do a *rebase* (see http://cygwin.wikia.com/wiki/Rebaseall):
 
 - Close the Cygwin terminal
 - Start/Run: "C:\cygwin\bin\dash.exe" (adapt the path to your Cygwin install)
