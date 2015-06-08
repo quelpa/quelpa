@@ -76,8 +76,8 @@
   and only when it has changed the new stamp-info is returned."
   (cl-letf* ((stamp-info '("20140413.907" . "7e4c099e65d254f62e64b581c42ddeb3c487064b"))
              (hash "4935a306e358cbd0d9bd200e13ceb1e44942b323")
-             ((symbol-function 'pb/read-from-file) (lambda (file) stamp-info))
-             ((symbol-function 'pb/dump) (lambda (content file)))
+             ((symbol-function 'package-build--read-from-file) (lambda (file) stamp-info))
+             ((symbol-function 'package-build--dump) (lambda (content file)))
              ((symbol-function 'secure-hash) (lambda (&rest args) hash)))
     (should-not (equal (quelpa-check-file-hash "foobar") stamp-info))
     (setq hash (cdr stamp-info))
