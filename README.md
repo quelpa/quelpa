@@ -6,6 +6,26 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 If you want to help out with the development of quelpa, check out the [issues](https://github.com/quelpa/quelpa/issues).
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+---
+
+- [Overview](#overview)
+- [Requirements](#requirements)
+- [Installation](#installation)
+  - [Windows](#windows)
+- [Usage](#usage)
+  - [Installing with a package name](#installing-with-a-package-name)
+  - [Installing with a recipe](#installing-with-a-recipe)
+  - [Upgrading individual packages](#upgrading-individual-packages)
+  - [Upgrading all packages](#upgrading-all-packages)
+  - [Managing packages](#managing-packages)
+  - [Additional fetchers](#additional-fetchers)
+  - [Additional options](#additional-options)
+- [Why "quelpa"?](#why-quelpa)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Overview
 
 `quelpa` uses recipes in [MELPA's format](https://github.com/milkypostman/melpa#recipe-format) to build your desired packages from source and installs them using the built-in Emacs package manager. Basically, it's a standards-complying [el-get](https://github.com/dimitri/el-get). Or a local MELPA that doesn't require waiting for new builds.
@@ -53,6 +73,95 @@ If you don't like `quelpa` doing self-upgrades (although this is recommended), u
 ```
 
 **Note**: `(package-initialize)` can be omitted if you are already running the command before the snippet in your init file.
+
+### Windows
+
+On Windows there are some caveats so the procedure to make Emacs work with `quelpa` is outlined below. You can either use the native Windows build from GNU or the Cygwin port. If you'd like to have a complete *nix environment on your Windows machine then the Cygwin version is to be preferred.
+
+The Cygwin port is also easier to install as there are less manual steps necessary.
+
+#### Cygwin
+
+##### Install Cygwin #####
+
+Download either the 64-bit or 32-bit setup file from <http://cygwin.com/install.html>. If your Windows version is 64-bit then make sure to use the 64-bit installer to avoid some problems that only happen with the 32-bit version.
+
+It is usually better to install Cygwin just for the current user, not system-wide:
+
+- Open the location where you have downloaded the setup executable in Explorer
+- Press shift and right-click -> open command prompt here
+
+Run for example:
+
+    setup-x86.exe --no-admin
+
+Just leave the default packages selected and finish the installer
+
+##### Install a sane package manager #####
+
+Install apt-cyg from https://github.com/transcode-open/apt-cyg:
+
+Open the Cygwin terminal and execute:
+
+    lynx -source rawgit.com/transcode-open/apt-cyg/master/apt-cyg > apt-cyg
+    install apt-cyg /bin
+
+##### Install Emacs #####
+
+Then install Emacs like this:
+
+    apt-cyg install wget git emacs-w32 emacs-el
+
+This will take quite a while...
+
+###### Fix issue on 32-bit Cygwin ######
+
+Using the 32-bit version of Cygwin I've got weird vfork errors and had to do a *rebase* (see http://cygwin.wikia.com/wiki/Rebaseall):
+
+- Close the Cygwin terminal
+- Start/Run: "C:\cygwin\bin\dash.exe" (adapt the path to your Cygwin install)
+- Run: `/bin/rebaseall -v`
+- Close dash
+
+##### Enjoy #####
+
+So then everything should work with `quelpa`. Open the Cygwin terminal, install your init file and enjoy Emacs on Windows (even `emacs --daemon` works with the Cygwin build)
+
+#### Native
+
+##### Emacs
+
+Download and unpack Emacs from <https://ftp.gnu.org/gnu/emacs/windows/> (for example to `c:\emacs`)
+
+Some libraries are missing for SSL to work with Emacs so you will have to download the gnutls build from sourceforge: <http://sourceforge.net/projects/ezwinports/files/>
+
+Copy all .dll files from the gnutls archive to the `c:\emacs\bin` folder.
+
+Add `c:\emacs\bin` to the Windows `PATH` environment variable.
+
+##### Git
+
+Install Git from <https://git-scm.com/download/win>. **Make sure to choose these options in the installer**:
+
+    Use Git from the Windows Command Prompt
+
+and on the next dialog select one of the options with:
+
+    Checkout as-is  ...
+
+If you choose `Checkout Windows-style ...` then `quelpa` will not work correctly.
+
+##### Tar
+
+`tar` is needed by `quelpa` to build the `elpa` packages and has to be installed additionally.
+
+Download MinGW from <http://sourceforge.net/projects/mingw/files/latest/download> and start the installer.
+
+When you can choose the packages that should get installed go to `All Packages` -> `MSYS Base System` and mark `msys-tar` (bin) for installation. Then apply the changes.
+
+Now copy `tar`, `msys-1.0.dll`, `msys-regex-1.dll`, `msys-intl-8.dll`, `msys-iconv-2.dll` from `C:\MinGW\msys\1.0\bin` to `c:\emacs\bin`
+
+Then Emacs should work with `quelpa`.
 
 ## Usage
 

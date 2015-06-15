@@ -1,7 +1,7 @@
 ;;; quelpa.el --- Emacs Lisp packages built directly from source
 
-;; Copyright 2014, Steckerhalter
-;; Copyright 2014, Vasilij Schneidermann <v.schneidermann@gmail.com>
+;; Copyright 2014-2015, Steckerhalter
+;; Copyright 2014-2015, Vasilij Schneidermann <v.schneidermann@gmail.com>
 
 ;; Author: steckerhalter
 ;; URL: https://github.com/quelpa/quelpa
@@ -31,8 +31,8 @@
 ;; Your personal local Emacs Lisp Package Archive (ELPA) with packages
 ;; built on-the-fly directly from source.
 
-;; See the README.org for more info:
-;; https://github.com/quelpa/quelpa/README.org
+;; See the README for more info:
+;; https://github.com/quelpa/quelpa/blob/master/README.md
 
 ;;; Requirements:
 
@@ -228,7 +228,7 @@ already and should not be upgraded etc)."
       (quelpa-archive-file-name
        (package-build-package (symbol-name name)
                               version
-                              (pb/config-file-list (cdr rcp))
+                              (package-build--config-file-list (cdr rcp))
                               build-dir
                               quelpa-packages-dir)))))
 
@@ -238,20 +238,20 @@ already and should not be upgraded etc)."
   "Check if hash of FILE is different as in STAMP-FILE.
 If it is different save the new hash and timestamp to STAMP-FILE
 and return NEW-STAMP-INFO, otherwise return OLD-STAMP-INFO."
-  (let* ((new-content-hash (secure-hash 'sha1 (pb/slurp-file file)))
+  (let* ((new-content-hash (secure-hash 'sha1 (package-build--slurp-file file)))
          (stamp-file (concat file ".stamp"))
-         (time-stamp (pb/parse-time (format-time-string "%Y/%m/%d %H:%M:%S")))
-         (old-stamp-info (pb/read-from-file stamp-file))
+         (time-stamp (package-build--parse-time (format-time-string "%Y/%m/%d %H:%M:%S")))
+         (old-stamp-info (package-build--read-from-file stamp-file))
          (new-stamp-info (cons time-stamp new-content-hash))
          (old-content-hash (cdr old-stamp-info)))
     (if (or (not old-content-hash)
             (not (string= new-content-hash old-content-hash)))
         (progn
-          (pb/dump new-stamp-info stamp-file)
+          (package-build--dump new-stamp-info stamp-file)
           new-stamp-info)
       old-stamp-info)))
 
-(defun pb/checkout-url (name config dir)
+(defun package-build--checkout-url (name config dir)
   "Build according to an URL with config CONFIG into DIR as NAME.
 Generic URL handler for packagebuild.el.
 
@@ -332,7 +332,7 @@ If there is an error and no existing checkout return nil."
     (or (and (null quelpa-update-melpa-p)
              (file-exists-p (expand-file-name ".git" dir)))
         (condition-case err
-            (pb/checkout-git 'package-build
+            (package-build--checkout-git 'package-build
                              '(:url "git://github.com/milkypostman/melpa.git")
                              dir)
           (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
