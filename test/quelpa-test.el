@@ -82,3 +82,12 @@
     (should-not (equal (quelpa-check-file-hash "foobar") stamp-info))
     (setq hash (cdr stamp-info))
     (should (equal (quelpa-check-file-hash "foobar") stamp-info))))
+
+(quelpa-deftest quelpa-cache-test ()
+  "Ensure that installing a package with a different recipe will
+update an existing cache item."
+  (cl-letf ((quelpa-cache nil)
+            ((symbol-function 'quelpa-package-install) 'ignore))
+    (quelpa '(makey :fetcher github :repo "mickeynp/makey"))
+    (quelpa 'makey)
+    (should (equal quelpa-cache '((makey))))))
