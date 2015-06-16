@@ -449,6 +449,8 @@ the `quelpa' command has been run in the current Emacs session."
   (when (quelpa-setup-p)
     (let ((quelpa-upgrade-p t))
       (quelpa-self-upgrade)
+      (setq quelpa-cache
+            (cl-remove-if-not #'package-installed-p quelpa-cache :key #'car))
       (mapc (lambda (item)
               (when (package-installed-p (car (quelpa-arg-rcp item)))
                 (quelpa item)))
@@ -473,13 +475,15 @@ the global var `quelpa-upgrade-p' is set to nil."
     ;; shadow `quelpa-upgrade-p' taking the default from the global var
     (let* ((quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p))
            (rcp (quelpa-arg-rcp arg))
-           (match (assq (list (car rcp)) quelpa-cache)))
+           (cache-item (if (symbolp arg) (list arg) arg)))
       (quelpa-parse-plist plist)
       (quelpa-package-install arg)
-      (setq quelpa-cache (remove match quelpa-cache))
-      (if (symbolp arg)
-          (add-to-list 'quelpa-cache (list arg))
-        (add-to-list 'quelpa-cache arg))))
+      ;; try removing existing recipes by name
+      (setq quelpa-cache (cl-remove arg quelpa-cache :key #'car))
+      (push cache-item quelpa-cache)
+      (setq quelpa-cache
+            (cl-sort quelpa-cache #'string<
+                     :key (lambda (item) (symbol-name (car item)))))))
   (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
 
