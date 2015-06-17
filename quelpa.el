@@ -487,6 +487,10 @@ the global var `quelpa-upgrade-p' is set to nil."
            (rcp (quelpa-arg-rcp arg))
            (match (assq (list (car rcp)) quelpa-cache)))
       (quelpa-parse-plist plist)
+      ;; in case :stable doesn't originate from PLIST, shadow the
+      ;; default value anyways
+      (when (plist-member arg :stable)
+        (setq quelpa-stable-p (plist-get arg :stable)))
       (quelpa-package-install arg)
       (setq quelpa-cache (remove match quelpa-cache))
       (if (symbolp arg)
