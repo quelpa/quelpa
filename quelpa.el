@@ -389,7 +389,10 @@ Recognized keywords are:
 :upgrade
 
 If t, `quelpa' tries to do an upgrade.
-"
+
+:stable
+
+If t, `quelpa' tries building the stable version of a package."
   (while plist
     (let ((key (car plist))
           (value (cadr plist)))
