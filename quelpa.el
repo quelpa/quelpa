@@ -491,8 +491,8 @@ the global var `quelpa-upgrade-p' is set to nil."
       (quelpa-parse-plist plist)
       ;; in case :stable doesn't originate from PLIST, shadow the
       ;; default value anyways
-      (when (plist-member arg :stable)
-        (setq quelpa-stable-p (plist-get arg :stable)))
+      (when (plist-member (cdr cache-item) :stable)
+        (setq quelpa-stable-p (plist-get (cdr cache-item) :stable)))
       (quelpa-package-install arg)
       ;; try removing existing recipes by name
       (setq quelpa-cache (cl-remove arg quelpa-cache :key #'car))
