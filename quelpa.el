@@ -493,7 +493,7 @@ the global var `quelpa-upgrade-p' is set to nil."
       ;; default value anyways
       (when (plist-member (cdr cache-item) :stable)
         (setq quelpa-stable-p (plist-get (cdr cache-item) :stable)))
-      (when quelpa-stable-p
+      (when (and quelpa-stable-p (not (plist-get (cdr cache-item) :stable)))
         (setf (cdr (last cache-item)) '(:stable t)))
       (quelpa-package-install arg)
       ;; try removing existing recipes by name
