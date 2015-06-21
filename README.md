@@ -6,6 +6,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 If you want to help out with the development of quelpa, check out the [issues](https://github.com/quelpa/quelpa/issues).
 
+<!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 ---
@@ -13,15 +14,16 @@ If you want to help out with the development of quelpa, check out the [issues](h
 - [Overview](#overview)
 - [Requirements](#requirements)
 - [Installation](#installation)
-  - [Windows](#windows)
 - [Usage](#usage)
   - [Installing with a package name](#installing-with-a-package-name)
   - [Installing with a recipe](#installing-with-a-recipe)
   - [Upgrading individual packages](#upgrading-individual-packages)
   - [Upgrading all packages](#upgrading-all-packages)
+  - [Stable Packages](#stable-packages)
   - [Managing packages](#managing-packages)
   - [Additional fetchers](#additional-fetchers)
   - [Additional options](#additional-options)
+  - [Windows Instructions](#windows-instructions)
 - [Why "quelpa"?](#why-quelpa)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -74,7 +76,152 @@ If you don't like `quelpa` doing self-upgrades (although this is recommended), u
 
 **Note**: `(package-initialize)` can be omitted if you are already running the command before the snippet in your init file.
 
-### Windows
+To setup Emacs on Microsoft Windows so that it works with `quelpa` is a bit tricky so we have added some [Instructions for Windows](#windows-instructions). Please consider them before trying to use `quelpa` on Windows.
+
+## Usage
+
+Cool. Now that we are all setup, enjoy the ride.
+
+There are two ways to install packages with `quelpa`:
+
+### Installing with a package name
+
+Check <http://melpa.milkbox.net/> for any packages you would like to install. You only need to know the name:
+
+```cl
+(quelpa 'magit)
+```
+
+Running this expression will fetch the `magit` source code from Github, build a package in the ELPA format and install it.
+
+Interactive installation is supported as well. Just execute `M-x quelpa` and select a recipe name from MELPA.
+
+If the package has dependencies they will be installed first.
+
+### Installing with a recipe
+
+You can also install packages that are not on MELPA. For this you need to provide a recipe in MELPA's format.
+
+For example if I'd like to install the [eval-sexp-fu.el package](http://www.emacswiki.org/emacs/eval-sexp-fu.el) which is located on the Emacs Wiki but not available on MELPA, I just need to provide a valid recipe instead of a package name:
+
+```cl
+(quelpa '(eval-sexp-fu :fetcher wiki :files ("eval-sexp-fu.el")))
+```
+
+Don't forget the quote before the recipe.
+
+### Upgrading individual packages
+
+Per default `quelpa` does not do anything if a package is already installed. You can customize this behavior globally by setting the variable `quelpa-upgrade-p` to `t` manually:
+
+```cl
+(setq quelpa-upgrade-p t)
+```
+
+Alternatively customize this variable by executing `M-x customize-variable quelpa-upgrade-p RET`.
+
+It is also possible to override this default behavior for individual packages:
+
+#### Interactive Overriding
+
+When `quelpa` is called interactively with a prefix argument (e.g `C-u M-x quelpa`) it will try to upgrade the given package even if the global variable `quelpa-upgrade-p` is set to nil.
+
+That means `C-u M-x quelpa magit RET` will upgrade magit.
+
+Please note that the `:upgrade` parameter described below is still preferred over the prefix argument.
+
+#### Non-Interactive Overriding
+
+```cl
+(quelpa 'company :upgrade t)
+```
+
+This way `quelpa` will try to upgrade `company` even if upgrading is disabled globally.
+
+```cl
+(quelpa '(ag :repo "Wilfred/ag.el" :fetcher github) :upgrade nil)
+```
+
+When used that way, `quelpa` will not upgrade `ag`. This can be used to "pin" packages when evaluating a buffer with `quelpa` invocations.
+
+### Upgrading all packages
+
+Upgrading all your `quelpa` packages at init is one option to keep them up to date, but can slow it down considerably. Alternatively you can execute `M-x quelpa-upgrade` and upgrade every cached package.
+
+This command relies on an intact cache file which is set in the `quelpa-cache-file` variable. It is updated after every `quelpa` invocation. To reset it for debugging purposes, just delete the file and better keep a backup.
+
+### Stable Packages
+
+We can plug into [MELPA's way of building stable packages](https://github.com/milkypostman/melpa#stable-packages).
+
+In `quelpa` there is a global variable where building of stable packages can be enabled, so that all packages are built stable (if available for the individual package):
+
+```cl
+(setq quelpa-stable-p t)
+```
+
+or you can set it just for one package by supplying `stable` as an argument:
+
+```cl
+(quelpa 'anzu :stable t)
+```
+
+or as part of the recipe itself:
+
+```cl
+(quelpa '(ag :repo "Wilfred/ag.el" :fetcher github :stable t))
+```
+
+The definition as part of the recipe has the highest priority and overrides the other two methods. Likewise adding it as an argument overrides the global variable. So the priority is like: recipe > argument > `quelpa-stable-p`.
+
+### Managing packages
+
+Because `quelpa` installs packages using the built-in Emacs package management system, you can use its regular interface by executing `M-x list-packages` and work with your packages as you would normally do. Deleting a package does not affect the `quelpa` cache yet.
+
+Currently `quelpa` does not remove obsolete packages after upgrades. To delete all obsolete packages from time to time use: 
+
+-   `M-x list-packages RET`
+-   press  `~` to mark all obsolete packages for deletion
+-   press `x` and confirm deletion
+
+### Additional fetchers
+
+One fetcher has been added to build packages from single `.el` files. It works like this:
+
+```cl
+(quelpa '(rainbow-mode :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el" :fetcher url))
+```
+
+You specify the `:url` (either a remote or local one like `file:///path/to/file.el`) of the file and as `:fetcher` `url`.
+
+Another example:
+
+
+```cl
+(quelpa '(ox-rss :url "http://orgmode.org/cgit.cgi/org-mode.git/plain/contrib/lisp/ox-rss.el" :fetcher url))
+
+```
+
+By default upgrades are managed through file hashes, so if the content changed, `quelpa` will upgrade the package. Existing version numbers are retained. `quelpa` uses a version suffix that still allows the original version to have priority. So if you should install a package from another source with the same version it will be preferred.
+
+To keep the original version unmodified use the parameter `:version original`. For example:
+
+```cl
+(quelpa '(queue :url "http://www.dr-qubit.org/download.php?file=predictive/queue.el" :fetcher url :version original))
+```
+
+### Additional options
+#### Inhibit MELPA updates on init
+
+Upon initialization `quelpa` usually updates the MELPA git repo (stored in `quelpa-build-dir`/`package-build`) which ensures you always have the latest recipes from MELPA available. This causes as small delay and some people don't like that (presumably people that do not use or know `emacs --daemon` and `emacsclient`).
+
+You can disable these updates by setting `quelpa-update-melpa-p` to `nil` before requiring `quelpa`:
+
+```cl
+(setq quelpa-update-melpa-p nil)
+```
+
+### Windows Instructions
 
 On Windows there are some caveats so the procedure to make Emacs work with `quelpa` is outlined below. You can either use the native Windows build from GNU or the Cygwin port. If you'd like to have a complete *nix environment on your Windows machine then the Cygwin version is to be preferred.
 
@@ -163,141 +310,7 @@ Now copy `tar`, `msys-1.0.dll`, `msys-regex-1.dll`, `msys-intl-8.dll`, `msys-ico
 
 Then Emacs should work with `quelpa`.
 
-## Usage
-
-Cool. Now that we are all setup, enjoy the ride.
-
-There are two ways to install packages with `quelpa`:
-
-### Installing with a package name
-
-Check <http://melpa.milkbox.net/> for any packages you would like to install. You only need to know the name:
-
-```cl
-(quelpa 'magit)
-```
-
-Running this expression will fetch the `magit` source code from Github, build a package in the ELPA format and install it.
-
-Interactive installation is supported as well. Just execute `M-x quelpa` and select a recipe name from MELPA.
-
-If the package has dependencies they will be installed first.
-
-### Installing with a recipe
-
-You can also install packages that are not on MELPA. For this you need to provide a recipe in MELPA's format.
-
-For example if I'd like to install the [eval-sexp-fu.el package](http://www.emacswiki.org/emacs/eval-sexp-fu.el) which is located on the Emacs Wiki but not available on MELPA, I just need to provide a valid recipe instead of a package name:
-
-```cl
-(quelpa '(eval-sexp-fu :fetcher wiki :files ("eval-sexp-fu.el")))
-```
-
-Don't forget the quote before the recipe.
-
-### Upgrading individual packages
-
-Per default `quelpa` does not do anything if a package is already installed. You can customize this behavior globally by setting the variable `quelpa-upgrade-p` to `t` manually:
-
-```cl
-(setq quelpa-upgrade-p t)
-```
-
-Alternatively customize this variable by executing `M-x customize-variable quelpa-upgrade-p RET`.
-
-It is also possible to override this default behavior for individual packages:
-
-#### Interactive Overriding
-
-When `quelpa` is called interactively with a prefix argument (e.g `C-u M-x quelpa`) it will try to upgrade the given package even if the global variable `quelpa-upgrade-p` is set to nil.
-
-That means `C-u M-x quelpa magit RET` will upgrade magit.
-
-Please note that the `:upgrade` parameter described below is still preferred over the prefix argument.
-
-#### Non-Interactive Overriding
-
-```cl
-(quelpa 'company :upgrade t)
-```
-
-This way `quelpa` will try to upgrade `company` even if upgrading is disabled globally.
-
-```cl
-(quelpa '(ag :repo "Wilfred/ag.el" :fetcher github) :upgrade nil)
-```
-
-When used that way, `quelpa` will not upgrade `ag`. This can be used to "pin" packages when evaluating a buffer with `quelpa` invocations.
-
-### Upgrading all packages
-
-Upgrading all your `quelpa` packages at init is one option to keep them up to date, but can slow it down considerably. Alternatively you can execute `M-x quelpa-upgrade` and upgrade every cached package.
-
-This command relies on an intact cache file which is set in the `quelpa-cache-file` variable. It is updated after every `quelpa` invocation. To reset it for debugging purposes, just delete the file and better keep a backup.
-
-### Stable Packages
-
-We can plug into [MELPA's way of building stable packages](https://github.com/milkypostman/melpa#stable-packages).
-
-There is a global variable where building of stable packages can be enabled:
-
-```cl
-(setq quelpa-stable-p t)
-```
-
-or you can set it just for one package by supplying `stable` as an argument:
-
-```cl
-(quelpa 'anzu :stable t)
-```
-
-### Managing packages
-
-Because `quelpa` installs packages using the built-in Emacs package management system, you can use its regular interface by executing `M-x list-packages` and work with your packages as you would normally do. Deleting a package does not affect the `quelpa` cache yet.
-
-Currently `quelpa` does not remove obsolete packages after upgrades. To delete all obsolete packages from time to time use: 
-
--   `M-x list-packages RET`
--   press  `~` to mark all obsolete packages for deletion
--   press `x` and confirm deletion
-
-### Additional fetchers
-
-One fetcher has been added to build packages from single `.el` files. It works like this:
-
-```cl
-(quelpa '(rainbow-mode :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el" :fetcher url))
-```
-
-You specify the `:url` (either a remote or local one like `file:///path/to/file.el`) of the file and as `:fetcher` `url`.
-
-Another example:
-
-
-```cl
-(quelpa '(ox-rss :url "http://orgmode.org/cgit.cgi/org-mode.git/plain/contrib/lisp/ox-rss.el" :fetcher url))
-
-```
-
-By default upgrades are managed through file hashes, so if the content changed, `quelpa` will upgrade the package. Existing version numbers are retained. `quelpa` uses a version suffix that still allows the original version to have priority. So if you should install a package from another source with the same version it will be preferred.
-
-To keep the original version unmodified use the parameter `:version original`. For example:
-
-```cl
-(quelpa '(queue :url "http://www.dr-qubit.org/download.php?file=predictive/queue.el" :fetcher url :version original))
-```
-
-### Additional options
-#### Inhibit MELPA updates on init
-
-Upon initialization `quelpa` usually updates the MELPA git repo (stored in `quelpa-build-dir`/`package-build`) which ensures you always have the latest recipes from MELPA available. This causes as small delay and some people don't like that (presumably people that do not use or know `emacs --daemon` and `emacsclient`).
-
-You can disable these updates by setting `quelpa-update-melpa-p` to `nil` before requiring `quelpa`:
-
-```cl
-(setq quelpa-update-melpa-p nil)
-```
-
 ## Why "quelpa"?
 
 The german word `Quelle` means `spring` (as in: water source) but also `source`. `source code` is translated to `Quellcode`. `ELPA` is the abbreviation for Emacs Lisp Package Archive. You get the idea.
+
