@@ -497,7 +497,8 @@ the global var `quelpa-upgrade-p' is set to nil."
         (setf (cdr (last cache-item)) '(:stable t)))
       (quelpa-package-install arg)
       ;; try removing existing recipes by name
-      (setq quelpa-cache (cl-remove arg quelpa-cache :key #'car))
+      (setq quelpa-cache (cl-remove (if (symbolp arg) arg (car arg))
+                                    quelpa-cache :key #'car))
       (push cache-item quelpa-cache)
       (setq quelpa-cache
             (cl-sort quelpa-cache #'string<
