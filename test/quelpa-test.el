@@ -92,6 +92,16 @@ update an existing cache item."
     (quelpa 'makey)
     (should (equal quelpa-cache '((makey))))))
 
+(quelpa-deftest quelpa-cache-regressions ()
+   (cl-letf ((quelpa-cache nil)
+             ((symbol-function 'quelpa-package-install) 'ignore))
+     (quelpa '(multiple-cursors :fetcher github :repo "magnars/multiple-cursors.el" :stable t))
+     (should (equal quelpa-cache '((multiple-cursors :fetcher github :repo "magnars/multiple-cursors.el" :stable t))))
+     (let ((quelpa-stable-p t))
+       (quelpa '(multiple-cursors :fetcher github :repo "magnars/multiple-cursors.el")
+               :stable nil))
+     (should (equal quelpa-cache '((multiple-cursors :fetcher github :repo "magnars/multiple-cursors.el"))))))
+
 (quelpa-deftest quelpa-stable-test ()
   (cl-letf ((quelpa-cache nil)
             ((symbol-function 'quelpa-package-install) 'ignore))
