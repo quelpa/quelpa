@@ -76,7 +76,7 @@ If you don't like `quelpa` doing self-upgrades (although this is recommended), u
 
 **Note**: `(package-initialize)` can be omitted if you are already running the command before the snippet in your init file.
 
-To setup Emacs on Microsoft Windows so that it works with `quelpa` is a bit tricky so we have added some [Instructions for Windows](#windows instructions). Please consider them before trying to use `quelpa` on Windows.
+To setup Emacs on Microsoft Windows so that it works with `quelpa` is a bit tricky so we have added some [Instructions for Windows](#windows-instructions). Please consider them before trying to use `quelpa` on Windows.
 
 ## Usage
 
