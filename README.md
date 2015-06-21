@@ -6,6 +6,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 If you want to help out with the development of quelpa, check out the [issues](https://github.com/quelpa/quelpa/issues).
 
+<!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 ---
@@ -19,6 +20,7 @@ If you want to help out with the development of quelpa, check out the [issues](h
   - [Installing with a recipe](#installing-with-a-recipe)
   - [Upgrading individual packages](#upgrading-individual-packages)
   - [Upgrading all packages](#upgrading-all-packages)
+  - [Stable Packages](#stable-packages)
   - [Managing packages](#managing-packages)
   - [Additional fetchers](#additional-fetchers)
   - [Additional options](#additional-options)
@@ -239,7 +241,7 @@ This command relies on an intact cache file which is set in the `quelpa-cache-fi
 
 We can plug into [MELPA's way of building stable packages](https://github.com/milkypostman/melpa#stable-packages).
 
-There is a global variable where building of stable packages can be enabled:
+In `quelpa` there is a global variable where building of stable packages can be enabled, so that all packages are built stable (if available for the individual package):
 
 ```cl
 (setq quelpa-stable-p t)
@@ -250,6 +252,14 @@ or you can set it just for one package by supplying `stable` as an argument:
 ```cl
 (quelpa 'anzu :stable t)
 ```
+
+or as part of the recipe itself:
+
+```cl
+(quelpa '(ag :repo "Wilfred/ag.el" :fetcher github :stable t))
+```
+
+The definition as part of the recipe has the highest priority and overrides the other two methods. Likewise adding it as an argument overrides the global variable. So the priority is like: recipe > argument > `quelpa-stable-p`.
 
 ### Managing packages
 
