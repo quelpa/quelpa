@@ -154,7 +154,9 @@ This command relies on an intact cache file which is set in the `quelpa-cache-fi
 
 ### Stable Packages
 
-Since we are using the MELPA `package-build` library to build the packages, we also have the possibility to build stable packages (for details see [MELPA's notes on stable package requirements](https://github.com/milkypostman/melpa#stable-packages).
+`quelpa` can be instructed to build stable packages. This means that the repository with the source code (`git` or `hg` are supported) is queried for stable tag and if one is found that version will be built.
+
+For more information please see [MELPA's notes on stable packages](https://github.com/milkypostman/melpa#stable-packages).
 
 In `quelpa` there is a global variable where building of stable packages can be enabled, so that all packages are built stable (if available for the individual package):
 
