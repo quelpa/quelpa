@@ -37,3 +37,13 @@
 
 ;; upgrade-test
 (quelpa '(quelpa :repo "quelpa/quelpa" :fetcher github) :upgrade t)
+
+;; stable packages
+(quelpa 'anzu :stable t)
+(quelpa '(company :repo "company-mode/company-mode" :fetcher github) :stable t)
+(quelpa '(scss-mode :repo "antonj/scss-mode" :fetcher github) :stable t)
+
+;; try upgrading the stable packages to dev
+(quelpa 'anzu :upgrade t)
+(quelpa '(company :repo "company-mode/company-mode" :fetcher github) :upgrade t)
+(quelpa '(scss-mode :repo "antonj/scss-mode" :fetcher github) :upgrade t)

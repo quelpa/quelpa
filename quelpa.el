@@ -57,6 +57,11 @@ the `:upgrade' argument."
   :group 'quelpa
   :type 'boolean)
 
+(defcustom quelpa-stable-p nil
+  "When non-nil, try to build stable packages like MELPA does."
+  :group 'quelpa
+  :type 'boolean)
+
 (defcustom quelpa-verbose t
   "When non-nil, `quelpa' prints log messages."
   :group 'quelpa
@@ -200,7 +205,8 @@ On error return nil."
 (defun quelpa-checkout (rcp dir)
   "Return the version of the new package given a RCP.
 Return nil if the package is already installed and should not be upgraded."
-  (pcase-let ((`(,name . ,config) rcp))
+  (pcase-let ((`(,name . ,config) rcp)
+              (package-build-stable quelpa-stable-p))
     (unless (or (and (package-installed-p name) (not quelpa-upgrade-p))
                 (and (not config)
                      (quelpa-message t "no recipe found for package `%s'" name)))
@@ -383,12 +389,16 @@ Recognized keywords are:
 :upgrade
 
 If t, `quelpa' tries to do an upgrade.
-"
+
+:stable
+
+If t, `quelpa' tries building the stable version of a package."
   (while plist
     (let ((key (car plist))
           (value (cadr plist)))
       (pcase key
-        (:upgrade (setq quelpa-upgrade-p value))))
+        (:upgrade (setq quelpa-upgrade-p value))
+        (:stable (setq quelpa-stable-p value))))
     (setq plist (cddr plist))))
 
 (defun quelpa-package-install (arg)
@@ -474,12 +484,21 @@ the global var `quelpa-upgrade-p' is set to nil."
   (when (quelpa-setup-p)
     ;; shadow `quelpa-upgrade-p' taking the default from the global var
     (let* ((quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p))
+           ;; shadow `quelpa-stable-p'
+           (quelpa-stable-p quelpa-stable-p)
            (rcp (quelpa-arg-rcp arg))
            (cache-item (if (symbolp arg) (list arg) arg)))
       (quelpa-parse-plist plist)
+      ;; in case :stable doesn't originate from PLIST, shadow the
+      ;; default value anyways
+      (when (plist-member (cdr cache-item) :stable)
+        (setq quelpa-stable-p (plist-get (cdr cache-item) :stable)))
+      (when (and quelpa-stable-p (not (plist-get (cdr cache-item) :stable)))
+        (setf (cdr (last cache-item)) '(:stable t)))
       (quelpa-package-install arg)
       ;; try removing existing recipes by name
-      (setq quelpa-cache (cl-remove arg quelpa-cache :key #'car))
+      (setq quelpa-cache (cl-remove (if (symbolp arg) arg (car arg))
+                                    quelpa-cache :key #'car))
       (push cache-item quelpa-cache)
       (setq quelpa-cache
             (cl-sort quelpa-cache #'string<
