@@ -4,9 +4,9 @@
 
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
-## News
+### News
 
-2015/05/24 - We have added support to build stable packages with `quelpa`, see [Stable Packages](#stable-packages) for more information.
+2015/06/24 - We have added support to build stable packages with `quelpa`, see [Stable Packages](#stable-packages) for more information.
 
 <!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
