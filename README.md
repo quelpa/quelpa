@@ -4,7 +4,9 @@
 
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
-If you want to help out with the development of quelpa, check out the [issues](https://github.com/quelpa/quelpa/issues).
+## News
+
+2015/05/24 - We have added support to build stable packages with `quelpa`, see [Stable Packages](#stable-packages) for more information.
 
 <!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -152,7 +154,7 @@ This command relies on an intact cache file which is set in the `quelpa-cache-fi
 
 ### Stable Packages
 
-We can plug into [MELPA's way of building stable packages](https://github.com/milkypostman/melpa#stable-packages).
+Since we are using the MELPA `package-build` library to build the packages, we also have the possibility to build stable packages (for details see [MELPA's notes on stable package requirements](https://github.com/milkypostman/melpa#stable-packages).
 
 In `quelpa` there is a global variable where building of stable packages can be enabled, so that all packages are built stable (if available for the individual package):
 
@@ -173,6 +175,8 @@ or as part of the recipe itself:
 ```
 
 The definition as part of the recipe has the highest priority and overrides the other two methods. Likewise adding it as an argument overrides the global variable. So the priority is like: recipe > argument > `quelpa-stable-p`.
+
+Note that dev version numbers are usually higher than stable version numbers (they are using the build date as version) so if you want to install a stable version for an installed dev package you will first have to uninstall that package.
 
 ### Managing packages
 
