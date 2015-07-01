@@ -1,0 +1,51 @@
+* Rationale
+
+- Quelpa can be more than a build tool
+- There is actually a philosophy behind it, basically empowering Emacs
+  Lisp authors
+- World domination is a bit far fetched, but being a solid alternative
+  to the existing package archives would be pretty snazzy
+- The following ideas were discussed on =#emacs=, but it sort of died,
+  so I'm publishing these lest I forget them
+
+* Quelpafiles
+
+- A VCS repository can have a =Quelpafile= at its root
+- This file can be empty, then it's just interpreted as "I'm an Emacs
+  Lisp hacker and I endorse Quelpa!"
+- If it's not empty, the file specifies the author's preferences with
+  regard to how they'd like their package to be built (like, from a
+  specific branch, by stable Git tags, with specific files, etc.)
+- If Quelpa is used without any further keywords on a repository
+  containing such a file, these settings are used as is
+- If extra keywords are specified in the Quelpa invocation or
+  preferences, they can be used to selectively override the
+  preferences
+- In case no =Quelpafile= is present, standard rules are applied, in
+  accordance to Quelpa settings and keywords
+- The benefit of this is having [[https://github.com/milkypostman/melpa/pull/2640][less]] [[https://github.com/milkypostman/melpa/pull/1129][troubles]] with setting and
+  changing preferences, in other words, authors are given back control
+  over their projects
+- This is actually a pretty important point in the overall philosophy
+  of Quelpa, but went under due to the people working on it being more
+  concerned about making the base functionality work
+
+* (Decentralized) Package Listing
+
+- GNU ELPA is pretty small (though, it's growing!), Marmalade
+  stagnates and MELPA seems to [[https://github.com/milkypostman/melpa/issues/2886][choke]] on going over more than 2000
+  packages and recompiling the ones that have changed in the meantime
+- Clearly there is a need for an alternative and more sustainable
+  model...
+- Let's assume for a moment that Quelpafiles are somewhat common and
+  most people employing them host their stuff on Github
+- [[http://ghtorrent.org/][GHTorrent]] allows one to query a database of all the Github events,
+  additionally to that there's the less powerful Github Search
+- A very basic scraper could batch process these sources to find
+  repositories containing a =Quelpafile=
+- Its results could be turned into a (static) package listing for
+  discovery of projects that can be installed via Quelpa
+- MELPA could be used as first source, others could be added later in
+  case it's not too much effort
+- In case the Quelpafile concept is extended to go beyond the root,
+  even an Emacs config could contain installable packages...
