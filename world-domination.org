@@ -5,7 +5,7 @@
   Lisp authors
 - World domination is a bit far fetched, but being a solid alternative
   to the existing package archives would be pretty snazzy
-- The following ideas were discussed on =#emacs=, but it sort of died,
+- The following ideas were discussed on =##emacs=, but it sort of died,
   so I'm publishing these lest I forget them
 
 * Quelpafiles
