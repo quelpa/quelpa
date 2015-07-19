@@ -28,7 +28,6 @@
 (quelpa 'mediawiki)
 
 ;; cvs
-(quelpa '(w3m :url ":pserver:anonymous@cvs.namazu.org:/storage/cvsroot" :module "emacs-w3m" :fetcher cvs))
 (quelpa 'matlab-mode)
 
 ;; url
