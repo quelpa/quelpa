@@ -5,3 +5,4 @@ script:
 notifications:
   email:
     - quelpa@postmomentum.ch
+    - v.schneidermann@gmail.com
