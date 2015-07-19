@@ -2,3 +2,6 @@ sudo: required
 language: emacs-lisp
 script:
   ./ci/run.sh
+notifications:
+  email:
+    - quelpa@postmomentum.ch
