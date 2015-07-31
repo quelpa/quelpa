@@ -6,7 +6,8 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ### News
 
-2015/06/24 - We have added support to build stable packages with `quelpa`, see [Stable Packages](#stable-packages) for more information.
+2015/07/31 - A `:quelpa` handler for the popular `use-package` is now available at <https://github.com/quelpa/quelpa-use-package>.  
+2015/06/24 - We have added support to build stable packages with `quelpa`, see [Stable Packages](#stable-packages) for more information
 
 <!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -32,9 +33,9 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ## Overview
 
-`quelpa` uses recipes in [MELPA's format](https://github.com/milkypostman/melpa#recipe-format) to build your desired packages from source and installs them using the built-in Emacs package manager. Basically, it's a standards-complying [el-get](https://github.com/dimitri/el-get). Or a local MELPA that doesn't require waiting for new builds.
+`quelpa` uses recipes in [MELPA's format](https://github.com/milkypostman/melpa#recipe-format) to build your desired packages from source and installs them using the built-in Emacs package manager. You could say it is a `package.el` compliant [el-get](https://github.com/dimitri/el-get) or even a local MELPA.
 
-`quelpa` can be used in many ways, for example to manage your personal packages with less limitations than a package archive would impose on you, testing development versions of other packages or as a helper when developing a package.
+`quelpa` can be used in many ways, for example to manage your personal packages, testing development versions of other packages or as a helper when developing a package.
 
 To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](https://github.com/steckerhalter/steckemacs.el/blob/master/steckemacs.el), where `quelpa` loads and installs the required packages just before they are configured.
 
