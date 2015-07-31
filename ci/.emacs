@@ -46,3 +46,14 @@
 (quelpa 'anzu :upgrade t)
 (quelpa '(company :repo "company-mode/company-mode" :fetcher github) :upgrade t)
 (quelpa '(scss-mode :repo "antonj/scss-mode" :fetcher github) :upgrade t)
+
+;; use-package
+(quelpa '(use-package :fetcher github :repo "jwiegley/use-package" :files ("use-package.el")))
+(require 'quelpa-use-package)
+(use-package grandshell-theme :quelpa) 
+(use-package ipretty :quelpa t)
+(use-package flx-ido :quelpa (:stable t))
+(use-package flx-ido :quelpa ((flx-ido) :upgrade t))
+(use-package git-modes :quelpa (git-modes :fetcher github :repo "magit/git-modes"))
+(use-package git-timemachine :quelpa ((git-timemachine :fetcher github :repo "pidu/git-timemachine") :stable t))
+(use-package git-timemachine :quelpa ((git-timemachine :fetcher github :repo "pidu/git-timemachine") :upgrade t))
