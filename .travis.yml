@@ -4,5 +4,8 @@ script:
   ./ci/run.sh
 notifications:
   email:
-    - quelpa@postmomentum.ch
-    - v.schneidermann@gmail.com
+    recipients:
+      - quelpa@postmomentum.ch
+      - v.schneidermann@gmail.com
+    on_success: never
+    on_failure: always
