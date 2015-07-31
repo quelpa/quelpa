@@ -6,7 +6,8 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ### News
 
-2015/06/24 - We have added support to build stable packages with `quelpa`, see [Stable Packages](#stable-packages) for more information.
+2015/07/31 - Added a `:quelpa` handler for `use-package`, see [use-package handler](#use-package-handler)  
+2015/06/24 - We have added support to build stable packages with `quelpa`, see [Stable packages](#stable-packages) for more information.
 
 <!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -21,8 +22,9 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
   - [Installing with a recipe](#installing-with-a-recipe)
   - [Upgrading individual packages](#upgrading-individual-packages)
   - [Upgrading all packages](#upgrading-all-packages)
-  - [Stable Packages](#stable-packages)
+  - [Stable packages](#stable-packages)
   - [Managing packages](#managing-packages)
+  - [use-package handler](#use-package-handler)
   - [Additional fetchers](#additional-fetchers)
   - [Additional options](#additional-options)
   - [Windows Instructions](#windows-instructions)
@@ -152,7 +154,7 @@ Upgrading all your `quelpa` packages at init is one option to keep them up to da
 
 This command relies on an intact cache file which is set in the `quelpa-cache-file` variable. It is updated after every `quelpa` invocation. To reset it for debugging purposes, just delete the file and better keep a backup.
 
-### Stable Packages
+### Stable packages
 
 `quelpa` can be instructed to build stable packages. This means that the repository with the source code (`git` or `hg` are supported) is queried for a stable tag and if one is found that version will be built.
 
@@ -189,6 +191,33 @@ Currently `quelpa` does not remove obsolete packages after upgrades. To delete a
 -   `M-x list-packages RET`
 -   press  `~` to mark all obsolete packages for deletion
 -   press `x` and confirm deletion
+
+### use-package handler
+
+If you are using [use-package](https://github.com/jwiegley/use-package) (which can help to simplify your .emacs) you can use the `quelpa` handler provided by `quelpa-use-package.el`.
+
+Assuming you have bootstrapped `quelpa` and installed `use-package` probably like this:
+
+```cl
+(quelpa '(use-package :fetcher github :repo "jwiegley/use-package" :files ("use-package.el")))
+```
+
+To use the `:quelpa` keyword with `use-package`, require the library:
+
+```cl
+(require 'quelpa-use-package)
+```
+
+then it's possible to call `use-package` with all kinds of arguments:
+
+```cl
+(use-package abc-mode :quelpa) ;installs abc-mode with quelpa
+(use-package abc-mode :quelpa t) ;does the same
+(use-package abc-mode :quelpa abc-mode) ;again... (if the package would have another name)
+(use-package abc-mode :quelpa (:upgrade t)) ;passes upgrade parameter to quelpa
+(use-package abc-mode :quelpa (abc-mode :fetcher github :repo "mkjunker/abc-mode")) ;uses recipe
+(use-package abc-mode :quelpa ((abc-mode :fetcher github :repo "mkjunker/abc-mode") :upgrade t)) ;recipe with plist arguments
+```
 
 ### Additional fetchers
 
