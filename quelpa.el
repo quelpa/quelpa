@@ -329,22 +329,22 @@ Return t in each case."
       (with-temp-file quelpa-persistent-cache-file
         (insert (prin1-to-string quelpa-cache))))))
 
-(defun quelpa-update-cache (arg)
-  (let ((cache-item (if (symbolp arg) (list arg) arg)))
-    ;; in case :stable doesn't originate from PLIST, shadow the
-    ;; default value anyways
-    (when (plist-member (cdr cache-item) :stable)
-      (setq quelpa-stable-p (plist-get (cdr cache-item) :stable)))
-    (when (and quelpa-stable-p (not (plist-get (cdr cache-item) :stable)))
-      (setf (cdr (last cache-item)) '(:stable t)))
-    (quelpa-package-install arg)
-    ;; try removing existing recipes by name
-    (setq quelpa-cache (cl-remove (if (symbolp arg) arg (car arg))
-                                  quelpa-cache :key #'car))
-    (push cache-item quelpa-cache)
-    (setq quelpa-cache
-          (cl-sort quelpa-cache #'string<
-                   :key (lambda (item) (symbol-name (car item)))))))
+(defun quelpa-update-cache (cache-item)
+  ;; try removing existing recipes by name
+  (setq quelpa-cache (cl-remove (car cache-item)
+                                quelpa-cache :key #'car))
+  (push cache-item quelpa-cache)
+  (setq quelpa-cache
+        (cl-sort quelpa-cache #'string<
+                 :key (lambda (item) (symbol-name (car item))))))
+
+(defun quelpa-parse-stable (cache-item)
+  ;; in case :stable doesn't originate from PLIST, shadow the
+  ;; default value anyways
+  (when (plist-member (cdr cache-item) :stable)
+    (setq quelpa-stable-p (plist-get (cdr cache-item) :stable)))
+  (when (and quelpa-stable-p (not (plist-get (cdr cache-item) :stable)))
+    (setf (cdr (last cache-item)) '(:stable t))))
 
 (defun quelpa-checkout-melpa ()
   "Fetch or update the melpa source code from Github.
@@ -501,9 +501,12 @@ the global var `quelpa-upgrade-p' is set to nil."
   (when (quelpa-setup-p) ;if init fails we do nothing
     (let* ((quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p)) ;shadow `quelpa-upgrade-p'
            (quelpa-stable-p quelpa-stable-p) ;shadow `quelpa-stable-p'
-           (rcp (quelpa-arg-rcp arg)))
+           (rcp (quelpa-arg-rcp arg))
+           (cache-item (if (symbolp arg) (list arg) arg)))
       (quelpa-parse-plist plist)
-      (quelpa-update-cache arg)))
+      (quelpa-parse-stable cache-item)
+      (quelpa-package-install arg)
+      (quelpa-update-cache cache-item)))
   (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
 
