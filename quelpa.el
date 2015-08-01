@@ -501,7 +501,6 @@ the global var `quelpa-upgrade-p' is set to nil."
   (when (quelpa-setup-p) ;if init fails we do nothing
     (let* ((quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p)) ;shadow `quelpa-upgrade-p'
            (quelpa-stable-p quelpa-stable-p) ;shadow `quelpa-stable-p'
-           (rcp (quelpa-arg-rcp arg))
            (cache-item (if (symbolp arg) (list arg) arg)))
       (quelpa-parse-plist plist)
       (quelpa-parse-stable cache-item)
