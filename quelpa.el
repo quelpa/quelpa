@@ -197,7 +197,7 @@ On error return nil."
                   (version-list-<=
                    (version-to-list version)
                    (if (functionp 'package-desc-vers)
-                       (package-desc-vers pkg-desc) ; old implementation
+                       (package-desc-vers pkg-desc) ;old implementation
                      (package-desc-version (car pkg-desc))))))
            ;; Also check built-in packages.
            (package-built-in-p name (version-to-list version)))))
@@ -329,6 +329,23 @@ Return t in each case."
       (with-temp-file quelpa-persistent-cache-file
         (insert (prin1-to-string quelpa-cache))))))
 
+(defun quelpa-update-cache (arg)
+  (let ((cache-item (if (symbolp arg) (list arg) arg)))
+    ;; in case :stable doesn't originate from PLIST, shadow the
+    ;; default value anyways
+    (when (plist-member (cdr cache-item) :stable)
+      (setq quelpa-stable-p (plist-get (cdr cache-item) :stable)))
+    (when (and quelpa-stable-p (not (plist-get (cdr cache-item) :stable)))
+      (setf (cdr (last cache-item)) '(:stable t)))
+    (quelpa-package-install arg)
+    ;; try removing existing recipes by name
+    (setq quelpa-cache (cl-remove (if (symbolp arg) arg (car arg))
+                                  quelpa-cache :key #'car))
+    (push cache-item quelpa-cache)
+    (setq quelpa-cache
+          (cl-sort quelpa-cache #'string<
+                   :key (lambda (item) (symbol-name (car item)))))))
+
 (defun quelpa-checkout-melpa ()
   "Fetch or update the melpa source code from Github.
 If there is no error return non-nil.
@@ -338,9 +355,10 @@ If there is an error and no existing checkout return nil."
     (or (and (null quelpa-update-melpa-p)
              (file-exists-p (expand-file-name ".git" dir)))
         (condition-case err
-            (package-build--checkout-git 'package-build
-                             '(:url "git://github.com/milkypostman/melpa.git")
-                             dir)
+            (package-build--checkout-git
+             'package-build
+             '(:url "git://github.com/milkypostman/melpa.git")
+             dir)
           (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
                  (file-exists-p (expand-file-name ".git" dir)))))))
 
@@ -440,7 +458,7 @@ insert the result into the current buffer."
       (when recipe
         (if (called-interactively-p)
             (prin1 recipe (current-buffer)))
-          recipe))))
+        recipe))))
 
 ;;;###autoload
 (defun quelpa-self-upgrade (&optional args)
@@ -480,29 +498,12 @@ the global var `quelpa-upgrade-p' is set to nil."
 
   (interactive (list (quelpa-interactive-candidate)))
   (run-hooks 'quelpa-before-hook)
-  ;; if init fails we do nothing
-  (when (quelpa-setup-p)
-    ;; shadow `quelpa-upgrade-p' taking the default from the global var
-    (let* ((quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p))
-           ;; shadow `quelpa-stable-p'
-           (quelpa-stable-p quelpa-stable-p)
-           (rcp (quelpa-arg-rcp arg))
-           (cache-item (if (symbolp arg) (list arg) arg)))
+  (when (quelpa-setup-p) ;if init fails we do nothing
+    (let* ((quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p)) ;shadow `quelpa-upgrade-p'
+           (quelpa-stable-p quelpa-stable-p) ;shadow `quelpa-stable-p'
+           (rcp (quelpa-arg-rcp arg)))
       (quelpa-parse-plist plist)
-      ;; in case :stable doesn't originate from PLIST, shadow the
-      ;; default value anyways
-      (when (plist-member (cdr cache-item) :stable)
-        (setq quelpa-stable-p (plist-get (cdr cache-item) :stable)))
-      (when (and quelpa-stable-p (not (plist-get (cdr cache-item) :stable)))
-        (setf (cdr (last cache-item)) '(:stable t)))
-      (quelpa-package-install arg)
-      ;; try removing existing recipes by name
-      (setq quelpa-cache (cl-remove (if (symbolp arg) arg (car arg))
-                                    quelpa-cache :key #'car))
-      (push cache-item quelpa-cache)
-      (setq quelpa-cache
-            (cl-sort quelpa-cache #'string<
-                     :key (lambda (item) (symbol-name (car item)))))))
+      (quelpa-update-cache arg)))
   (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
 
