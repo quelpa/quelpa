@@ -6,8 +6,8 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ### News
 
-2015/07/31 - A `:quelpa` handler for the popular `use-package` is now available at <https://github.com/quelpa/quelpa-use-package>.  
-2015/06/24 - We have added support to build stable packages with `quelpa`, see [Stable Packages](#stable-packages) for more information
+2015/07/31 - A `:quelpa` handler for the popular `use-package` is now available at [quelpa-use-package](https://github.com/quelpa/quelpa-use-package).  
+2015/06/24 - We have added support to build stable packages with `quelpa`, see [Stable packages](#stable-packages) for more information
 
 <!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -22,11 +22,13 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
   - [Installing with a recipe](#installing-with-a-recipe)
   - [Upgrading individual packages](#upgrading-individual-packages)
   - [Upgrading all packages](#upgrading-all-packages)
-  - [Stable Packages](#stable-packages)
+  - [Stable packages](#stable-packages)
   - [Managing packages](#managing-packages)
   - [Additional fetchers](#additional-fetchers)
   - [Additional options](#additional-options)
-  - [Windows Instructions](#windows-instructions)
+- [Windows instructions](#windows-instructions)
+  - [Cygwin](#cygwin)
+  - [Native](#native)
 - [Why "quelpa"?](#why-quelpa)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -51,6 +53,8 @@ Every build requires the corresponding build tool. To install a `subversion` hos
 Note: Even if the sources of a package are fetched with a VCS tool you have installed, they might have dependencies that require a different VCS tool. Better install the most common ones before proceeding.
 
 ## Installation
+
+**Note**: For Windows, see the [Instructions for Windows](#windows-instructions) before continuing
 
 First `quelpa` needs to be bootstrapped. This means MELPA's `package-build` has to be installed first, then `quelpa` itself.
 
@@ -78,8 +82,6 @@ If you don't like `quelpa` doing self-upgrades (although this is recommended), u
 ```
 
 **Note**: `(package-initialize)` can be omitted if you are already running the command before the snippet in your init file.
-
-To setup Emacs on Microsoft Windows so that it works with `quelpa` is a bit tricky so we have added some [Instructions for Windows](#windows-instructions). Please consider them before trying to use `quelpa` on Windows.
 
 ## Usage
 
@@ -153,7 +155,7 @@ Upgrading all your `quelpa` packages at init is one option to keep them up to da
 
 This command relies on an intact cache file which is set in the `quelpa-cache-file` variable. It is updated after every `quelpa` invocation. To reset it for debugging purposes, just delete the file and better keep a backup.
 
-### Stable Packages
+### Stable packages
 
 `quelpa` can be instructed to build stable packages. This means that the repository with the source code (`git` or `hg` are supported) is queried for a stable tag and if one is found that version will be built.
 
@@ -228,15 +230,14 @@ You can disable these updates by setting `quelpa-update-melpa-p` to `nil` before
 (setq quelpa-update-melpa-p nil)
 ```
 
-### Windows Instructions
-
+## Windows instructions
 On Windows there are some caveats so the procedure to make Emacs work with `quelpa` is outlined below. You can either use the native Windows build from GNU or the Cygwin port. If you'd like to have a complete *nix environment on your Windows machine then the Cygwin version is to be preferred.
 
 The Cygwin port is also easier to install as there are less manual steps necessary.
 
-#### Cygwin
+### Cygwin
 
-##### Install Cygwin #####
+#### Install Cygwin
 
 Download either the 64-bit or 32-bit setup file from <http://cygwin.com/install.html>. If your Windows version is 64-bit then make sure to use the 64-bit installer to avoid some problems that only happen with the 32-bit version.
 
@@ -251,7 +252,7 @@ Run for example:
 
 Just leave the default packages selected and finish the installer
 
-##### Install a sane package manager #####
+#### Install a sane package manager
 
 Install apt-cyg from https://github.com/transcode-open/apt-cyg:
 
@@ -260,7 +261,7 @@ Open the Cygwin terminal and execute:
     lynx -source rawgit.com/transcode-open/apt-cyg/master/apt-cyg > apt-cyg
     install apt-cyg /bin
 
-##### Install Emacs #####
+#### Install Emacs
 
 Then install Emacs like this:
 
@@ -268,7 +269,7 @@ Then install Emacs like this:
 
 This will take quite a while...
 
-###### Fix issue on 32-bit Cygwin ######
+##### Fix issue on 32-bit Cygwin
 
 Using the 32-bit version of Cygwin I've got weird vfork errors and had to do a *rebase* (see http://cygwin.wikia.com/wiki/Rebaseall):
 
@@ -277,13 +278,13 @@ Using the 32-bit version of Cygwin I've got weird vfork errors and had to do a *
 - Run: `/bin/rebaseall -v`
 - Close dash
 
-##### Enjoy #####
+#### Enjoy
 
 So then everything should work with `quelpa`. Open the Cygwin terminal, install your init file and enjoy Emacs on Windows (even `emacs --daemon` works with the Cygwin build)
 
-#### Native
+### Native
 
-##### Emacs
+#### Emacs
 
 Download and unpack Emacs from <https://ftp.gnu.org/gnu/emacs/windows/> (for example to `c:\emacs`)
 
@@ -293,7 +294,7 @@ Copy all .dll files from the gnutls archive to the `c:\emacs\bin` folder.
 
 Add `c:\emacs\bin` to the Windows `PATH` environment variable.
 
-##### Git
+#### Git
 
 Install Git from <https://git-scm.com/download/win>. **Make sure to choose these options in the installer**:
 
@@ -305,7 +306,7 @@ and on the next dialog select one of the options with:
 
 If you choose `Checkout Windows-style ...` then `quelpa` will not work correctly.
 
-##### Tar
+#### Tar
 
 `tar` is needed by `quelpa` to build the `elpa` packages and has to be installed additionally.
 
