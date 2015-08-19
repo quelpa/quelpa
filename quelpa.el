@@ -167,10 +167,11 @@ On error return nil."
   (let* ((kind (quelpa-package-type file))
          (desc (with-demoted-errors "Error getting PACKAGE-DESC: %s"
                  (with-temp-buffer
-                   (insert-file-contents-literally file)
                    (pcase kind
-                     (`single (package-buffer-info))
-                     (`tar (tar-mode)
+                     (`single (insert-file-contents file)
+                              (package-buffer-info))
+                     (`tar (insert-file-contents-literally file)
+                           (tar-mode)
                            (if (help-function-arglist 'package-tar-file-info)
                                ;; legacy `package-tar-file-info' requires an arg
                                (package-tar-file-info file)
