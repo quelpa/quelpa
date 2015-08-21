@@ -431,7 +431,7 @@ endings (Windows). So here we replace that with
             ((symbol-function 'insert-file-contents-literally)
              (lambda (file)
                (if (string-match "\\.tar\\'" file)
-                   (insert-file-contents-literally-orig file)
+                   (funcall insert-file-contents-literally-orig file)
                  (insert-file-contents file)))))
     (package-install-file file)))
 
