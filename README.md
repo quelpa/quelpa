@@ -300,12 +300,6 @@ Install Git from <https://git-scm.com/download/win>. **Make sure to choose these
 
     Use Git from the Windows Command Prompt
 
-and on the next dialog select one of the options with:
-
-    Checkout as-is  ...
-
-If you choose `Checkout Windows-style ...` then `quelpa` will not work correctly.
-
 #### Tar
 
 `tar` is needed by `quelpa` to build the `elpa` packages and has to be installed additionally.

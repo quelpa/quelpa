@@ -420,6 +420,21 @@ If t, `quelpa' tries building the stable version of a package."
         (:stable (setq quelpa-stable-p value))))
     (setq plist (cddr plist))))
 
+(defun quelpa-package-install-file (file)
+  "Workaround problem with `package-install-file'.
+`package-install-file' uses `insert-file-contents-literally'
+which causes problems when the file inserted has crlf line
+endings (Windows). So here we replace that with
+`insert-file-contents' for non-tar files."
+  (cl-letf ((insert-file-contents-literally-orig
+             (symbol-function 'insert-file-contents-literally))
+            ((symbol-function 'insert-file-contents-literally)
+             (lambda (file)
+               (if (string-match "\\.tar\\'" file)
+                   (funcall insert-file-contents-literally-orig file)
+                 (insert-file-contents file)))))
+    (package-install-file file)))
+
 (defun quelpa-package-install (arg)
   "Build and install package from ARG (a recipe or package name).
 If the package has dependencies recursively call this function to
@@ -434,7 +449,7 @@ install them."
                   (unless (equal 'emacs (car req))
                     (quelpa-package-install (car req))))
                 requires))
-        (package-install-file file)))))
+        (quelpa-package-install-file file)))))
 
 (defun quelpa-interactive-candidate ()
   "Query the user for a recipe and return the name."
