@@ -23,7 +23,7 @@
 
   ;; if we do not have melpa's package-build, get the tar package and install it
   (unless (require 'package-build nil t)
-    (let* ((archive "http://melpa.milkbox.net/packages/")
+    (let* ((archive "https://melpa.org/packages/")
            (archive-contents (with-temp-buffer
                                (url-insert-file-contents (concat archive "archive-contents"))
                                (cdr (read (current-buffer)))))
