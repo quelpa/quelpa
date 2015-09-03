@@ -352,14 +352,21 @@ Return t in each case."
 If there is no error return non-nil.
 If there is an error but melpa is already checked out return non-nil.
 If there is an error and no existing checkout return nil."
-  (let ((dir (expand-file-name "package-build" quelpa-build-dir)))
+  (let ((dir (expand-file-name "package-build" quelpa-build-dir))
+        (repo "https://github.com/milkypostman/melpa.git"))
     (or (and (null quelpa-update-melpa-p)
              (file-exists-p (expand-file-name ".git" dir)))
         (condition-case err
-            (package-build--checkout-git
-             'package-build
-             '(:url "git://github.com/milkypostman/melpa.git")
-             dir)
+            (cond
+             ((and (file-exists-p (expand-file-name ".git" dir))
+                   (string-equal (package-build--git-repo dir) repo))
+              (package-build--princ-exists dir)
+              (package-build--run-process dir "git" "remote" "update"))
+             (t
+              (when (file-exists-p dir)
+                (delete-directory dir t))
+              (package-build--princ-checkout repo dir)
+              (package-build--run-process nil "git" "clone" "--depth" "50" repo dir)))
           (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
                  (file-exists-p (expand-file-name ".git" dir)))))))
 
