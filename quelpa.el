@@ -371,7 +371,7 @@ If there is an error and no existing checkout return nil."
               (when (file-exists-p dir)
                 (delete-directory dir t))
               (package-build--princ-checkout repo dir)
-              (package-build--run-process nil "git" "clone" "--depth" "50" repo dir)))
+              (package-build--run-process nil "git" "clone" "--depth" "10" repo dir)))
           (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
                  (file-exists-p (expand-file-name ".git" dir)))))))
 
