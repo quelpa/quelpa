@@ -357,8 +357,7 @@ Return t in each case."
 If there is no error return non-nil.
 If there is an error but melpa is already checked out return non-nil.
 If there is an error and no existing checkout return nil."
-  (let ((dir (expand-file-name "package-build" quelpa-build-dir))
-        (repo quelpa-melpa-repo-url))
+  (let ((dir (expand-file-name "package-build" quelpa-build-dir)))
     (or (and (null quelpa-update-melpa-p)
              (file-exists-p (expand-file-name ".git" dir)))
         (condition-case err
