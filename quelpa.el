@@ -362,16 +362,18 @@ If there is an error and no existing checkout return nil."
     (or (and (null quelpa-update-melpa-p)
              (file-exists-p (expand-file-name ".git" dir)))
         (condition-case err
-            (cond
-             ((and (file-exists-p (expand-file-name ".git" dir))
-                   (string-equal (package-build--git-repo dir) repo))
-              (package-build--princ-exists dir)
-              (package-build--run-process dir "git" "remote" "update"))
-             (t
-              (when (file-exists-p dir)
-                (delete-directory dir t))
-              (package-build--princ-checkout repo dir)
-              (package-build--run-process nil "git" "clone" "--depth" "10" repo dir)))
+            (progn
+              (cond
+               ((and (file-exists-p (expand-file-name ".git" dir))
+                     (string-equal (package-build--git-repo dir) repo))
+                (package-build--princ-exists dir)
+                (package-build--run-process dir "git" "remote" "update"))
+               (t
+                (when (file-exists-p dir)
+                  (delete-directory dir t))
+                (package-build--princ-checkout repo dir)
+                (package-build--run-process nil "git" "clone" "--depth" "10" repo dir)))
+              (package-build--update-git-to-ref dir (concat "origin/" (package-build--git-head-branch dir))))
           (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
                  (file-exists-p (expand-file-name ".git" dir)))))))
 
