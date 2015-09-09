@@ -35,9 +35,9 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ## Overview
 
-`quelpa` uses recipes in [MELPA's format](https://github.com/milkypostman/melpa#recipe-format) to build your desired packages from source and installs them using the built-in Emacs package manager. You could say it is a `package.el` compliant [el-get](https://github.com/dimitri/el-get) or even a local MELPA.
+Given a recipe in [MELPA's format](https://github.com/milkypostman/melpa#recipe-format), `quelpa` gets the package source code, builds an ELPA compatible package and installs that locally. These installed packages can then be managed in the usual way with `M-x list-packages`. 
 
-`quelpa` can be used in many ways, for example to manage your personal packages, testing development versions of other packages or as a helper when developing a package.
+`quelpa` can be used in many ways, for example to manage your personal packages, testing development versions of other packages or as a helper when developing a package to test building, compiling and installing it.
 
 To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](https://github.com/steckerhalter/steckemacs.el), where `quelpa` loads and installs the required packages just before they are configured.
 
@@ -105,7 +105,7 @@ If the package has dependencies they will be installed first.
 
 ### Installing with a recipe
 
-You can also install packages that are not on MELPA. For this you need to provide a recipe in MELPA's format.
+   You can also install packages that are not on MELPA. For this you need to provide a recipe in MELPA's format.
 
 For example if I'd like to install the [eval-sexp-fu.el package](http://www.emacswiki.org/emacs/eval-sexp-fu.el) which is located on the Emacs Wiki but not available on MELPA, I just need to provide a valid recipe instead of a package name:
 
