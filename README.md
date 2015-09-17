@@ -195,7 +195,9 @@ Currently `quelpa` does not remove obsolete packages after upgrades. To delete a
 
 ### Additional fetchers
 
-One fetcher has been added to build packages from single `.el` files. It works like this:
+#### URL
+
+Builds packages from single `.el` files. It works like this:
 
 ```cl
 (quelpa '(rainbow-mode :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el" :fetcher url))
@@ -204,7 +206,6 @@ One fetcher has been added to build packages from single `.el` files. It works l
 You specify the `:url` (either a remote or local one like `file:///path/to/file.el`) of the file and as `:fetcher` `url`.
 
 Another example:
-
 
 ```cl
 (quelpa '(ox-rss :url "http://orgmode.org/cgit.cgi/org-mode.git/plain/contrib/lisp/ox-rss.el" :fetcher url))
@@ -219,7 +220,26 @@ To keep the original version unmodified use the parameter `:version original`. F
 (quelpa '(queue :url "http://www.dr-qubit.org/download.php?file=predictive/queue.el" :fetcher url :version original))
 ```
 
+#### File
+
+Builds single-file packages from local `.el` files:
+
+``` elisp
+(quelpa '(rainbow-mode :fetcher file :path "/path/to/rainbow-mode/rainbow-mode.el"))
+```
+
+Or multi-file packages from a local directory:
+
+``` elisp
+;; You can also use `~' in the :path and it will expand to the home directory.
+(quelpa '(rainbow-mode :fetcher file :path "~/path/to/rainbow-mode/dir"))
+```
+
+Specifying a directory for the `:path` does not retain existing version numbers,
+nor does it make any use of the `:version original` parameter.
+
 ### Additional options
+
 #### Inhibit MELPA updates on init
 
 Upon initialization `quelpa` usually updates the MELPA git repo (stored in `quelpa-build-dir`/`package-build`) which ensures you always have the latest recipes from MELPA available. This causes as small delay and some people don't like that (presumably people that do not use or know `emacs --daemon` and `emacsclient`).
@@ -230,7 +250,31 @@ You can disable these updates by setting `quelpa-update-melpa-p` to `nil` before
 (setq quelpa-update-melpa-p nil)
 ```
 
+#### Modify MELPA Recipes
+
+When installing a package, Quelpa will install any listed dependencies via the
+recipe that MELPA has for it. But maybe you want to use a different recipe, or
+perhaps the dependency is not even on MELPA, which would cause an installation
+failure.
+
+You can create a directory with recipe files and tell Quelpa to look there for
+an appropriate recipe:
+
+``` elisp
+(add-to-list 'quelpa-melpa-recipe-stores "/path/to/custom/recipe/dir")
+```
+
+This way, if no recipe is found in this custom directory, it will fallback to
+the next directory in the list, which in this case would be the directory
+containing the recipes from MELPA.
+
+The files themselves should be named after the package name, without any
+extension like `.el` or `.rcp`.
+
+Alternatively, you can also specify a list of recipes instead.
+
 ## Windows instructions
+
 On Windows there are some caveats so the procedure to make Emacs work with `quelpa` is outlined below. You can either use the native Windows build from GNU or the Cygwin port. If you'd like to have a complete *nix environment on your Windows machine then the Cygwin version is to be preferred.
 
 The Cygwin port is also easier to install as there are less manual steps necessary.

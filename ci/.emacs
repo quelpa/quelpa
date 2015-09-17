@@ -11,6 +11,8 @@
 (quelpa '(discover-my-major :fetcher github :repo "steckerhalter/discover-my-major"))
 (quelpa '(anaconda-mode :fetcher github :repo "proofit404/anaconda-mode" :files ("*.el" "*.py" "vendor/jedi/jedi" ("jsonrpc" "vendor/jsonrpc/jsonrpc/*.py"))))
 (quelpa 'ag)
+(when (version<= "24.4" emacs-version)
+  (quelpa 'magit))
 
 ;; hg
 (quelpa '(nav :url "https://code.google.com/p/emacs-nav/" :fetcher hg :files ("ack*" "nav.el")))
@@ -33,6 +35,10 @@
 ;; url
 (quelpa '(ox-rss :url "http://orgmode.org/cgit.cgi/org-mode.git/plain/contrib/lisp/ox-rss.el" :fetcher url))
 (quelpa '(rainbow-mode :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el" :fetcher url))
+
+;; file
+(quelpa '(helm :fetcher file :files ("*.el" "emacs-helm.sh" (:exclude "helm.el" "helm-lib.el" "helm-source.el" "helm-match-plugin.el" "helm-core-pkg.el")) :path "~/emacs-packages/helm"))
+(quelpa '(use-package :fetcher file :path "~/emacs-packages/use-package/use-package.el"))
 
 ;; upgrade-test
 (quelpa '(quelpa :repo "quelpa/quelpa" :fetcher github) :upgrade t)
