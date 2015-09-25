@@ -287,12 +287,12 @@ attribute with an URL like \"http://domain.tld/path/to/file.el\"."
          (mm-attachment-file-modes (default-file-modes)))
     (unless (file-directory-p dir)
       (make-directory (file-name-directory dir)))
-    (cl-letf ((package-strip-rcs-id-orig (symbol-function 'package-strip-rcs-id))
-              ((symbol-function 'package-strip-rcs-id)
-               (lambda (str)
-                 (or (funcall package-strip-rcs-id-orig (lm-header "package-version"))
-                     (funcall package-strip-rcs-id-orig (lm-header "version"))
-                     "0"))))
+    (cl-letf* ((package-strip-rcs-id-orig (symbol-function 'package-strip-rcs-id))
+               ((symbol-function 'package-strip-rcs-id)
+                (lambda (str)
+                  (or (funcall package-strip-rcs-id-orig (lm-header "package-version"))
+                      (funcall package-strip-rcs-id-orig (lm-header "version"))
+                      "0"))))
       (pcase type
         ("el" (progn
                 (url-copy-file url local-path t)
@@ -431,13 +431,13 @@ If t, `quelpa' tries building the stable version of a package."
 which causes problems when the file inserted has crlf line
 endings (Windows). So here we replace that with
 `insert-file-contents' for non-tar files."
-  (cl-letf ((insert-file-contents-literally-orig
-             (symbol-function 'insert-file-contents-literally))
-            ((symbol-function 'insert-file-contents-literally)
-             (lambda (file)
-               (if (string-match "\\.tar\\'" file)
-                   (funcall insert-file-contents-literally-orig file)
-                 (insert-file-contents file)))))
+  (cl-letf* ((insert-file-contents-literally-orig
+              (symbol-function 'insert-file-contents-literally))
+             ((symbol-function 'insert-file-contents-literally)
+              (lambda (file)
+                (if (string-match "\\.tar\\'" file)
+                    (funcall insert-file-contents-literally-orig file)
+                  (insert-file-contents file)))))
     (package-install-file file)))
 
 (defun quelpa-package-install (arg)
