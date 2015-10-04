@@ -71,17 +71,24 @@
       (should-not (quelpa-version>-p 'foobar "20140406.1613"))
       (should (quelpa-version>-p 'foobar "20140406.1614")))))
 
-(quelpa-deftest quelpa-check-file-hash-test ()
+(quelpa-deftest quelpa-check-hash-test ()
   "Make sure that old file hash is correctly compared with the new one
-  and only when it has changed the new stamp-info is returned."
-  (cl-letf* ((stamp-info '("20140413.907" . "7e4c099e65d254f62e64b581c42ddeb3c487064b"))
+  and only when it has changed the new time-stamp is returned."
+  (cl-letf* ((stamp-info '("20140413.90742" . "7e4c099e65d254f62e64b581c42ddeb3c487064b"))
              (hash "4935a306e358cbd0d9bd200e13ceb1e44942b323")
              ((symbol-function 'package-build--read-from-file) (lambda (file) stamp-info))
              ((symbol-function 'package-build--dump) (lambda (content file)))
-             ((symbol-function 'secure-hash) (lambda (&rest args) hash)))
-    (should-not (equal (quelpa-check-file-hash "foobar") stamp-info))
+             ((symbol-function 'package-build--expand-source-file-list) 'ignore)
+             ((symbol-function 'secure-hash) (lambda (&rest args) hash))
+             ((symbol-function 'delete-directory) 'ignore)
+             ((symbol-function 'make-directory) 'ignore)
+             ((symbol-function 'copy-directory) 'ignore)
+             ((symbol-function 'copy-file) 'ignore))
+    (should-not (equal (quelpa-check-hash 'foobar nil "/" "baz")
+                       (car stamp-info)))
     (setq hash (cdr stamp-info))
-    (should (equal (quelpa-check-file-hash "foobar") stamp-info))))
+    (should (equal (quelpa-check-hash 'foobar nil "/" "baz")
+                   (car stamp-info)))))
 
 (quelpa-deftest quelpa-cache-test ()
   "Ensure that installing a package with a different recipe will

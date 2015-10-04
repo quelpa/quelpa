@@ -43,6 +43,7 @@
 (require 'package-build)
 (require 'cl-lib)
 (require 'help-fns)
+(require 'url-parse)
 
 ;; --- customs / variables ---------------------------------------------------
 
@@ -91,6 +92,20 @@ the `:upgrade' argument."
   "Where quelpa puts built packages."
   :group 'quelpa
   :type 'string)
+
+(defcustom quelpa-melpa-recipe-stores (list (expand-file-name
+                                             "package-build/recipes"
+                                             quelpa-build-dir))
+  "Recipe stores where quelpa finds default recipes for packages.
+A store can either be a string pointing to a directory with
+recipe files or a list with recipes."
+  :group 'quelpa
+  :type '(repeat
+          (choice directory
+                  (repeat
+                   :tag "List of recipes"
+                   (restricted-sexp :tag "Recipe"
+                                    :match-alternatives (listp))))))
 
 (defcustom quelpa-persistent-cache-file (expand-file-name "cache" quelpa-dir)
   "Location of the persistent cache file."
@@ -246,26 +261,86 @@ already and should not be upgraded etc)."
 
 ;; --- package-build.el integration ------------------------------------------
 
-(defun quelpa-check-file-hash (file)
-  "Check if hash of FILE is different as in STAMP-FILE.
+(defun quelpa-file-version (file-path type version time-stamp)
+  "Return version of file at FILE-PATH."
+  (if (eq type 'directory)
+      time-stamp
+    (cl-letf* ((package-strip-rcs-id-orig (symbol-function 'package-strip-rcs-id))
+               ((symbol-function 'package-strip-rcs-id)
+                (lambda (str)
+                  (or (funcall package-strip-rcs-id-orig (lm-header "package-version"))
+                      (funcall package-strip-rcs-id-orig (lm-header "version"))
+                      "0"))))
+      (concat (mapconcat
+               #'number-to-string
+               (package-desc-version (quelpa-get-package-desc file-path)) ".")
+              (pcase version
+                (`original "")
+                (_ (concat "pre0." time-stamp)))))))
+
+(defun quelpa-check-hash (name config file-path dir &optional fetcher)
+  "Check if hash of FILE-PATH is different as in STAMP-FILE.
 If it is different save the new hash and timestamp to STAMP-FILE
-and return NEW-STAMP-INFO, otherwise return OLD-STAMP-INFO."
-  (let* ((new-content-hash (secure-hash 'sha1 (package-build--slurp-file file)))
-         (stamp-file (concat file ".stamp"))
-         (time-stamp (package-build--parse-time (format-time-string "%Y/%m/%d %H:%M:%S")))
+and return TIME-STAMP, otherwise return OLD-TIME-STAMP."
+  (unless (file-directory-p dir)
+    (make-directory dir))
+  (let* (files
+         hashes
+         new-stamp-info
+         new-content-hash
+         (time-stamp
+          (replace-regexp-in-string "\\.0" "." (format-time-string "%Y%m%d.%H%M%S")))
+         (stamp-file (concat (expand-file-name (symbol-name name) dir) ".stamp"))
          (old-stamp-info (package-build--read-from-file stamp-file))
-         (new-stamp-info (cons time-stamp new-content-hash))
-         (old-content-hash (cdr old-stamp-info)))
-    (if (or (not old-content-hash)
-            (not (string= new-content-hash old-content-hash)))
-        (progn
-          (package-build--dump new-stamp-info stamp-file)
-          new-stamp-info)
-      old-stamp-info)))
+         (old-content-hash (cdr old-stamp-info))
+         (old-time-stamp (car old-stamp-info))
+         (type (if (file-directory-p file-path) 'directory 'file))
+         (version (plist-get config :version)))
+    (if (not (file-exists-p file-path))
+        (error (quelpa-message t "`%s' does not exist" file-path))
+      (if (eq type 'directory)
+          (setq files (mapcar
+                       (lambda (file) (expand-file-name file file-path))
+                       (package-build--expand-source-file-list file-path config))
+                hashes (mapcar
+                        (lambda (file)
+                          (secure-hash
+                           'sha1 (concat file (package-build--slurp-file file)))) files)
+                new-content-hash (secure-hash 'sha1 (mapconcat 'identity hashes "")))
+        (setq new-content-hash (secure-hash 'sha1 (package-build--slurp-file file-path)))))
+    (setq new-stamp-info (cons time-stamp new-content-hash))
+    (if (and old-content-hash
+             (string= new-content-hash old-content-hash))
+        (quelpa-file-version file-path type version old-time-stamp)
+      (unless (eq fetcher 'url)
+        (delete-directory dir t)
+        (make-directory dir)
+        (if (eq type 'file)
+            (copy-file file-path dir t t t t)
+          (copy-directory file-path dir t t t)))
+      (package-build--dump new-stamp-info stamp-file)
+      (quelpa-file-version file-path type version time-stamp))))
+
+(defun package-build--checkout-file (name config dir)
+  "Build according to a PATH with config CONFIG into DIR as NAME.
+Generic local file handler for package-build.el.
+
+Handles the following cases:
+
+local file:
+
+Installs a single-file package from a local file.  Use the :path
+attribute with a PATH like \"/path/to/file.el\".
+
+local directory:
+
+Installs a multi-file package from a local directory.  Use
+the :path attribute with a PATH like \"/path/to/dir\"."
+  (quelpa-check-hash name config (expand-file-name (plist-get config :path)) dir))
 
 (defun package-build--checkout-url (name config dir)
   "Build according to an URL with config CONFIG into DIR as NAME.
-Generic URL handler for packagebuild.el.
+Generic URL handler for package-build.el.
 
 Handles the following cases:
 
@@ -279,32 +354,16 @@ remote file:
 Installs a single-file package from a remote file.  Use the :url
 attribute with an URL like \"http://domain.tld/path/to/file.el\"."
   (let* ((url (plist-get config :url))
-         (version (plist-get config :version))
-         (type (file-name-extension url))
          (remote-file-name (file-name-nondirectory
                             (url-filename (url-generic-parse-url url))))
          (local-path (expand-file-name remote-file-name dir))
          (mm-attachment-file-modes (default-file-modes)))
+    (unless (string= (file-name-extension url) "el")
+      (error (quelpa-message t "<%s> does not end in .el" url)))
     (unless (file-directory-p dir)
-      (make-directory (file-name-directory dir)))
-    (cl-letf* ((package-strip-rcs-id-orig (symbol-function 'package-strip-rcs-id))
-               ((symbol-function 'package-strip-rcs-id)
-                (lambda (str)
-                  (or (funcall package-strip-rcs-id-orig (lm-header "package-version"))
-                      (funcall package-strip-rcs-id-orig (lm-header "version"))
-                      "0"))))
-      (pcase type
-        ("el" (progn
-                (url-copy-file url local-path t)
-                (concat (mapconcat #'number-to-string
-                                   (package-desc-version
-                                    (quelpa-get-package-desc local-path))
-                                   ".")
-                        (pcase version
-                          (`original "")
-                          (_ (concat "pre0." (car (quelpa-check-file-hash local-path))))))))
-        ((or "tar" "zip") 'archive)
-        (`nil 'directory)))))
+      (make-directory dir))
+    (url-copy-file url local-path t)
+    (quelpa-check-hash name config local-path dir 'url)))
 
 ;; --- helpers ---------------------------------------------------------------
 
@@ -371,13 +430,18 @@ If there is an error and no existing checkout return nil."
 (defun quelpa-get-melpa-recipe (name)
   "Read recipe with NAME for melpa git checkout.
 Return the recipe if it exists, otherwise nil."
-  (let* ((recipes-path (expand-file-name "package-build/recipes" quelpa-build-dir))
-         (files (directory-files recipes-path nil "^[^\.]+"))
-         (file (assoc-string name files)))
-    (when file
-      (with-temp-buffer
-        (insert-file-contents-literally (expand-file-name file recipes-path))
-        (read (buffer-string))))))
+  (cl-loop for store in quelpa-melpa-recipe-stores
+           if (stringp store)
+           for file = (assoc-string name (directory-files store nil "^[^\.]+"))
+           when file
+           return (with-temp-buffer
+                    (insert-file-contents-literally
+                     (expand-file-name file store))
+                    (read (buffer-string)))
+           else
+           for rcp = (assoc-string name store)
+           when rcp
+           return rcp))
 
 (defun quelpa-setup-p ()
   "Setup what we need for quelpa.
