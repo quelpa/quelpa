@@ -6,8 +6,8 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ### News
 
-2015/07/31 - A `:quelpa` handler for the popular `use-package` is now available at [quelpa-use-package](https://github.com/quelpa/quelpa-use-package).  
-2015/06/24 - We have added support to build stable packages with `quelpa`, see [Stable packages](#stable-packages) for more information
+2015/10/04 - @vyp contributed a new `file` [fetcher](#file) which works with local files and directories  
+2015/07/31 - A `:quelpa` handler for the popular `use-package` is now available at [quelpa-use-package](https://github.com/quelpa/quelpa-use-package).
 
 <!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -252,24 +252,17 @@ You can disable these updates by setting `quelpa-update-melpa-p` to `nil` before
 
 #### Modify MELPA Recipes
 
-When installing a package, Quelpa will install any listed dependencies via the
-recipe that MELPA has for it. But maybe you want to use a different recipe, or
-perhaps the dependency is not even on MELPA, which would cause an installation
-failure.
+When installing a package, `quelpa` will install any listed dependencies via the recipe that MELPA has for it. But maybe you want to use a different recipe, or perhaps the dependency is not even on MELPA, which would cause an installation failure.
 
-You can create a directory with recipe files and tell Quelpa to look there for
-an appropriate recipe:
+You can create a directory with recipe files and tell `quelpa` to look there for an appropriate recipe:
 
 ``` elisp
 (add-to-list 'quelpa-melpa-recipe-stores "/path/to/custom/recipe/dir")
 ```
 
-This way, if no recipe is found in this custom directory, it will fallback to
-the next directory in the list, which in this case would be the directory
-containing the recipes from MELPA.
+This way, if no recipe is found in this custom directory, it will fallback to the next directory in the list, which in this case would be the directory containing the recipes from MELPA.
 
-The files themselves should be named after the package name, without any
-extension like `.el` or `.rcp`.
+The files themselves should be named after the package name, without any extension like `.el` or `.rcp`.
 
 Alternatively, you can also specify a list of recipes instead.
 
