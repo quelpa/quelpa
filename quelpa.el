@@ -541,7 +541,7 @@ insert the result into the current buffer."
   (when (quelpa-setup-p)
     (let* ((recipe (quelpa-get-melpa-recipe recipe-name)))
       (when recipe
-        (if (called-interactively-p)
+        (if (called-interactively-p 'any)
             (prin1 recipe (current-buffer)))
         recipe))))
 
