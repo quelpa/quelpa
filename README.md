@@ -91,7 +91,7 @@ There are two ways to install packages with `quelpa`:
 
 ### Installing with a package name
 
-Check <http://melpa.milkbox.net/> for any packages you would like to install. You only need to know the name:
+Check <https://melpa.org/> for any packages you would like to install. You only need to know the name:
 
 ```cl
 (quelpa 'magit)
