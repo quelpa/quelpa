@@ -228,7 +228,7 @@ On error return nil."
 Return nil if the package is already installed and should not be upgraded."
   (pcase-let ((`(,name . ,config) rcp)
               (package-build-stable quelpa-stable-p))
-    (unless (or (and (package-installed-p name) (not quelpa-upgrade-p))
+    (unless (or (and (assq name package-alist) (not quelpa-upgrade-p))
                 (and (not config)
                      (quelpa-message t "no recipe found for package `%s'" name)))
       (let ((version (condition-case err
