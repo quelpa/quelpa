@@ -23,7 +23,8 @@
   preferences
 - In case no =Quelpafile= is present, standard rules are applied, in
   accordance to Quelpa settings and keywords
-- The benefit of this is having [[https://github.com/milkypostman/melpa/pull/2640][less]] [[https://github.com/milkypostman/melpa/pull/1129][troubles]] with setting and
+- The benefit of this is having
+  [[https://github.com/melpa/melpa/pull/2640][less]] [[https://github.com/melpa/melpa/pull/1129][troubles]] with setting and
   changing preferences, in other words, authors are given back control
   over their projects
 - This is actually a pretty important point in the overall philosophy
@@ -33,7 +34,7 @@
 * (Decentralized) Package Listing
 
 - GNU ELPA is pretty small (though, it's growing!), Marmalade
-  stagnates and MELPA seems to [[https://github.com/milkypostman/melpa/issues/2886][choke]] on going over more than 2000
+  stagnates and MELPA seems to [[https://github.com/melpa/melpa/issues/2886][choke]] on going over more than 2000
   packages and recompiling the ones that have changed in the meantime
 - Clearly there is a need for an alternative and more sustainable
   model...
