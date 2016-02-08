@@ -35,7 +35,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ## Overview
 
-Given a recipe in [MELPA's format](https://github.com/milkypostman/melpa#recipe-format), `quelpa` gets the package source code, builds an ELPA compatible package and installs that locally. These installed packages can then be managed in the usual way with `M-x list-packages`. 
+Given a recipe in [MELPA's format](https://github.com/melpa/melpa#recipe-format), `quelpa` gets the package source code, builds an ELPA compatible package and installs that locally. These installed packages can then be managed in the usual way with `M-x list-packages`.
 
 `quelpa` can be used in many ways, for example to manage your personal packages, testing development versions of other packages or as a helper when developing a package to test building, compiling and installing it.
 
@@ -159,7 +159,7 @@ This command relies on an intact cache file which is set in the `quelpa-cache-fi
 
 `quelpa` can be instructed to build stable packages. This means that the repository with the source code (`git` or `hg` are supported) is queried for a stable tag and if one is found that version will be built.
 
-For more information please see [MELPA's notes on stable packages](https://github.com/milkypostman/melpa#stable-packages).
+For more information please see [MELPA's notes on stable packages](https://github.com/melpa/melpa#stable-packages).
 
 In `quelpa` there is a global variable where building of stable packages can be enabled, so that all packages are built stable (if available for the individual package):
 
