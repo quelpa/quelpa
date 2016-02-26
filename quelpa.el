@@ -495,14 +495,15 @@ If t, `quelpa' tries building the stable version of a package."
 which causes problems when the file inserted has crlf line
 endings (Windows). So here we replace that with
 `insert-file-contents' for non-tar files."
-  (cl-letf* ((insert-file-contents-literally-orig
-              (symbol-function 'insert-file-contents-literally))
-             ((symbol-function 'insert-file-contents-literally)
-              (lambda (file)
-                (if (or (string-match "\\.tar\\'" file)
-                        (not (eq system-type 'windows-nt)))
-                    (funcall insert-file-contents-literally-orig file)
-                  (insert-file-contents file)))))
+  (if (eq system-type 'windows-nt)
+      (cl-letf* ((insert-file-contents-literally-orig
+                  (symbol-function 'insert-file-contents-literally))
+                 ((symbol-function 'insert-file-contents-literally)
+                  (lambda (file)
+                    (if (string-match "\\.tar\\'" file)
+                        (funcall insert-file-contents-literally-orig file)
+                      (insert-file-contents file)))))
+        (package-install-file file))
     (package-install-file file)))
 
 (defun quelpa-package-install (arg)
