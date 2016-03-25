@@ -240,7 +240,7 @@ nor does it make any use of the `:version original` parameter.
 
 ### Additional options
 
-#### Inhibit MELPA updates on init
+#### Inhibit MELPA git checkout or updates on init
 
 Upon initialization `quelpa` usually updates the MELPA git repo (stored in `quelpa-build-dir`/`package-build`) which ensures you always have the latest recipes from MELPA available. This causes as small delay and some people don't like that (presumably people that do not use or know `emacs --daemon` and `emacsclient`).
 
@@ -248,6 +248,12 @@ You can disable these updates by setting `quelpa-update-melpa-p` to `nil` before
 
 ```cl
 (setq quelpa-update-melpa-p nil)
+```
+
+Or, if you don't want to use the MELPA git repo at all (e.g. if you're `quelpa` mainly for installing packages outside of MELPA,) you can also set `quelpa-checkout-melpa-p` to `nil`:
+
+```cl
+(setq quelpa-checkout-melpa-p nil)
 ```
 
 #### Modify MELPA Recipes
