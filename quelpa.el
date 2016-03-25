@@ -423,14 +423,14 @@ If there is an error but melpa is already checked out return non-nil.
 If there is an error and no existing checkout return nil."
   (let ((dir (expand-file-name "package-build" quelpa-build-dir)))
     (or (and (null quelpa-update-melpa-p)
-          (file-exists-p (expand-file-name ".git" dir)))
-       (condition-case err
-           (package-build--checkout-git
-            'package-build
-            `(:url ,quelpa-melpa-repo-url)
-            dir)
-         (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
-                (file-exists-p (expand-file-name ".git" dir)))))))
+             (file-exists-p (expand-file-name ".git" dir)))
+        (condition-case err
+            (package-build--checkout-git
+             'package-build
+             `(:url ,quelpa-melpa-repo-url)
+             dir)
+          (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
+                 (file-exists-p (expand-file-name ".git" dir)))))))
 
 (defun quelpa-get-melpa-recipe (name)
   "Read recipe with NAME for melpa git checkout.
