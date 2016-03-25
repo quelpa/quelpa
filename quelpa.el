@@ -117,6 +117,11 @@ recipe files or a list with recipes."
   :group 'quelpa
   :type 'boolean)
 
+(defcustom quelpa-checkout-melpa-p t
+  "If non-nil the MELPA git repo is cloned when quelpa is initialized."
+  :group 'quelpa
+  :type 'boolean)
+
 (defcustom quelpa-update-melpa-p t
   "If non-nil the MELPA git repo is updated when quelpa is initialized.
 If nil the update is disabled and the repo is only updated on
@@ -417,7 +422,7 @@ If there is no error return non-nil.
 If there is an error but melpa is already checked out return non-nil.
 If there is an error and no existing checkout return nil."
   (let ((dir (expand-file-name "package-build" quelpa-build-dir)))
-    (or (or (null quelpa-update-melpa-p)
+    (or (and (null quelpa-update-melpa-p)
           (file-exists-p (expand-file-name ".git" dir)))
        (condition-case err
            (package-build--checkout-git
@@ -452,7 +457,8 @@ Return non-nil if quelpa has been initialized properly."
     (unless quelpa-initialized-p
       (quelpa-read-cache)
       (quelpa-setup-package-structs)
-      (unless (quelpa-checkout-melpa) (throw 'quit nil))
+      (if quelpa-checkout-melpa-p
+          (unless (quelpa-checkout-melpa) (throw 'quit nil)))
       (setq quelpa-initialized-p t))
     t))
 
