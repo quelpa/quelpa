@@ -117,6 +117,11 @@ recipe files or a list with recipes."
   :group 'quelpa
   :type 'boolean)
 
+(defcustom quelpa-checkout-melpa-p t
+  "If non-nil the MELPA git repo is cloned when quelpa is initialized."
+  :group 'quelpa
+  :type 'boolean)
+
 (defcustom quelpa-update-melpa-p t
   "If non-nil the MELPA git repo is updated when quelpa is initialized.
 If nil the update is disabled and the repo is only updated on
@@ -452,7 +457,8 @@ Return non-nil if quelpa has been initialized properly."
     (unless quelpa-initialized-p
       (quelpa-read-cache)
       (quelpa-setup-package-structs)
-      (unless (quelpa-checkout-melpa) (throw 'quit nil))
+      (if quelpa-checkout-melpa-p
+          (unless (quelpa-checkout-melpa) (throw 'quit nil)))
       (setq quelpa-initialized-p t))
     t))
 
