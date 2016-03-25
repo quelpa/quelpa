@@ -250,7 +250,7 @@ You can disable these updates by setting `quelpa-update-melpa-p` to `nil` before
 (setq quelpa-update-melpa-p nil)
 ```
 
-Or, if you don't want to use the MELPA git repo at all (e.g. if you're `quelpa` mainly for installing packages outside of MELPA,) you can also set `quelpa-checkout-melpa-p` to `nil`:
+Or, if you don't want to use the MELPA git repo at all (e.g. if you're using `quelpa` mainly for installing packages outside of MELPA,) you can also set `quelpa-checkout-melpa-p` to `nil`:
 
 ```cl
 (setq quelpa-checkout-melpa-p nil)
