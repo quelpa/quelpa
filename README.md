@@ -6,6 +6,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ### News
 
+2016/03/25 - @zakame added an option to disable melpa checkout, see [Additional options](#additional-options)  
 2015/10/04 - @vyp contributed a new `file` [fetcher](#file) which works with local files and directories  
 2015/07/31 - A `:quelpa` handler for the popular `use-package` is now available at [quelpa-use-package](https://github.com/quelpa/quelpa-use-package).
 
