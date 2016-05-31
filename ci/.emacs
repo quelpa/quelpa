@@ -21,7 +21,6 @@
 
 ;; svn
 (quelpa '(confluence :fetcher svn :url "http://confluence-el.googlecode.com/svn/trunk/" :files ("confluence*.el" "*.dtd" "*.xsl")))
-(quelpa 'tuareg)
 
 ;; bzr
 (quelpa '(weblogger :fetcher bzr :url "lp:weblogger-el"))
