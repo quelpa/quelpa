@@ -21,7 +21,6 @@
 
 ;; svn
 (quelpa '(confluence :fetcher svn :url "http://confluence-el.googlecode.com/svn/trunk/" :files ("confluence*.el" "*.dtd" "*.xsl")))
-(quelpa '(caml :fetcher svn :url "http://caml.inria.fr/svn/ocaml/trunk/emacs/"))
 (quelpa 'tuareg)
 
 ;; bzr
