@@ -283,6 +283,49 @@ already and should not be upgraded etc)."
                 (`original "")
                 (_ (concat "pre0." time-stamp)))))))
 
+(defun quelpa-directory-files (path)
+  "Return list of directory files from PATH recursively."
+  (let ((result '()))
+    (mapc
+     (lambda (file)
+       (if (file-directory-p file)
+           (progn
+             ;; When directory is not empty.
+             (when (cddr (directory-files file))
+               (dolist (subfile (quelpa-directory-files file))
+                 (add-to-list 'result subfile))))
+         (add-to-list 'result file)))
+     (mapcar
+      (lambda (file) (expand-file-name file path))
+      ;; Without first two entries because they are always "." and "..".
+      (cddr (directory-files path))))
+    result))
+
+(defun quelpa-expand-source-file-list (file-path config)
+  "Return list of source files from FILE-PATH corresponding to
+CONFIG."
+  (let ((source-files
+         (mapcar
+          (lambda (file) (expand-file-name file file-path))
+          (package-build--expand-source-file-list file-path config))))
+    ;; Replace any directories in the source file list with the filenames of the
+    ;; files they contain (so that these files can subsequently be hashed).
+    (dolist (file source-files source-files)
+      (when (file-directory-p file)
+        (setq source-files (remove file source-files))
+        (setq source-files (append source-files
+                                   (quelpa-directory-files file)))))))
+
+(defun quelpa-slurp-file (file)
+  "Return the contents of FILE as a string, or nil if no such
+file exists."
+  (when (file-exists-p file)
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (setq-local buffer-file-coding-system 'binary)
+      (insert-file-contents-literally file)
+      (buffer-substring-no-properties (point-min) (point-max)))))
+
 (defun quelpa-check-hash (name config file-path dir &optional fetcher)
   "Check if hash of FILE-PATH is different as in STAMP-FILE.
 If it is different save the new hash and timestamp to STAMP-FILE
@@ -301,18 +344,18 @@ and return TIME-STAMP, otherwise return OLD-TIME-STAMP."
          (old-time-stamp (car old-stamp-info))
          (type (if (file-directory-p file-path) 'directory 'file))
          (version (plist-get config :version)))
+
     (if (not (file-exists-p file-path))
         (error (quelpa-message t "`%s' does not exist" file-path))
       (if (eq type 'directory)
-          (setq files (mapcar
-                       (lambda (file) (expand-file-name file file-path))
-                       (package-build--expand-source-file-list file-path config))
+          (setq files (quelpa-expand-source-file-list file-path config)
                 hashes (mapcar
                         (lambda (file)
                           (secure-hash
-                           'sha1 (concat file (package-build--slurp-file file)))) files)
+                           'sha1 (concat file (quelpa-slurp-file file)))) files)
                 new-content-hash (secure-hash 'sha1 (mapconcat 'identity hashes "")))
-        (setq new-content-hash (secure-hash 'sha1 (package-build--slurp-file file-path)))))
+        (setq new-content-hash (secure-hash 'sha1 (quelpa-slurp-file file-path)))))
+
     (setq new-stamp-info (cons time-stamp new-content-hash))
     (if (and old-content-hash
              (string= new-content-hash old-content-hash))
