@@ -83,6 +83,11 @@ the `:upgrade' argument."
   :group 'quelpa
   :type 'string)
 
+(defcustom quelpa-melpa-dir (expand-file-name "melpa" quelpa-dir)
+  "Where the melpa repo cloned to."
+  :group 'quelpa
+  :type 'string)
+
 (defcustom quelpa-build-dir (expand-file-name "build" quelpa-dir)
   "Where quelpa builds packages."
   :group 'quelpa
@@ -94,8 +99,8 @@ the `:upgrade' argument."
   :type 'string)
 
 (defcustom quelpa-melpa-recipe-stores (list (expand-file-name
-                                             "package-build/recipes"
-                                             quelpa-build-dir))
+                                             "recipes"
+                                             quelpa-melpa-dir))
   "Recipe stores where quelpa finds default recipes for packages.
 A store can either be a string pointing to a directory with
 recipe files or a list with recipes."
@@ -464,16 +469,15 @@ Return t in each case."
 If there is no error return non-nil.
 If there is an error but melpa is already checked out return non-nil.
 If there is an error and no existing checkout return nil."
-  (let ((dir (expand-file-name "package-build" quelpa-build-dir)))
-    (or (and (null quelpa-update-melpa-p)
-             (file-exists-p (expand-file-name ".git" dir)))
-        (condition-case err
-            (package-build--checkout-git
-             'package-build
-             `(:url ,quelpa-melpa-repo-url)
-             dir)
-          (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
-                 (file-exists-p (expand-file-name ".git" dir)))))))
+  (or (and (null quelpa-update-melpa-p)
+           (file-exists-p (expand-file-name ".git" quelpa-melpa-dir)))
+      (condition-case err
+          (package-build--checkout-git
+           'package-build
+           `(:url ,quelpa-melpa-repo-url)
+           quelpa-melpa-dir)
+        (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
+               (file-exists-p (expand-file-name ".git" quelpa-melpa-dir))))))
 
 (defun quelpa-get-melpa-recipe (name)
   "Read recipe with NAME for melpa git checkout.
