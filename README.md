@@ -4,6 +4,10 @@
 
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
+### News
+
+2016/08/13 - [MELPA](https://github.com/melpa/melpa) has moved their `package-build` library into a separate location. Please open up an issue if you run into issues when upgrading.
+
 <!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -30,7 +34,9 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ## Overview
 
-Given a recipe in [MELPA's format](https://github.com/melpa/melpa#recipe-format), `quelpa` gets the package source code, builds an ELPA compatible package and installs that locally. These installed packages can then be managed in the usual way with `M-x list-packages`.
+`quelpa` is a tool to compile and install Emacs Lisp packages locally from source code (which can reside on the local disk or in remote locations such as a git repo etc.). It is mostly just a wrapper around the [MELPA](https://github.com/melpa/melpa) package build library. We try to keep `quelpa` as simple as possible and rely on existing solutions where possible.
+
+And that's how `quelpa` works in a nutshell: Given a recipe in [MELPA's format](https://github.com/melpa/melpa#recipe-format), `quelpa` gets the package source code, builds an ELPA compatible package and installs that locally. These installed packages can then be managed in the usual way with `M-x list-packages`.
 
 `quelpa` can be used in many ways, for example to manage your personal packages, testing development versions of other packages or as a helper when developing a package to test building, compiling and installing it.
 
