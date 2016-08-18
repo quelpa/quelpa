@@ -474,7 +474,7 @@ If there is an error and no existing checkout return nil."
       (condition-case err
           (package-build--checkout-git
            'package-build
-           `(:url ,quelpa-melpa-repo-url)
+           `(:url ,quelpa-melpa-repo-url :files ("*"))
            quelpa-melpa-dir)
         (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
                (file-exists-p (expand-file-name ".git" quelpa-melpa-dir))))))
