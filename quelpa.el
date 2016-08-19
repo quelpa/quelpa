@@ -579,7 +579,7 @@ install them."
   "Query the user for a recipe and return the name."
   (when (quelpa-setup-p)
     (let  ((recipes (directory-files
-                     (expand-file-name "package-build/recipes" quelpa-build-dir)
+                     (expand-file-name "recipes" quelpa-melpa-dir)
                      ;; this regexp matches all files except dotfiles
                      nil "^[^.].+$")))
       (intern (completing-read "Choose MELPA recipe: "
