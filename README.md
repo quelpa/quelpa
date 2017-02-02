@@ -273,6 +273,10 @@ The files themselves should be named after the package name, without any extensi
 
 Alternatively, you can also specify a list of recipes instead.
 
+## MacOS instructions
+
+As MacOS is a BSD-based operating system, its `tar` command is different from GNU Tar. If you're using [homebrew](http://brew.sh/), installing the `gnu-tar` package should resolve this problem.
+
 ## Windows instructions
 
 On Windows there are some caveats so the procedure to make Emacs work with `quelpa` is outlined below. You can either use the native Windows build from GNU or the Cygwin port. If you'd like to have a complete *nix environment on your Windows machine then the Cygwin version is to be preferred.
