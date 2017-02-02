@@ -1,5 +1,12 @@
 sudo: required
 language: emacs-lisp
+before_script:
+  - echo "deb http://archive.ubuntu.com/ubuntu xenial main universe" | sudo tee -a /etc/apt/sources.list.d/xenial.list
+  - echo "deb http://archive.ubuntu.com/ubuntu xenial main" | sudo tee -a /etc/apt/sources.list.d/xenial.list
+  - sudo add-apt-repository -y ppa:ubuntu-elisp:ppa
+  - sudo apt-get -qq update
+  - sudo apt-get install -qq -y python-software-properties
+  - sudo apt-get install -qq -y git mercurial subversion bzr cvs emacs24 emacs-snapshot
 script:
   ./ci/run.sh
 notifications:
