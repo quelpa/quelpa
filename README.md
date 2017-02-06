@@ -25,6 +25,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
   - [Managing packages](#managing-packages)
   - [Additional fetchers](#additional-fetchers)
   - [Additional options](#additional-options)
+- [MacOS instructions](#macos-instructions)
 - [Windows instructions](#windows-instructions)
   - [Cygwin](#cygwin)
   - [Native](#native)
@@ -155,6 +156,12 @@ When used that way, `quelpa` will not upgrade `ag`. This can be used to "pin" pa
 Upgrading all your `quelpa` packages at init is one option to keep them up to date, but can slow it down considerably. Alternatively you can execute `M-x quelpa-upgrade` and upgrade every cached package.
 
 This command relies on an intact cache file which is set in the `quelpa-cache-file` variable. It is updated after every `quelpa` invocation. To reset it for debugging purposes, just delete the file and better keep a backup.
+
+Normally `quelpa` also upgrades itself as well here. You can disable this by setting `quelpa-self-upgrade-p` to `nil`:
+
+```cl
+(setq quelpa-self-upgrade-p nil)
+```
 
 ### Stable packages
 
