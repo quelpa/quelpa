@@ -139,6 +139,13 @@ If nil the update is disabled and the repo is only updated on
   :group 'quelpa
   :type 'string)
 
+(defcustom quelpa-self-upgrade-p t
+  "If non-nil upgrade quelpa itself when doing a
+  `quelpa-upgrade', otherwise only upgrade the packages in the
+  quelpa cache."
+  :group 'quelpa
+  :type 'boolean)
+
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
 
@@ -616,7 +623,8 @@ the `quelpa' command has been run in the current Emacs session."
   (interactive)
   (when (quelpa-setup-p)
     (let ((quelpa-upgrade-p t))
-      (quelpa-self-upgrade)
+      (when quelpa-self-upgrade-p
+        (quelpa-self-upgrade))
       (setq quelpa-cache
             (cl-remove-if-not #'package-installed-p quelpa-cache :key #'car))
       (mapc (lambda (item)
