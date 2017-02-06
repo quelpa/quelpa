@@ -156,6 +156,12 @@ Upgrading all your `quelpa` packages at init is one option to keep them up to da
 
 This command relies on an intact cache file which is set in the `quelpa-cache-file` variable. It is updated after every `quelpa` invocation. To reset it for debugging purposes, just delete the file and better keep a backup.
 
+Normally `quelpa` also upgrades itself as well here. You can disable this by setting `quelpa-self-upgrade-p` to `nil`:
+
+```cl
+(setq quelpa-self-upgrade-p nil)
+```
+
 ### Stable packages
 
 `quelpa` can be instructed to build stable packages. This means that the repository with the source code (`git` or `hg` are supported) is queried for a stable tag and if one is found that version will be built.
