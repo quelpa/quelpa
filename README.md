@@ -25,6 +25,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
   - [Managing packages](#managing-packages)
   - [Additional fetchers](#additional-fetchers)
   - [Additional options](#additional-options)
+- [MacOS instructions](#macos-instructions)
 - [Windows instructions](#windows-instructions)
   - [Cygwin](#cygwin)
   - [Native](#native)
