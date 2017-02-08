@@ -15,17 +15,17 @@
   (quelpa 'magit))
 
 ;; hg
-(quelpa '(nav :url "https://code.google.com/p/emacs-nav/" :fetcher hg :files ("ack*" "nav.el")))
-(quelpa '(furl :fetcher hg :url "https://code.google.com/p/furl-el/"))
+(quelpa '2048-game)
+(quelpa 'latex-pretty-symbols)
 (quelpa 'nose)
 
 ;; svn
-(quelpa '(confluence :fetcher svn :url "http://confluence-el.googlecode.com/svn/trunk/" :files ("confluence*.el" "*.dtd" "*.xsl")))
+(quelpa '(confluence :fetcher svn :url "https://svn.code.sf.net/p/confluence-el/code/trunk/" :files ("confluence*.el" "*.dtd" "*.xsl")))
 
 ;; bzr
 (quelpa '(weblogger :fetcher bzr :url "lp:weblogger-el"))
 (quelpa '(xml-rpc :fetcher bzr :url "lp:xml-rpc-el"))
-(quelpa 'mediawiki)
+(quelpa 'color-theme)
 
 ;; cvs
 (quelpa 'matlab-mode)
