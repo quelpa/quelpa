@@ -269,6 +269,9 @@ already and should not be upgraded etc)."
          (build-dir (expand-file-name (symbol-name name) quelpa-build-dir))
          (version (quelpa-checkout rcp build-dir)))
     (when version
+      (when (file-exists-p quelpa-packages-dir)
+        (ignore-errors (delete-directory quelpa-packages-dir t)))
+      (make-directory quelpa-packages-dir t)
       (quelpa-archive-file-name
        (package-build-package (symbol-name name)
                               version
@@ -506,8 +509,8 @@ Return the recipe if it exists, otherwise nil."
   "Setup what we need for quelpa.
 Return non-nil if quelpa has been initialized properly."
   (catch 'quit
-    (dolist (dir (list quelpa-packages-dir quelpa-build-dir))
-      (unless (file-exists-p dir) (make-directory dir t)))
+    (unless (file-exists-p quelpa-build-dir)
+      (make-directory quelpa-build-dir t))
     (unless quelpa-initialized-p
       (quelpa-read-cache)
       (quelpa-setup-package-structs)
@@ -518,9 +521,7 @@ Return non-nil if quelpa has been initialized properly."
 
 (defun quelpa-shutdown ()
   "Do things that need to be done after running quelpa."
-  (quelpa-save-cache)
-  ;; remove the packages dir because we are done with the built pkgs
-  (ignore-errors (delete-directory quelpa-packages-dir t)))
+  (quelpa-save-cache))
 
 (defun quelpa-arg-rcp (arg)
   "Given recipe or package name, return an alist '(NAME . RCP).
