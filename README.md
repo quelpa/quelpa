@@ -4,10 +4,6 @@
 
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
-### News
-
-2016/08/13 - [MELPA](https://github.com/melpa/melpa) has moved their `package-build` library into a separate location. We have made the necessary changes. It seems to be necessary to reinstall `quelpa` though. Please open up an issue if you run into issues.
-
 <!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
