@@ -585,10 +585,10 @@ install them."
 (defun quelpa-interactive-candidate ()
   "Query the user for a recipe and return the name."
   (when (quelpa-setup-p)
-    (let  ((recipes (directory-files
-                     (expand-file-name "recipes" quelpa-melpa-dir)
-                     ;; this regexp matches all files except dotfiles
-                     nil "^[^.].+$")))
+    (let  ((recipes (cl-loop
+                       for dir in quelpa-melpa-recipe-stores
+                       ;; this regexp matches all files except dotfiles
+                       nconc  (directory-files dir nil "^[^.].+$"))))
       (intern (completing-read "Choose MELPA recipe: "
                                recipes nil t)))))
 
