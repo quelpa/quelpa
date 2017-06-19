@@ -577,7 +577,8 @@ install them."
              (requires (package-desc-reqs pkg-desc)))
         (when requires
           (mapc (lambda (req)
-                  (unless (equal 'emacs (car req))
+                  (unless (or (equal 'emacs (car req))
+                              (package-installed-p (car req) (cadr req)))
                     (quelpa-package-install (car req))))
                 requires))
         (quelpa-package-install-file file)))))
