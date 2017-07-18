@@ -349,7 +349,7 @@ and return TIME-STAMP, otherwise return OLD-TIME-STAMP."
          new-stamp-info
          new-content-hash
          (time-stamp
-          (replace-regexp-in-string "\\.0" "." (format-time-string "%Y%m%d.%H%M%S")))
+          (replace-regexp-in-string "\\.0+" "." (format-time-string "%Y%m%d.%H%M%S")))
          (stamp-file (concat (expand-file-name (symbol-name name) dir) ".stamp"))
          (old-stamp-info (package-build--read-from-file stamp-file))
          (old-content-hash (cdr old-stamp-info))
