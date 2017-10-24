@@ -471,12 +471,12 @@ Return t in each case."
   (when (and quelpa-stable-p (not (plist-get (cdr cache-item) :stable)))
     (setf (cdr (last cache-item)) '(:stable t))))
 
-(defun quelpa-checkout-melpa ()
+(defun quelpa-checkout-melpa (update-existing-p)
   "Fetch or update the melpa source code from Github.
 If there is no error return non-nil.
 If there is an error but melpa is already checked out return non-nil.
 If there is an error and no existing checkout return nil."
-  (or (and (null quelpa-update-melpa-p)
+  (or (and (null update-existing-p)
            (file-exists-p (expand-file-name ".git" quelpa-melpa-dir)))
       (condition-case err
           (package-build--checkout-git
@@ -512,7 +512,7 @@ Return non-nil if quelpa has been initialized properly."
       (quelpa-read-cache)
       (quelpa-setup-package-structs)
       (if quelpa-checkout-melpa-p
-          (unless (quelpa-checkout-melpa) (throw 'quit nil)))
+          (unless (quelpa-checkout-melpa quelpa-update-melpa-p) (throw 'quit nil)))
       (setq quelpa-initialized-p t))
     t))
 
@@ -614,6 +614,7 @@ insert the result into the current buffer."
 ARGS are additional options for the quelpa recipe."
   (interactive)
   (when (quelpa-setup-p)
+    (quelpa-checkout-melpa t)
     (quelpa (append quelpa-recipe args) :upgrade t)))
 
 ;;;###autoload
@@ -624,8 +625,9 @@ the `quelpa' command has been run in the current Emacs session."
   (interactive)
   (when (quelpa-setup-p)
     (let ((quelpa-upgrade-p t))
-      (when quelpa-self-upgrade-p
-        (quelpa-self-upgrade))
+      (if quelpa-self-upgrade-p
+          (quelpa-self-upgrade)
+        (quelpa-checkout-melpa t))
       (setq quelpa-cache
             (cl-remove-if-not #'package-installed-p quelpa-cache :key #'car))
       (mapc (lambda (item)
