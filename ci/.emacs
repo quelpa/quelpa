@@ -2,11 +2,6 @@
 (unless (require 'quelpa nil t)
   (load (concat quelpa-ci-dir "/bootstrap.el")))
 
-;; wiki
-(quelpa '(key-chord :fetcher wiki))
-(quelpa '(buffer-move :fetcher wiki))
-(quelpa 'move-text)
-
 ;; github
 (quelpa '(discover-my-major :fetcher github :repo "steckerhalter/discover-my-major"))
 (quelpa '(anaconda-mode :fetcher github :repo "proofit404/anaconda-mode" :files ("*.el" "*.py" "vendor/jedi/jedi" ("jsonrpc" "vendor/jsonrpc/jsonrpc/*.py"))))

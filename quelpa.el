@@ -1,6 +1,6 @@
 ;;; quelpa.el --- Emacs Lisp packages built directly from source
 
-;; Copyright 2014-2015, Steckerhalter
+;; Copyright 2014-2017, Steckerhalter
 ;; Copyright 2014-2015, Vasilij Schneidermann <v.schneidermann@gmail.com>
 
 ;; Author: steckerhalter
