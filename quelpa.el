@@ -592,9 +592,9 @@ install them."
                      for store in quelpa-melpa-recipe-stores
                      if (stringp store)
                      ;; this regexp matches all files except dotfiles
-                     nconc (directory-files store nil "^[^.].+$")
+                     append (directory-files store nil "^[^.].+$")
                      else if (listp store)
-                     nconc store)))
+                     append store)))
       (intern (completing-read "Choose MELPA recipe: "
                                recipes nil t)))))
 
