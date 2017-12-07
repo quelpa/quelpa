@@ -4,6 +4,11 @@
 
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
+### News
+
+2017/12/07 - [MELPA](https://melpa.org) has removed support for various fetchers from the `package-build` library: `wiki`, `bzr`, `cvs`, `darcs`, `fossil`, `svn`. Subsequently they do not work with `quelpa` any longer as well.
+
+
 <!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -39,7 +44,7 @@ And that's how `quelpa` works in a nutshell: Given a recipe in [MELPA's format](
 
 To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](https://github.com/steckerhalter/steckemacs.el), where `quelpa` loads and installs the required packages just before they are configured.
 
-You can build and install packages from all the sources MELPA's build script `package-build` supports: Git, Github, Mercurial *(support for `bzr`, `cvs`, `darcs`, `fossil` and `svn` has been removed as of 2017-09-09)*.
+You can build and install packages from all the sources MELPA's build script `package-build` supports: Git, Github, Mercurial *(support for `bzr`, `cvs`, `darcs`, `fossil` and `svn` has been removed as of 2017/09/09)*.
 
 ## Requirements
 
