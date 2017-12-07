@@ -248,10 +248,11 @@ Return nil if the package is already installed and should not be upgraded."
     (unless (or (and (assq name package-alist) (not quelpa-upgrade-p))
                 (and (not config)
                      (quelpa-message t "no recipe found for package `%s'" name)))
-      (if (eq 'wiki (plist-get config :fetcher))
+      (if (member (plist-get config :fetcher) '(wiki bzr cvs darcs fossil svn))
           (user-error
-           "The `wiki' fetcher is not supported anymore.
+           "The `%s' fetcher is not supported anymore.
 It has been removed from the `package-build' library: cannot install `%s'"
+           (plist-get config :fetcher)
            name)
         (let ((version (condition-case err
                            (package-build-checkout name config dir)

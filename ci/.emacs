@@ -14,17 +14,6 @@
 (quelpa 'latex-pretty-symbols)
 (quelpa 'nose)
 
-;; svn
-(quelpa '(confluence :fetcher svn :url "https://svn.code.sf.net/p/confluence-el/code/trunk/" :files ("confluence*.el" "*.dtd" "*.xsl")))
-
-;; bzr
-(quelpa '(weblogger :fetcher bzr :url "lp:weblogger-el"))
-(quelpa '(xml-rpc :fetcher bzr :url "lp:xml-rpc-el"))
-(quelpa 'color-theme)
-
-;; cvs
-(quelpa 'matlab-mode)
-
 ;; url
 (quelpa '(ox-rss :url "http://orgmode.org/cgit.cgi/org-mode.git/plain/contrib/lisp/ox-rss.el" :fetcher url))
 (quelpa '(rainbow-mode :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el" :fetcher url))
