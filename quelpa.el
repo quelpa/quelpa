@@ -1,6 +1,6 @@
 ;;; quelpa.el --- Emacs Lisp packages built directly from source
 
-;; Copyright 2014-2015, Steckerhalter
+;; Copyright 2014-2017, Steckerhalter
 ;; Copyright 2014-2015, Vasilij Schneidermann <v.schneidermann@gmail.com>
 
 ;; Author: steckerhalter
@@ -248,15 +248,18 @@ Return nil if the package is already installed and should not be upgraded."
     (unless (or (and (assq name package-alist) (not quelpa-upgrade-p))
                 (and (not config)
                      (quelpa-message t "no recipe found for package `%s'" name)))
-      (let ((version (condition-case err
-                         (package-build-checkout name config dir)
-                       (error (quelpa-message t
-                                              "failed to checkout `%s': `%s'"
-                                              name
-                                              (error-message-string err))
-                              nil))))
-        (when (quelpa-version>-p name version)
-          version)))))
+      (if (member (plist-get config :fetcher) '(wiki bzr cvs darcs fossil svn))
+          (user-error
+           "The `%s' fetcher is not supported anymore.
+It has been removed from the `package-build' library: cannot install `%s'"
+           (plist-get config :fetcher)
+           name)
+        (let ((version (condition-case err
+                           (package-build-checkout name config dir)
+                         (error "failed to checkout `%s': `%s'"
+                                name (error-message-string err)))))
+          (when (quelpa-version>-p name version)
+            version))))))
 
 (defun quelpa-build-package (rcp)
   "Build a package from the given recipe RCP.
@@ -358,7 +361,7 @@ and return TIME-STAMP, otherwise return OLD-TIME-STAMP."
          (version (plist-get config :version)))
 
     (if (not (file-exists-p file-path))
-        (error (quelpa-message t "`%s' does not exist" file-path))
+        (error "`%s' does not exist" file-path)
       (if (eq type 'directory)
           (setq files (quelpa-expand-source-file-list file-path config)
                 hashes (mapcar
@@ -419,7 +422,7 @@ attribute with an URL like \"http://domain.tld/path/to/file.el\"."
          (local-path (expand-file-name remote-file-name dir))
          (mm-attachment-file-modes (default-file-modes)))
     (unless (string= (file-name-extension url) "el")
-      (error (quelpa-message t "<%s> does not end in .el" url)))
+      (error "<%s> does not end in .el" url))
     (unless (file-directory-p dir)
       (make-directory dir))
     (url-copy-file url local-path t)
@@ -483,8 +486,7 @@ If there is an error and no existing checkout return nil."
            'package-build
            `(:url ,quelpa-melpa-repo-url :files ("*"))
            quelpa-melpa-dir)
-        (error (quelpa-message t "failed to checkout melpa git repo: `%s'" (error-message-string err))
-               (file-exists-p (expand-file-name ".git" quelpa-melpa-dir))))))
+        (error "failed to checkout melpa git repo: `%s'" (error-message-string err)))))
 
 (defun quelpa-get-melpa-recipe (name)
   "Read recipe with NAME for melpa git checkout.

@@ -4,6 +4,11 @@
 
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
+### News
+
+2017/12/07 - [MELPA](https://melpa.org) has removed support for various fetchers from the `package-build` library: `wiki`, `bzr`, `cvs`, `darcs`, `fossil`, `svn`. Subsequently they do not work with `quelpa` any longer as well.
+
+
 <!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -39,7 +44,7 @@ And that's how `quelpa` works in a nutshell: Given a recipe in [MELPA's format](
 
 To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](https://github.com/steckerhalter/steckemacs.el), where `quelpa` loads and installs the required packages just before they are configured.
 
-You can build and install packages from all the sources MELPA's build script `package-build` supports: Git, Github, Bazaar (bzr), Mercurial (hg), Subversion (svn), CVS, Darcs, Emacs Wiki (wiki)
+You can build and install packages from all the sources MELPA's build script `package-build` supports: Git, Github, Mercurial *(support for `bzr`, `cvs`, `darcs`, `fossil` and `svn` has been removed as of 2017/09/09)*.
 
 ## Requirements
 
@@ -103,12 +108,18 @@ If the package has dependencies they will be installed first.
 
 ### Installing with a recipe
 
-   You can also install packages that are not on MELPA. For this you need to provide a recipe in MELPA's format.
+You can also install packages that are not on MELPA. For this you need to provide a recipe in MELPA's format.
 
-For example if I'd like to install the [eval-sexp-fu.el package](http://www.emacswiki.org/emacs/eval-sexp-fu.el) which is located on the Emacs Wiki but not available on MELPA, I just need to provide a valid recipe instead of a package name:
+The recipe is a list and consist of the package name and keywords. A minimal recipe would look like this:
 
-```cl
-(quelpa '(eval-sexp-fu :fetcher wiki :files ("eval-sexp-fu.el")))
+``` elisp
+'(discover-my-major :fetcher github :repo "steckerhalter/discover-my-major")
+```
+
+Depending on the fetcher, different keywords can or have to be supplied. So to install `discover-my-major` you would have to use:
+
+``` elisp
+(quelpa '(discover-my-major :fetcher github :repo "steckerhalter/discover-my-major"))
 ```
 
 Don't forget the quote before the recipe.

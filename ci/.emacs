@@ -2,11 +2,6 @@
 (unless (require 'quelpa nil t)
   (load (concat quelpa-ci-dir "/bootstrap.el")))
 
-;; wiki
-(quelpa '(key-chord :fetcher wiki))
-(quelpa '(buffer-move :fetcher wiki))
-(quelpa 'move-text)
-
 ;; github
 (quelpa '(discover-my-major :fetcher github :repo "steckerhalter/discover-my-major"))
 (quelpa '(anaconda-mode :fetcher github :repo "proofit404/anaconda-mode" :files ("*.el" "*.py" "vendor/jedi/jedi" ("jsonrpc" "vendor/jsonrpc/jsonrpc/*.py"))))
@@ -18,17 +13,6 @@
 (quelpa '2048-game)
 (quelpa 'latex-pretty-symbols)
 (quelpa 'nose)
-
-;; svn
-(quelpa '(confluence :fetcher svn :url "https://svn.code.sf.net/p/confluence-el/code/trunk/" :files ("confluence*.el" "*.dtd" "*.xsl")))
-
-;; bzr
-(quelpa '(weblogger :fetcher bzr :url "lp:weblogger-el"))
-(quelpa '(xml-rpc :fetcher bzr :url "lp:xml-rpc-el"))
-(quelpa 'color-theme)
-
-;; cvs
-(quelpa 'matlab-mode)
 
 ;; url
 (quelpa '(ox-rss :url "http://orgmode.org/cgit.cgi/org-mode.git/plain/contrib/lisp/ox-rss.el" :fetcher url))
