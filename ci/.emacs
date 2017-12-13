@@ -1,6 +1,13 @@
 ;; bootstrap
 (unless (require 'quelpa nil t)
-  (load (concat quelpa-ci-dir "/bootstrap.el")))
+  (load (concat quelpa-ci-dir "/bootstrap.el"))
+  (require 'quelpa))
+
+;; test adding a list recipe store (let-alist will be required by magit)
+(add-to-list 'quelpa-melpa-recipe-stores
+ '((let-alist :fetcher url
+              :url "http://git.savannah.gnu.org/cgit/emacs.git/plain/lisp/emacs-lisp/let-alist.el"
+              :version original)))
 
 ;; github
 (quelpa '(discover-my-major :fetcher github :repo "steckerhalter/discover-my-major"))
