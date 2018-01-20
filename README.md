@@ -289,7 +289,15 @@ Alternatively, you can also specify a list of recipes instead.
 
 ## MacOS instructions
 
-As MacOS is a BSD-based operating system, its `tar` command is different from GNU Tar. If you're using [homebrew](http://brew.sh/), installing the `gnu-tar` package should resolve this problem.
+As MacOS is a BSD-based operating system, its `tar` command is different from GNU Tar.  If you're using an additional package manager, it should be possible to install GNU tar to resolve the issue.
+
+### Homebrew
+
+People using [homebrew](http://brew.sh/) will be able to install the package using the homebrew package of `gnu-tar`.
+
+### MacPorts
+
+People using [MacPorts](https://www.macports.org/) or Ports, which is similar in maby ways to the pkg system on FreeBSD, can resolve the issue by installing the `gnutar` package.
 
 ## Windows instructions
 
