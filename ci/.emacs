@@ -22,7 +22,7 @@
 (quelpa 'nose)
 
 ;; url
-(quelpa '(ox-rss :url "http://orgmode.org/cgit.cgi/org-mode.git/plain/contrib/lisp/ox-rss.el" :fetcher url))
+(quelpa '(ox-rss :url "https://code.orgmode.org/bzg/org-mode/raw/master/contrib/lisp/ox-rss.el" :fetcher url))
 (quelpa '(rainbow-mode :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el" :fetcher url))
 
 ;; file
