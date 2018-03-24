@@ -1,20 +1,21 @@
 ;; bootstrap
+(package-initialize)
 (unless (require 'quelpa nil t)
   (load (concat quelpa-ci-dir "/bootstrap.el"))
   (require 'quelpa))
 
+(quelpa 'magit)
+
 ;; test adding a list recipe store (let-alist will be required by magit)
 (add-to-list 'quelpa-melpa-recipe-stores
- '((let-alist :fetcher url
-              :url "http://git.savannah.gnu.org/cgit/emacs.git/plain/lisp/emacs-lisp/let-alist.el"
-              :version original)))
+             '((let-alist :fetcher url
+                          :url "http://git.savannah.gnu.org/cgit/emacs.git/plain/lisp/emacs-lisp/let-alist.el"
+                          :version original)))
 
 ;; github
 (quelpa '(discover-my-major :fetcher github :repo "steckerhalter/discover-my-major"))
 (quelpa '(anaconda-mode :fetcher github :repo "proofit404/anaconda-mode" :files ("*.el" "*.py" "vendor/jedi/jedi" ("jsonrpc" "vendor/jsonrpc/jsonrpc/*.py"))))
 (quelpa 'ag)
-(when (version<= "24.4" emacs-version)
-  (quelpa 'magit))
 
 ;; hg
 (quelpa '2048-game)
