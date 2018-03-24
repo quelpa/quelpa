@@ -4,8 +4,6 @@
   (load (concat quelpa-ci-dir "/bootstrap.el"))
   (require 'quelpa))
 
-(quelpa 'magit)
-
 ;; test adding a list recipe store (let-alist will be required by magit)
 (add-to-list 'quelpa-melpa-recipe-stores
              '((let-alist :fetcher url
@@ -16,6 +14,7 @@
 (quelpa '(discover-my-major :fetcher github :repo "steckerhalter/discover-my-major"))
 (quelpa '(anaconda-mode :fetcher github :repo "proofit404/anaconda-mode" :files ("*.el" "*.py" "vendor/jedi/jedi" ("jsonrpc" "vendor/jsonrpc/jsonrpc/*.py"))))
 (quelpa 'ag)
+(quelpa 'magit)
 
 ;; hg
 (quelpa '2048-game)
