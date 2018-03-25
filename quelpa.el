@@ -250,18 +250,12 @@ Return nil if the package is already installed and should not be upgraded."
     (unless (or (and (assq name package-alist) (not quelpa-upgrade-p))
                 (and (not config)
                      (quelpa-message t "no recipe found for package `%s'" name)))
-      (if (member (plist-get config :fetcher) '(wiki bzr cvs darcs fossil svn))
-          (user-error
-           "The `%s' fetcher is not supported anymore.
-It has been removed from the `package-build' library: cannot install `%s'"
-           (plist-get config :fetcher)
-           name)
-        (let ((version (condition-case err
-                           (quelpa-build-checkout name config dir)
-                         (error "failed to checkout `%s': `%s'"
-                                name (error-message-string err)))))
-          (when (quelpa-version>-p name version)
-            version))))))
+      (let ((version (condition-case err
+                         (quelpa-build-checkout name config dir)
+                       (error "Failed to checkout `%s': `%s'"
+                              name (error-message-string err)))))
+        (when (quelpa-version>-p name version)
+          version)))))
 
 (defun quelpa-build (rcp)
   "Build a package from the given recipe RCP.
