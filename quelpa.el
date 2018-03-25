@@ -387,36 +387,27 @@ and return TIME-STAMP, otherwise return OLD-TIME-STAMP."
    (directory-file-name
     (file-name-directory (or load-file-name (buffer-file-name))))))
 
-(defgroup package-build nil
-  "Facilities for building package.el-compliant packages from upstream source code."
-  :group 'development)
-
 (defcustom quelpa-build-working-dir
   (expand-file-name "working/" quelpa-build--melpa-base)
   "Directory in which to keep checkouts."
-  :group 'package-build
   :type 'string)
 
 (defcustom quelpa-build-archive-dir
   (expand-file-name "packages/" quelpa-build--melpa-base)
   "Directory in which to keep compiled archives."
-  :group 'package-build
   :type 'string)
 
 (defcustom quelpa-build-recipes-dir
   (expand-file-name "recipes/" quelpa-build--melpa-base)
   "Directory containing recipe files."
-  :group 'package-build
   :type 'string)
 
 (defcustom quelpa-build-verbose t
   "When non-nil, then print additional progress information."
-  :group 'package-build
   :type 'boolean)
 
 (defcustom quelpa-build-stable nil
   "When non-nil, then try to build packages from versions-tagged code."
-  :group 'package-build
   :type 'boolean)
 
 (defcustom quelpa-build-timeout-executable
@@ -428,7 +419,6 @@ and return TIME-STAMP, otherwise return OLD-TIME-STAMP."
       prog))
   "Path to a GNU coreutils \"timeout\" command if available.
 This must be a version which supports the \"-k\" option."
-  :group 'package-build
   :type '(file :must-match t))
 
 (defcustom quelpa-build-timeout-secs 600
@@ -437,7 +427,6 @@ This must be a version which supports the \"-k\" option."
 If an external process takes longer than specified here to
 complete, then it is terminated.  This only has an effect
 if `quelpa-build-timeout-executable' is non-nil."
-  :group 'package-build
   :type 'number)
 
 (defcustom quelpa-build-tar-executable
@@ -445,19 +434,16 @@ if `quelpa-build-timeout-executable' is non-nil."
       (executable-find "tar"))
   "Path to a (preferably GNU) tar command.
 Certain package names (e.g. \"@\") may not work properly with a BSD tar."
-  :group 'package-build
   :type '(file :must-match t))
 
 (defcustom quelpa-build-write-melpa-badge-images nil
   "When non-nil, write MELPA badge images alongside packages.
 These batches can, for example, be used on GitHub pages."
-  :group 'package-build
   :type 'boolean)
 
 (defcustom quelpa-build-version-regexp "^[rRvV]?\\(.*\\)$"
   "Default pattern for matching valid version-strings within repository tags.
 The string in the capture group should be parsed as valid by `version-to-list'."
-  :group 'package-build
   :type 'string)
 
 ;;; Internal Variables
