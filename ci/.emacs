@@ -21,6 +21,22 @@
 (quelpa 'latex-pretty-symbols)
 (quelpa 'nose)
 
+;; svn
+(quelpa '(confluence :fetcher svn :url "https://svn.code.sf.net/p/confluence-el/code/trunk/" :files ("confluence*.el" "*.dtd" "*.xsl")))
+
+;; bzr
+(quelpa '(weblogger :fetcher bzr :url "lp:weblogger-el"))
+(quelpa '(xml-rpc :fetcher bzr :url "lp:xml-rpc-el"))
+(quelpa 'color-theme)
+
+;; cvs
+(quelpa 'matlab-mode)
+
+;; wiki
+(quelpa '(key-chord :fetcher wiki))
+(quelpa '(buffer-move :fetcher wiki))
+(quelpa 'move-text)
+
 ;; url
 (quelpa '(ox-rss :url "https://code.orgmode.org/bzg/org-mode/raw/master/contrib/lisp/ox-rss.el" :fetcher url))
 (quelpa '(rainbow-mode :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el" :fetcher url))

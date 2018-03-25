@@ -44,7 +44,7 @@ And that's how `quelpa` works in a nutshell: Given a recipe in [MELPA's format](
 
 To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](https://github.com/steckerhalter/steckemacs.el), where `quelpa` loads and installs the required packages just before they are configured.
 
-You can build and install packages from: Git, Github, Mercurial, `bzr`, `cvs`, `darcs`, `fossil` and `svn`.
+You can build and install packages from: Git, Github, Bazaar (bzr), Mercurial (hg), Subversion (svn), CVS, Darcs, Emacs Wiki (wiki)
 
 ## Requirements
 
