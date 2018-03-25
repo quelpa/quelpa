@@ -45,7 +45,6 @@
 (require 'url-parse)
 (require 'package)
 (require 'lisp-mnt)
-(require 'json)
 
 ;; --- customs / variables ---------------------------------------------------
 
