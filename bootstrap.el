@@ -1,6 +1,6 @@
 ;;; bootstrap.el --- Bootstrap quelpa.el
 
-;; Copyright 2014, Steckerhalter
+;; Copyright 2014-2018, Steckerhalter
 
 ;; Author: steckerhalter
 ;; URL: https://github.com/quelpa/quelpa

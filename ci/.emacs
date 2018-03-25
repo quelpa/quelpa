@@ -27,10 +27,9 @@
 
 ;; file
 (quelpa '(helm :fetcher file :files ("*.el" "emacs-helm.sh" (:exclude "helm.el" "helm-lib.el" "helm-source.el" "helm-match-plugin.el" "helm-core-pkg.el")) :path "~/emacs-packages/helm"))
-(quelpa '(use-package :fetcher file :path "~/emacs-packages/use-package/use-package.el"))
 
 ;; upgrade-test
-(quelpa '(quelpa :repo "quelpa/quelpa" :fetcher github) :upgrade t)
+;;(quelpa '(quelpa :repo "quelpa/quelpa" :fetcher github) :upgrade t)
 
 ;; stable packages
 (quelpa 'anzu :stable t)
