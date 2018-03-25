@@ -1232,16 +1232,6 @@ If PKG-INFO is nil, an empty one is created."
                   type
                   extras))))
 
-(defun quelpa-build--archive-file-name (archive-entry)
-  "Return the path of the file in which the package for ARCHIVE-ENTRY is stored."
-  (let* ((name (car archive-entry))
-         (pkg-info (cdr archive-entry))
-         (version (package-version-join (aref pkg-info 0)))
-         (flavour (aref pkg-info 3)))
-    (expand-file-name
-     (format "%s-%s.%s" name version (if (eq flavour 'single) "el" "tar"))
-     quelpa-build-archive-dir)))
-
 ;;; Recipes
 
 (defun quelpa-build-expand-file-specs (dir specs &optional subdir allow-empty)
