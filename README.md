@@ -6,7 +6,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ### News
 
-2018/03/25 - support for various fetchers has been added again: `wiki`, `bzr`, `cvs`, `darcs`, `fossil`, `svn`. Subsequently they do not work with `quelpa` any longer as well.
+2018/03/25 - support for various fetchers has been added again: `wiki`, `bzr`, `cvs`, `darcs`, `fossil`, `svn`.
 
 
 <!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
