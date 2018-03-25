@@ -29,9 +29,6 @@
 (quelpa '(xml-rpc :fetcher bzr :url "lp:xml-rpc-el"))
 (quelpa 'color-theme)
 
-;; cvs
-(quelpa 'matlab-mode)
-
 ;; wiki
 (quelpa '(key-chord :fetcher wiki))
 (quelpa '(buffer-move :fetcher wiki))
