@@ -382,26 +382,6 @@ and return TIME-STAMP, otherwise return OLD-TIME-STAMP."
 
 ;; --- package-build fork ------------------------------------------
 
-(defconst quelpa-build--melpa-base
-  (file-name-directory
-   (directory-file-name
-    (file-name-directory (or load-file-name (buffer-file-name))))))
-
-(defcustom quelpa-build-working-dir
-  (expand-file-name "working/" quelpa-build--melpa-base)
-  "Directory in which to keep checkouts."
-  :type 'string)
-
-(defcustom quelpa-build-archive-dir
-  (expand-file-name "packages/" quelpa-build--melpa-base)
-  "Directory in which to keep compiled archives."
-  :type 'string)
-
-(defcustom quelpa-build-recipes-dir
-  (expand-file-name "recipes/" quelpa-build--melpa-base)
-  "Directory containing recipe files."
-  :type 'string)
-
 (defcustom quelpa-build-verbose t
   "When non-nil, then print additional progress information."
   :type 'boolean)
@@ -436,25 +416,12 @@ if `quelpa-build-timeout-executable' is non-nil."
 Certain package names (e.g. \"@\") may not work properly with a BSD tar."
   :type '(file :must-match t))
 
-(defcustom quelpa-build-write-melpa-badge-images nil
-  "When non-nil, write MELPA badge images alongside packages.
-These batches can, for example, be used on GitHub pages."
-  :type 'boolean)
-
 (defcustom quelpa-build-version-regexp "^[rRvV]?\\(.*\\)$"
   "Default pattern for matching valid version-strings within repository tags.
 The string in the capture group should be parsed as valid by `version-to-list'."
   :type 'string)
 
 ;;; Internal Variables
-
-(defvar quelpa-build--recipe-alist nil
-  "Internal list of package recipes.
-Use function `quelpa-build-recipe-alist' instead of this variable.")
-
-(defvar quelpa-build--archive-alist nil
-  "Internal list of already-built packages, in the standard package.el format.
-Use function `quelpa-build-archive-alist' instead of this variable.")
 
 (defconst quelpa-build-default-files-spec
   '("*.el" "*.el.in" "dir"
@@ -1275,92 +1242,7 @@ If PKG-INFO is nil, an empty one is created."
      (format "%s-%s.%s" name version (if (eq flavour 'single) "el" "tar"))
      quelpa-build-archive-dir)))
 
-(defun quelpa-build--entry-file-name (archive-entry)
-  "Return the path of the file in which the package for ARCHIVE-ENTRY is stored."
-  (let* ((name (car archive-entry))
-         (pkg-info (cdr archive-entry))
-         (version (package-version-join (aref pkg-info 0))))
-    (expand-file-name
-     (format "%s-%s.entry" name version)
-     quelpa-build-archive-dir)))
-
-(defun quelpa-build--delete-file-if-exists (file)
-  "Delete FILE if it exists."
-  (when (file-exists-p file)
-    (delete-file file)))
-
-(defun quelpa-build--remove-archive-files (archive-entry)
-  "Remove ARCHIVE-ENTRY from archive-contents, and delete associated file.
-Note that the working directory (if present) is not deleted by
-this function, since the archive list may contain another version
-of the same-named package which is to be kept."
-  (quelpa-build--message "Removing archive: %s" archive-entry)
-  (mapcar 'quelpa-build--delete-file-if-exists
-          (list  (quelpa-build--archive-file-name archive-entry)
-                 (quelpa-build--entry-file-name archive-entry))))
-
 ;;; Recipes
-
-(defun quelpa-build--read-recipe (file-name)
-  "Return the plist of recipe info for the package called FILE-NAME.
-It performs some basic checks on the recipe to ensure that known
-keys have values of the right types, and raises an error if that
-is the not the case.  If invalid combinations of keys are
-supplied then errors will only be caught when an attempt is made
-to build the recipe."
-  (let* ((pkg-info (quelpa-build--read-from-file file-name))
-         (pkg-name (car pkg-info))
-         (rest (cdr pkg-info)))
-    (cl-assert pkg-name)
-    (cl-assert (symbolp pkg-name))
-    (cl-assert (string= (symbol-name pkg-name) (file-name-nondirectory file-name))
-               nil
-               "Recipe '%s' contains mismatched package name '%s'"
-               (file-name-nondirectory file-name)
-               pkg-name)
-    (cl-assert rest)
-    (let* ((symbol-keys '(:fetcher))
-           (string-keys '(:url :repo :module :commit :branch :version-regexp))
-           (list-keys '(:files :old-names))
-           (all-keys (append symbol-keys string-keys list-keys)))
-      (dolist (thing rest)
-        (when (keywordp thing)
-          (cl-assert (memq thing all-keys) nil "Unknown keyword %S" thing)))
-      (let ((fetcher (plist-get rest :fetcher)))
-        (cl-assert fetcher nil ":fetcher is missing")
-        (when (memq fetcher '(github gitlab bitbucket))
-          (cl-assert (plist-get rest :repo) ":repo is missing")))
-      (dolist (key symbol-keys)
-        (let ((val (plist-get rest key)))
-          (when val
-            (cl-assert (symbolp val) nil "%s must be a symbol but is %S" key val))))
-      (dolist (key list-keys)
-        (let ((val (plist-get rest key)))
-          (when val
-            (cl-assert (listp val) nil "%s must be a list but is %S" key val))))
-      (dolist (key string-keys)
-        (let ((val (plist-get rest key)))
-          (when val
-            (cl-assert (stringp val) nil "%s must be a string but is %S" key val)))))
-    pkg-info))
-
-(defun quelpa-build--read-recipes ()
-  "Return a list of data structures for all recipes in `quelpa-build-recipes-dir'."
-  (cl-loop for file-name in (directory-files  quelpa-build-recipes-dir t "^[^.]")
-           collect (quelpa-build--read-recipe file-name)))
-
-(defun quelpa-build--read-recipes-ignore-errors ()
-  "Return a list of data structures for all recipes in `quelpa-build-recipes-dir'."
-  (cl-loop for file-name in (directory-files  quelpa-build-recipes-dir t "^[^.]")
-           for pkg-info = (condition-case err
-                              (quelpa-build--read-recipe file-name)
-                            (error (quelpa-build--message
-                                    "Error reading recipe %s: %s"
-                                    file-name
-                                    (error-message-string err))
-                                   nil))
-           when pkg-info
-           collect pkg-info))
 
 (defun quelpa-build-expand-file-specs (dir specs &optional subdir allow-empty)
   "In DIR, expand SPECS, optionally under SUBDIR.
@@ -1492,17 +1374,9 @@ FILES is a list of (SOURCE . DEST) relative filepath pairs."
     (quelpa-build--message "%s => %s" file newname)
     (copy-directory file newname))))
 
-(defun quelpa-build--package-name-completing-read ()
-  "Prompt for a package name, returning a symbol."
-  (intern (completing-read "Package: " (quelpa-build-packages))))
-
 (defun quelpa-build--find-source-file (target files)
   "Search for source of TARGET in FILES."
   (car (rassoc target files)))
-
-(defun quelpa-build--find-package-file (name)
-  "Return the filename of the most recently built package of NAME."
-  (quelpa-build--archive-file-name (assoc name (quelpa-build-archive-alist))))
 
 (defun quelpa-build--package-buffer-info-vec ()
   "Return a vector of package info.
@@ -1534,105 +1408,7 @@ and a cl struct in Emacs HEAD.  This wrapper normalises the results."
                  (aref desc 3)
                  extras)))))
 
-(defconst quelpa-build--this-file load-file-name)
-
-;; TODO: This function should be fairly sound, but it has a few
-;; possible failure modes. Primarily, if a file matching the recipe's
-;; file spec appears in a new upstream revision, but that file has an
-;; older date than the version timestamp provided here, the function
-;; will return t.
-(defun quelpa-build--up-to-date-p (name version)
-  "Return non-nil if there is an up-to-date package for NAME with the given VERSION."
-  (let* ((package-file-base (expand-file-name (format "%s-%s." name version)
-                                              quelpa-build-archive-dir))
-         (recipe-file (expand-file-name name quelpa-build-recipes-dir)))
-    (cl-dolist (ext '("tar" "el"))
-      (let ((package-file (concat package-file-base ext)))
-        (when (and (file-newer-than-file-p package-file recipe-file)
-                   (or (null quelpa-build--this-file)
-                       (file-newer-than-file-p package-file
-                                               quelpa-build--this-file)))
-          (cl-return t))))))
-
-(defun quelpa-build-get-commit (config working-dir)
-  "Return a commit identifier as a string for CONFIG under WORKING-DIR."
-  (let* ((fetcher (plist-get config :fetcher))
-         (func (intern (format "quelpa-build--get-commit-%s" fetcher))))
-    (when (functionp func)
-      (funcall func config (file-name-as-directory working-dir)))))
-
-(defun quelpa-build--get-commit-git (config working-dir)
-  "Return a commit identifier.
-Works for Git repositories with CONFIG under WORKING-DIR."
-  (quelpa-build--git-head-sha working-dir))
-(defalias 'quelpa-build--get-commit-github #'quelpa-build--get-commit-git)
-(defalias 'quelpa-build--get-commit-gitlab #'quelpa-build--get-commit-git)
-
-(defun quelpa-build-add-to-archive (archive-entry prop value)
-  "Add to ARCHIVE-ENTRY property PROP with VALUE.
-ARCHIVE-ENTRY is destructively modified."
-  (push (cons prop value) (elt (cdr archive-entry) 4))
-  archive-entry)
-
 ;;; Building
-
-;;;###autoload
-(defun quelpa-build-archive (name)
-  "Build a package archive for package NAME."
-  (interactive (list (quelpa-build--package-name-completing-read)))
-  (let* ((file-name (symbol-name name))
-         (rcp (or (cdr (assoc name (quelpa-build-recipe-alist)))
-                  (error "Cannot find package %s" name)))
-         (pkg-working-dir
-          (file-name-as-directory
-           (expand-file-name file-name quelpa-build-working-dir))))
-
-    (unless (file-exists-p quelpa-build-archive-dir)
-      (quelpa-build--message "Creating directory %s" quelpa-build-archive-dir)
-      (make-directory quelpa-build-archive-dir))
-
-    (quelpa-build--message "\n;;; %s\n" name)
-    (let* ((version (quelpa-build-checkout name rcp pkg-working-dir))
-           (commit (quelpa-build-get-commit rcp pkg-working-dir))
-           (default-directory quelpa-build-working-dir)
-           (start-time (current-time)))
-      (if (quelpa-build--up-to-date-p file-name version)
-          (quelpa-build--message "Package %s is up to date - skipping." name)
-        (progn
-          (let ((archive-entry (quelpa-build-package
-                                file-name
-                                version
-                                (quelpa-build--config-file-list rcp)
-                                pkg-working-dir
-                                quelpa-build-archive-dir)))
-            (when commit
-              (quelpa-build-add-to-archive archive-entry :commit commit))
-            (quelpa-build--dump archive-entry
-                                (quelpa-build--entry-file-name archive-entry)))
-          (when quelpa-build-write-melpa-badge-images
-            (quelpa-build--write-melpa-badge-image
-             file-name
-             version quelpa-build-archive-dir))
-          (quelpa-build--message "Built %s in %.3fs, finished at %s"
-                                 name
-                                 (time-to-seconds (time-since start-time))
-                                 (current-time-string))))
-      (list file-name version))))
-
-(defun quelpa-build-archive-ignore-errors (pkg)
-  "Build archive for package PKG, ignoring any errors."
-  (interactive (list (quelpa-build--package-name-completing-read)))
-  (let* ((debug-on-error t)
-         (debug-on-signal t)
-         (quelpa-build--debugger-return nil)
-         (debugger (lambda (&rest args)
-                     (setq quelpa-build--debugger-return
-                           (with-output-to-string (backtrace))))))
-    (condition-case err
-        (quelpa-build-archive pkg)
-      (error
-       (quelpa-build--message "%s" (error-message-string err))
-       nil))))
 
 ;;;###autoload
 (defun quelpa-build-package (package-name version file-specs source-dir target-dir)
@@ -1749,209 +1525,6 @@ Returns the archive entry for the package."
              package-name))
           (quelpa-build--archive-entry pkg-info 'tar))
       (delete-directory tmp-dir t nil))))
-
-;;;###autoload
-(defun quelpa-build-all ()
-  "Build all packages in the `quelpa-build-recipe-alist'."
-  (interactive)
-  (let ((failed (cl-loop for pkg in (quelpa-build-packages)
-                         when (not (quelpa-build-archive-ignore-errors pkg))
-                         collect pkg)))
-    (if (not failed)
-        (princ "\nSuccessfully Compiled All Packages\n")
-      (princ "\nFailed to Build the Following Packages\n")
-      (princ (mapconcat #'symbol-name failed "\n"))
-      (princ "\n")))
-  (quelpa-build-cleanup))
-
-(defun quelpa-build-cleanup ()
-  "Remove previously-built packages that no longer have recipes."
-  (interactive)
-  (let* ((known-package-names (quelpa-build-packages))
-         (stale-archives (cl-loop for built in (quelpa-build--archive-entries)
-                                  when (not (memq (car built) known-package-names))
-                                  collect built)))
-    (mapc 'quelpa-build--remove-archive-files stale-archives)
-    (quelpa-build-dump-archive-contents)))
-
-(defun quelpa-build-recipe-alist ()
-  "Return the list of available package recipes."
-  (or quelpa-build--recipe-alist
-      (setq quelpa-build--recipe-alist
-            (quelpa-build--read-recipes-ignore-errors))))
-
-(defun quelpa-build-packages ()
-  "Return the list of the names of available packages."
-  (mapcar #'car (quelpa-build-recipe-alist)))
-
-(defun quelpa-build-archive-alist ()
-  "Return the archive list."
-  (cdr (quelpa-build--read-from-file
-        (expand-file-name "archive-contents"
-                          quelpa-build-archive-dir))))
-
-(defun quelpa-build-reinitialize ()
-  "Forget any information about packages which have already been built."
-  (interactive)
-  (setq quelpa-build--recipe-alist nil))
-
-(defun quelpa-build-dump-archive-contents (&optional file pretty-print)
-  "Dump the list of built packages to FILE.
-
-If FILE-NAME is not specified, the default archive-contents file is used."
-  (quelpa-build--dump (cons 1 (quelpa-build--archive-entries))
-                      (or file
-                          (expand-file-name "archive-contents"
-                                            quelpa-build-archive-dir))
-                      pretty-print))
-
-(defun quelpa-build--archive-entries ()
-  "Read all .entry files from the archive directory and return a list of all entries."
-  (let ((entries '()))
-    (dolist (new (mapcar 'quelpa-build--read-from-file
-                         (directory-files quelpa-build-archive-dir t
-                                          ".*\.entry$"))
-                 entries)
-      (let ((old (assq (car new) entries)))
-        (when old
-          (when (version-list-< (elt (cdr new) 0)
-                                (elt (cdr old) 0))
-            ;; swap old and new
-            (cl-rotatef old new))
-          (quelpa-build--remove-archive-files old)
-          (setq entries (remove old entries)))
-        (add-to-list 'entries new)))))
-
-;;; Helpers for Recipe Authors
-
-(defvar quelpa-build-minor-mode-map
-  (let ((m (make-sparse-keymap)))
-    (define-key m (kbd "C-c C-c") 'quelpa-build-current-recipe)
-    m)
-  "Keymap for `quelpa-build-minor-mode'.")
-
-(define-minor-mode quelpa-build-minor-mode
-  "Helpful functionality for building packages."
-  nil
-  " PBuild"
-  quelpa-build-minor-mode-map
-  (when quelpa-build-minor-mode
-    (message "Use C-c C-c to build this recipe.")))
-
-;;;###autoload
-(defun quelpa-build-create-recipe (name fetcher)
-  "Create a new recipe for package NAME using FETCHER."
-  (interactive
-   (list (intern (read-string "Package name: "))
-         (intern (completing-read "Fetcher: "
-                                  (list "github" "gitlab" "bitbucket"
-                                        "git" "wiki" "bzr" "hg" "cvs" "svn")
-                                  nil t nil nil "github"))))
-  (let ((recipe-file (expand-file-name (symbol-name name)
-                                       quelpa-build-recipes-dir)))
-    (when (file-exists-p recipe-file)
-      (error "Recipe already exists"))
-    (find-file recipe-file)
-    (insert (pp-to-string `(,name
-                            :fetcher ,fetcher
-                            ,@(cl-case fetcher
-                                (github (list :repo "USER/REPO"))
-                                (wiki nil)
-                                (t (list :url "SCM_URL_HERE"))))))
-    (emacs-lisp-mode)
-    (quelpa-build-minor-mode)
-    (goto-char (point-min))))
-
-;;;###autoload
-(defun quelpa-build-current-recipe ()
-  "Build archive for the recipe defined in the current buffer."
-  (interactive)
-  (unless (and (buffer-file-name)
-               (file-equal-p (file-name-directory (buffer-file-name))
-                             quelpa-build-recipes-dir))
-    (error "Buffer is not visiting a recipe"))
-  (when (buffer-modified-p)
-    (if (y-or-n-p (format "Save file %s? " buffer-file-name))
-        (save-buffer)
-      (error "Aborting")))
-  (check-parens)
-  (quelpa-build-reinitialize)
-  (let ((pkg-name (intern (file-name-nondirectory (buffer-file-name)))))
-    (quelpa-build-archive pkg-name)
-    (quelpa-build-dump-archive-contents)
-    (let ((output-buffer-name "*quelpa-build-result*"))
-      (with-output-to-temp-buffer output-buffer-name
-        (princ ";; Please check the following package descriptor.\n")
-        (princ ";; If the correct package description or dependencies are missing,\n")
-        (princ ";; then the source .el file is likely malformed, and should be fixed.\n")
-        (pp (assoc pkg-name (quelpa-build-archive-alist))))
-      (with-current-buffer output-buffer-name
-        (emacs-lisp-mode)
-        (view-mode)))
-    (when (yes-or-no-p "Install new package? ")
-      (package-install-file (quelpa-build--find-package-file pkg-name)))))
-
-;;; Exporting Data as Json
-
-(defun quelpa-build-recipe-alist-as-json (file)
-  "Dump the recipe list to FILE as json."
-  (interactive)
-  (with-temp-file file
-    (insert (json-encode (quelpa-build-recipe-alist)))))
-
-(defun quelpa-build--pkg-info-for-json (info)
-  "Convert INFO into a data structure which will serialize to JSON in the desired shape."
-  (let ((ver (elt info 0))
-        (deps (elt info 1))
-        (desc (elt info 2))
-        (type (elt info 3))
-        (props (and (> (length info) 4)
-                    (elt info 4))))
-    (list :ver ver
-          :deps (cl-mapcan (lambda (dep)
-                             (list (intern (format ":%s" (car dep)))
-                                   (cadr dep)))
-                           deps)
-          :desc desc
-          :type type
-          :props props)))
-
-(defun quelpa-build--archive-alist-for-json ()
-  "Return the archive alist in a form suitable for JSON encoding."
-  (cl-mapcan (lambda (entry)
-               (list (intern (format ":%s" (car entry)))
-                     (quelpa-build--pkg-info-for-json (cdr entry))))
-             (quelpa-build-archive-alist)))
-
-(defun quelpa-build-archive-alist-as-json (file)
-  "Dump the build packages list to FILE as json."
-  (with-temp-file file
-    (insert (json-encode (quelpa-build--archive-alist-for-json)))))
-
-;;; Melpa Batches
-
-;; In future we should provide a hook, and perform this step in a
-;; separate package.  Note also that it would be straightforward to
-;; generate the SVG ourselves, which would save the network overhead.
-
-(defun quelpa-build--write-melpa-badge-image (package-name version target-dir)
-  (let ((badge-url (concat "https://img.shields.io/badge/"
-                           (if quelpa-build-stable "melpa stable" "melpa")
-                           "-"
-                           (url-hexify-string version)
-                           "-"
-                           (if quelpa-build-stable "3e999f" "922793")
-                           ".svg"))
-        (badge-filename (expand-file-name (concat package-name "-badge.svg")
-                                          target-dir)))
-    (if (executable-find "curl")
-        ;; Not strictly needed, but less likely to break due to gnutls issues
-        (shell-command (mapconcat #'identity
-                                  (list "curl" "-f" "-o"
-                                        (shell-quote-argument badge-filename)
-                                        (shell-quote-argument badge-url))
-                                  " "))
-      (quelpa-build--url-copy-file badge-url badge-filename t))))
 
 (defun quelpa-build--checkout-file (name config dir)
   "Build according to a PATH with config CONFIG into DIR as NAME.
