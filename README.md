@@ -36,15 +36,21 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ## Overview
 
-`quelpa` is a tool to compile and install Emacs Lisp packages locally from source code (which can reside on the local disk or in remote locations such as a git repo etc.). It is mostly just a wrapper around the [MELPA](https://github.com/melpa/melpa) package build library. We try to keep `quelpa` as simple as possible and rely on existing solutions.
+`quelpa` is a tool to compile and install Emacs Lisp packages locally from local or remote source code.
 
-And that's how `quelpa` works in a nutshell: Given a recipe in [MELPA's format](https://github.com/melpa/melpa#recipe-format), `quelpa` gets the package source code, builds an ELPA compatible package and installs that locally. These installed packages can then be managed in the usual way with `M-x list-packages`.
+Given a recipe in [MELPA's format](https://github.com/melpa/melpa#recipe-format), for example:
+
+``` elisp
+(quelpa '(hydra :repo "abo-abo/hydra" :fetcher github))
+```
+
+`quelpa` gets the package source code, builds an ELPA compatible package and installs that locally with `package.el`. The installed packages can then be managed in the usual way with `M-x list-packages`.
 
 `quelpa` can be used in many ways, for example to manage your personal packages, testing development versions of other packages or as a helper when developing a package to test building, compiling and installing it.
 
-To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](https://github.com/steckerhalter/steckemacs.el), where `quelpa` loads and installs the required packages just before they are configured.
+To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](https://github.com/steckerhalter/steckemacs.el), which uses the `quelpa`'s `use-package` support provided by [quelpa-use-package](https://github.com/quelpa/quelpa-use-package), see there for more information.
 
-You can build and install packages from: Git, Github, Bazaar (bzr), Mercurial (hg), Subversion (svn), CVS, Darcs, Emacs Wiki (wiki)
+You can build and install packages from (fetcher names in parens): Git (`git`), Github (`github`), Bazaar (`bzr`), Mercurial (`hg`), Subversion (`svn`), CVS (`cvs`), Darcs (`darcs`), Fossil (`fossil`) and EmacsWiki (`wiki`)
 
 ## Requirements
 
@@ -59,9 +65,12 @@ Note: Even if the sources of a package are fetched with a VCS tool you have inst
 
 **Note**: For Windows, see the [Instructions for Windows](#windows-instructions) before continuing
 
-First `quelpa` needs to be bootstrapped. This means MELPA's `package-build` has to be installed first, then `quelpa` itself.
+First `quelpa` needs to be installed. You can install `quelpa` either from MELPA (see https://github.com/melpa/melpa#usage for setup):
 
-To bootstrap `quelpa` use this code snippet:
+
+    M-x package-install RET quelpa RET
+
+or if you are not using MELPA:
 
 ```cl
 (package-initialize)
