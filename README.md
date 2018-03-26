@@ -48,7 +48,7 @@ Given a recipe in [MELPA's format](https://github.com/melpa/melpa#recipe-format)
 
 `quelpa` can be used in many ways, for example to manage your personal packages, testing development versions of other packages or as a helper when developing a package to test building, compiling and installing it.
 
-To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](https://github.com/steckerhalter/steckemacs.el), which uses the `quelpa`'s `use-package` support provided by [quelpa-use-package](https://github.com/quelpa/quelpa-use-package), see there for more information.
+To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](https://github.com/steckerhalter/steckemacs.el), which uses [quelpa-use-package](https://github.com/quelpa/quelpa-use-package) to integrate with `use-package`.
 
 You can build and install packages from (fetcher names in parens): Git (`git`), Github (`github`), Bazaar (`bzr`), Mercurial (`hg`), Subversion (`svn`), CVS (`cvs`), Darcs (`darcs`), Fossil (`fossil`) and EmacsWiki (`wiki`)
 
