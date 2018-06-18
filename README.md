@@ -6,7 +6,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ### News
 
-2018/06/18 - code moved to [framagit.org](https://framagit.org/steckerhalter/quelpa), **please open issues there** (this is only an MS mirror now 8)
+2018/06/18 - code moved to [framagit.org](https://framagit.org/steckerhalter/quelpa), **please open issues there** (this is only an MS mirror now 8)  
 2018/03/25 - support for various fetchers has been added again: `wiki`, `bzr`, `cvs`, `darcs`, `fossil`, `svn`.
 
 
