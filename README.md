@@ -1,4 +1,4 @@
-[![Home](https://raw.github.com/quelpa/quelpa/master/logo/quelpa-logo-h64.png)](https://github.com/quelpa/quelpa)
+[![Home](https://framagit.org/steckerhalter/quelpa/raw/master/logo/quelpa-logo-h64.png)](https://framagit.org/steckerhalter/quelpa)
 
 [![Build Status](https://travis-ci.org/quelpa/quelpa.svg?branch=master)](https://travis-ci.org/quelpa/quelpa)
 
@@ -48,7 +48,7 @@ Given a recipe in [MELPA's format](https://github.com/melpa/melpa#recipe-format)
 
 `quelpa` can be used in many ways, for example to manage your personal packages, testing development versions of other packages or as a helper when developing a package to test building, compiling and installing it.
 
-To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](https://github.com/steckerhalter/steckemacs.el), which uses [quelpa-use-package](https://github.com/quelpa/quelpa-use-package) to integrate with `use-package`.
+To get an idea how to use it to manage your Emacs setup, take a look at the [steckemacs configuration](https://framagit.org/steckerhalter/steckemacs.el), which uses [quelpa-use-package](https://framagit.org/steckerhalter/quelpa-use-package) to integrate with `use-package`.
 
 You can build and install packages from (fetcher names in parens): Git (`git`), Github (`github`), Bazaar (`bzr`), Mercurial (`hg`), Subversion (`svn`), CVS (`cvs`), Darcs (`darcs`), Fossil (`fossil`) and EmacsWiki (`wiki`)
 
@@ -77,7 +77,7 @@ or if you are not using MELPA:
 (if (require 'quelpa nil t)
     (quelpa-self-upgrade)
   (with-temp-buffer
-    (url-insert-file-contents "https://raw.github.com/quelpa/quelpa/master/bootstrap.el")
+    (url-insert-file-contents "https://framagit.org/steckerhalter/quelpa/raw/master/bootstrap.el")
     (eval-buffer)))
 ```
 
@@ -89,7 +89,7 @@ If you don't like `quelpa` doing self-upgrades (although this is recommended), u
 (package-initialize)
 (unless (require 'quelpa nil t)
   (with-temp-buffer
-    (url-insert-file-contents "https://raw.github.com/quelpa/quelpa/master/bootstrap.el")
+    (url-insert-file-contents "https://framagit.org/steckerhalter/quelpa/raw/master/bootstrap.el")
     (eval-buffer)))
 ```
 
@@ -122,13 +122,13 @@ You can also install packages that are not on MELPA. For this you need to provid
 The recipe is a list and consist of the package name and keywords. A minimal recipe would look like this:
 
 ``` elisp
-'(discover-my-major :fetcher github :repo "steckerhalter/discover-my-major")
+'(discover-my-major :fetcher git :url "https://framagit.org/steckerhalter/discover-my-major.git")
 ```
 
 Depending on the fetcher, different keywords can or have to be supplied. So to install `discover-my-major` you would have to use:
 
 ``` elisp
-(quelpa '(discover-my-major :fetcher github :repo "steckerhalter/discover-my-major"))
+(quelpa '(discover-my-major :fetcher git :url "https://framagit.org/steckerhalter/discover-my-major.git"))
 ```
 
 Don't forget the quote before the recipe.

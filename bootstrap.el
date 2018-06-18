@@ -3,9 +3,9 @@
 ;; Copyright 2014-2018, Steckerhalter
 
 ;; Author: steckerhalter
-;; URL: https://github.com/quelpa/quelpa
+;; URL: https://framagit.org/steckerhalter/quelpa
 ;; Version: 0.0.1
-;; License: https://github.com/quelpa/quelpa/LICENSE
+;; License: https://framagit.org/steckerhalter/quelpa/LICENSE
 
 ;; This file is not part of GNU Emacs.
 
@@ -24,7 +24,7 @@
     (let ((file (or (when quelpa-ci-dir (concat quelpa-ci-dir "/quelpa.el"))
                     (expand-file-name "quelpa.el" temp-dir))))
       (unless quelpa-ci-dir
-        (url-copy-file "https://raw.github.com/quelpa/quelpa/master/quelpa.el" file t))
+        (url-copy-file "https://framagit.org/steckerhalter/quelpa/raw/master/quelpa.el" file t))
       (package-install-file file)))
 
   (delete-directory temp-dir t))
