@@ -1454,15 +1454,15 @@ Returns the archive entry for the package."
       (copy-file pkg-source pkg-target)
       (let ((enable-local-variables nil)
             (make-backup-files nil))
-        (with-current-buffer (find-file pkg-target)
+        (with-temp-buffer
+          (insert-file-contents pkg-target)
           (quelpa-build--update-or-insert-version version)
           (quelpa-build--ensure-ends-here-line pkg-source)
           (write-file pkg-target nil)
           (condition-case err
               (quelpa-build--package-buffer-info-vec)
             (error
-             (quelpa-build--message "Warning: %S" err)))
-          (kill-buffer)))
+             (quelpa-build--message "Warning: %S" err)))))
 
       (quelpa-build--write-pkg-readme
        target-dir
