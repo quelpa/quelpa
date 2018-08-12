@@ -1078,23 +1078,26 @@ Optionally PRETTY-PRINT the data."
     (car (read-from-string (quelpa-build--slurp-file file)))))
 
 (defun quelpa-build--create-tar (file dir &optional files)
-  "Create a tar FILE containing the contents of DIR, or just FILES if non-nil."
-  (when (eq system-type 'windows-nt)
-    (setq file (replace-regexp-in-string "^\\([a-z]\\):" "/\\1" file)))
-  (apply 'process-file
-         quelpa-build-tar-executable nil
-         (get-buffer-create "*quelpa-build-checkout*")
-         nil "-cvf"
-         file
-         "--exclude=.svn"
-         "--exclude=CVS"
-         "--exclude=.git"
-         "--exclude=_darcs"
-         "--exclude=.fslckout"
-         "--exclude=_FOSSIL_"
-         "--exclude=.bzr"
-         "--exclude=.hg"
-         (or (mapcar (lambda (fn) (concat dir "/" fn)) files) (list dir))))
+      "Create a tar FILE containing the contents of DIR, or just FILES if non-nil."
+      (let* ((src-dir (file-name-directory (directory-file-name (file-truename dir))))
+             (dest-filename (file-name-nondirectory file))
+             (dest-dir (file-name-directory file))
+             (default-directory dest-dir))
+        (apply 'process-file
+               quelpa-build-tar-executable nil
+               (get-buffer-create "*quelpa-build-checkout*")
+               nil "-cvf"
+               dest-filename
+               "--exclude=.svn"
+               "--exclude=CVS"
+               "--exclude=.git"
+               "--exclude=_darcs"
+               "--exclude=.fslckout"
+               "--exclude=_FOSSIL_"
+               "--exclude=.bzr"
+               "--exclude=.hg"
+               (if src-dir (concat "--directory=" src-dir))
+               (or (mapcar (lambda (fn) (concat dir "/" fn)) files) (list dir)))))
 
 (defun quelpa-build--find-package-commentary (file-path)
   "Get commentary section from FILE-PATH."
