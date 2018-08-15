@@ -1099,8 +1099,10 @@ Optionally PRETTY-PRINT the data."
                             (if src-dir (concat "--directory=" src-dir))
                             (or (mapcar (lambda (fn) (concat dir "/" fn)) files) (list dir)))))
         (cond ((eq result 1)
-               (message "%s exited with return value 1: some files were changed while being archived."
-                        quelpa-build-tar-executable) result)
+               (display-warning 'quelpa
+                                (format "%s exited with return value 1: some files were changed while being archived."
+                                        quelpa-build-tar-executable))
+               result)
               ((eq result 2)
                (error "%s exited with return value 2: A fatal, unrecoverable error has occured"
                       quelpa-build-tar-executable))
