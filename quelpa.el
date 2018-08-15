@@ -1082,22 +1082,31 @@ Optionally PRETTY-PRINT the data."
       (let* ((src-dir (file-name-directory (directory-file-name (file-truename dir))))
              (dest-filename (file-name-nondirectory file))
              (dest-dir (file-name-directory file))
-             (default-directory dest-dir))
-        (apply 'process-file
-               quelpa-build-tar-executable nil
-               (get-buffer-create "*quelpa-build-checkout*")
-               nil "-cvf"
-               dest-filename
-               "--exclude=.svn"
-               "--exclude=CVS"
-               "--exclude=.git"
-               "--exclude=_darcs"
-               "--exclude=.fslckout"
-               "--exclude=_FOSSIL_"
-               "--exclude=.bzr"
-               "--exclude=.hg"
-               (if src-dir (concat "--directory=" src-dir))
-               (or (mapcar (lambda (fn) (concat dir "/" fn)) files) (list dir)))))
+             (default-directory dest-dir)
+             (result (apply 'process-file
+                            quelpa-build-tar-executable nil
+                            (get-buffer-create "*quelpa-build-checkout*")
+                            nil "-cvf"
+                            dest-filename
+                            "--exclude=.svn"
+                            "--exclude=CVS"
+                            "--exclude=.git"
+                            "--exclude=_darcs"
+                            "--exclude=.fslckout"
+                            "--exclude=_FOSSIL_"
+                            "--exclude=.bzr"
+                            "--exclude=.hg"
+                            (if src-dir (concat "--directory=" src-dir))
+                            (or (mapcar (lambda (fn) (concat dir "/" fn)) files) (list dir)))))
+        (cond ((eq result 1)
+               (message "%s exited with return value 1: some files were changed while being archived."
+                        quelpa-build-tar-executable) result)
+              ((eq result 2)
+               (error "%s exited with return value 2: A fatal, unrecoverable error has occured"
+                      quelpa-build-tar-executable))
+              ((eq result 0)
+               result)
+              ((t (error "Unknown return value %s" result))))))
 
 (defun quelpa-build--find-package-commentary (file-path)
   "Get commentary section from FILE-PATH."
