@@ -1077,11 +1077,24 @@ Optionally PRETTY-PRINT the data."
   (when (file-exists-p file)
     (car (read-from-string (quelpa-build--slurp-file file)))))
 
+(defun quelpa-build--stage-files (dir &optional files)
+  "Either return DIR or copy FILES into a temp dir and return that dir"
+  (let* ((staging-dir (if files
+                          (make-temp-file "quelpa-build--stage-files" t)
+                        dir)))
+    (unless (string= staging-dir dir)
+      (mapc (lambda (fn)
+              "Copy FN into STAGING-DIR"
+              (let (fname (file-truename fn))
+                (copy-file fname staging-dir)))
+            files))
+    staging-dir))
+
 (defun quelpa-build--create-tar (file dir &optional files)
       "Create a tar FILE containing the contents of DIR, or just FILES if non-nil."
       (let* ((dest-dir (file-name-directory (file-truename file)))
              (dest-filename (file-name-nondirectory (file-truename file)))
-             (src-dir (file-relative-name (file-truename dir) dest-dir))
+         (src-dir (file-relative-name (quelpa-build--stage-files (dir files)) dest-dir))
              (default-directory dest-dir)
              (result (apply 'process-file
                             quelpa-build-tar-executable nil
@@ -1096,8 +1109,8 @@ Optionally PRETTY-PRINT the data."
                             "--exclude=_FOSSIL_"
                             "--exclude=.bzr"
                             "--exclude=.hg"
-                            (if src-dir (concat "--directory=" src-dir))
-                            (or (mapcar (lambda (fn) (concat dir "/" fn)) files) (list dir)))))
+                        (concat "--directory=" src-dir)
+                        (list src-dir))))
         (cond ((eq result 1)
                (display-warning 'quelpa
                                 (format "%s exited with return value 1: some files were changed while being archived."
