@@ -1079,9 +1079,9 @@ Optionally PRETTY-PRINT the data."
 
 (defun quelpa-build--create-tar (file dir &optional files)
       "Create a tar FILE containing the contents of DIR, or just FILES if non-nil."
-      (let* ((src-dir (file-name-directory (directory-file-name (file-truename dir))))
-             (dest-filename (file-name-nondirectory file))
-             (dest-dir (file-name-directory file))
+      (let* ((dest-dir (file-name-directory (file-truename file)))
+             (dest-filename (file-name-nondirectory (file-truename file)))
+             (src-dir (file-relative-name (file-truename dir) dest-dir))
              (default-directory dest-dir)
              (result (apply 'process-file
                             quelpa-build-tar-executable nil
