@@ -1091,37 +1091,37 @@ Optionally PRETTY-PRINT the data."
     staging-dir))
 
 (defun quelpa-build--create-tar (file dir &optional files)
-      "Create a tar FILE containing the contents of DIR, or just FILES if non-nil."
-      (let* ((dest-dir (file-name-directory (file-truename file)))
-             (dest-filename (file-name-nondirectory (file-truename file)))
+  "Create a tar FILE containing the contents of DIR, or just FILES if non-nil."
+  (let* ((dest-dir (file-name-directory (file-truename file)))
+         (dest-filename (file-name-nondirectory (file-truename file)))
          (src-dir (file-relative-name (quelpa-build--stage-files (dir files)) dest-dir))
-             (default-directory dest-dir)
-             (result (apply 'process-file
-                            quelpa-build-tar-executable nil
-                            (get-buffer-create "*quelpa-build-checkout*")
-                            nil "-cvf"
-                            dest-filename
-                            "--exclude=.svn"
-                            "--exclude=CVS"
-                            "--exclude=.git"
-                            "--exclude=_darcs"
-                            "--exclude=.fslckout"
-                            "--exclude=_FOSSIL_"
-                            "--exclude=.bzr"
-                            "--exclude=.hg"
+         (default-directory dest-dir)
+         (result (apply 'process-file
+                        quelpa-build-tar-executable nil
+                        (get-buffer-create "*quelpa-build-checkout*")
+                        nil "-cvf"
+                        dest-filename
+                        "--exclude=.svn"
+                        "--exclude=CVS"
+                        "--exclude=.git"
+                        "--exclude=_darcs"
+                        "--exclude=.fslckout"
+                        "--exclude=_FOSSIL_"
+                        "--exclude=.bzr"
+                        "--exclude=.hg"
                         (concat "--directory=" src-dir)
                         (list src-dir))))
-        (cond ((eq result 1)
-               (display-warning 'quelpa
-                                (format "%s exited with return value 1: some files were changed while being archived."
-                                        quelpa-build-tar-executable))
-               result)
-              ((eq result 2)
-               (error "%s exited with return value 2: A fatal, unrecoverable error has occured"
-                      quelpa-build-tar-executable))
-              ((eq result 0)
-               result)
-              ((t (error "Unknown return value %s" result))))))
+    (cond ((eq result 1)
+           (display-warning 'quelpa
+                            (format "%s exited with return value 1: some files were changed while being archived."
+                                    quelpa-build-tar-executable))
+           result)
+          ((eq result 2)
+           (error "%s exited with return value 2: A fatal, unrecoverable error has occurred"
+                  quelpa-build-tar-executable))
+          ((eq result 0)
+           result)
+          ((t (error "Unknown return value %s" result))))))
 
 (defun quelpa-build--find-package-commentary (file-path)
   "Get commentary section from FILE-PATH."
