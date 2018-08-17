@@ -1077,12 +1077,15 @@ Optionally PRETTY-PRINT the data."
   (when (file-exists-p file)
     (car (read-from-string (quelpa-build--slurp-file file)))))
 
-(defun quelpa-build--stage-files (dir &optional files)
-  "Either return DIR or copy FILES into a temp dir and return that dir"
+(defun quelpa-build--stage-files (pkg-label dir &optional files)
+  "Either return DIR or copy FILES into PKG-LABEL and return that"
   (let* ((staging-dir (if files
                           (make-temp-file "quelpa-build--stage-files" t)
-                        dir)))
-    (unless (string= staging-dir dir)
+                        dir))
+         (default-directory staging-dir))
+    (when files
+      (mkdir pkg-label)
+      (setq staging-dir (file-name-as-directory (expand-file-name pkg-label default-directory)))
       (mapc (lambda (fn)
               "Copy FN into STAGING-DIR"
               (let (fname (file-truename fn))
@@ -1092,14 +1095,18 @@ Optionally PRETTY-PRINT the data."
 
 (defun quelpa-build--create-tar (file dir &optional files)
   "Create a tar FILE containing the contents of DIR, or just FILES if non-nil."
-  (let* ((dest-dir (file-name-directory (file-truename file)))
+  (let* ((pkg-label (file-name-base file))
+         (dest-dir (file-name-directory (file-truename file)))
          (dest-filename (file-name-nondirectory (file-truename file)))
-         (src-dir (file-relative-name (quelpa-build--stage-files (dir files)) dest-dir))
+         (src-dir (file-relative-name (quelpa-build--stage-files pkg-label dir files) dest-dir))
+         (src-parent (file-relative-name (file-name-directory (directory-file-name src-dir))))
          (default-directory dest-dir)
          (result (apply 'process-file
                         quelpa-build-tar-executable nil
                         (get-buffer-create "*quelpa-build-checkout*")
-                        nil "-cvf"
+                        nil
+                        (concat "--directory=" src-parent)
+                        "-cvf"
                         dest-filename
                         "--exclude=.svn"
                         "--exclude=CVS"
@@ -1109,8 +1116,7 @@ Optionally PRETTY-PRINT the data."
                         "--exclude=_FOSSIL_"
                         "--exclude=.bzr"
                         "--exclude=.hg"
-                        (concat "--directory=" src-dir)
-                        (list src-dir))))
+                        (list (file-relative-name src-dir src-parent)))))
     (cond ((eq result 1)
            (display-warning 'quelpa
                             (format "%s exited with return value 1: some files were changed while being archived."
