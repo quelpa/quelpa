@@ -415,6 +415,13 @@ if `quelpa-build-timeout-executable' is non-nil."
 Certain package names (e.g. \"@\") may not work properly with a BSD tar."
   :type '(file :must-match t))
 
+(defcustom quelpa-build-explicit-tar-format-p nil
+  "If non-nil pass \"--format=gnu\" option to tar command.
+
+Passing the option is necessary on the systems where the default
+tar format isn't gnu."
+  :type 'boolean)
+
 (defcustom quelpa-build-version-regexp "^[rRvV]?\\(.*\\)$"
   "Default pattern for matching valid version-strings within repository tags.
 The string in the capture group should be parsed as valid by `version-to-list'."
@@ -1094,7 +1101,8 @@ Optionally PRETTY-PRINT the data."
          "--exclude=_FOSSIL_"
          "--exclude=.bzr"
          "--exclude=.hg"
-         (or (mapcar (lambda (fn) (concat dir "/" fn)) files) (list dir))))
+         (append (and quelpa-build-explicit-tar-format-p '("--format=gnu"))
+                 (or (mapcar (lambda (fn) (concat dir "/" fn)) files) (list dir)))))
 
 (defun quelpa-build--find-package-commentary (file-path)
   "Get commentary section from FILE-PATH."
