@@ -1086,7 +1086,6 @@ Optionally PRETTY-PRINT the data."
          (get-buffer-create "*quelpa-build-checkout*")
          nil "-cvf"
          file
-         "--format=gnu"
          "--exclude=.svn"
          "--exclude=CVS"
          "--exclude=.git"
