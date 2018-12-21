@@ -867,6 +867,9 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
                     (let ((branch (plist-get config :branch)))
                       (when branch
                         (concat "origin/" branch))))))
+    (when (string-match (rx bos "file://" (group (1+ anything))) repo)
+      ;; Expand local file:// URLs
+      (setq repo (expand-file-name (match-string 1 repo))))
     (with-current-buffer (get-buffer-create "*quelpa-build-checkout*")
       (goto-char (point-max))
       (cond
