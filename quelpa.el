@@ -251,8 +251,9 @@ Return nil if the package is already installed and should not be upgraded."
                      (quelpa-message t "no recipe found for package `%s'" name)))
       (let ((version (condition-case err
                          (quelpa-build-checkout name config dir)
-                       (error "Failed to checkout `%s': `%s'"
-                              name (error-message-string err)))))
+                       (error
+                        (error "Failed to checkout `%s': `%s'"
+                               name (error-message-string err))))))
         (when (quelpa-version>-p name version)
           version)))))
 
