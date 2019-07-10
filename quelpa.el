@@ -309,7 +309,7 @@ already and should not be upgraded etc)."
      (mapcar
       (lambda (file) (expand-file-name file path))
       ;; Without first two entries because they are always "." and "..".
-      (cddr (directory-files path))))
+      (remove ".." (remove "." (directory-files path)))))
     result))
 
 (defun quelpa-expand-source-file-list (file-path config)
