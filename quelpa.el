@@ -147,6 +147,12 @@ If nil the update is disabled and the repo is only updated on
   :group 'quelpa
   :type 'boolean)
 
+(defcustom quelpa-git-clone-depth nil
+  "If non-nil shallow clone quelpa git recipes."
+  :group 'quelpa
+  :type '(choice (const :tag "Don't shallow clone" nil) 
+                 (integer :tag "Depth")))
+
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
 
@@ -423,6 +429,14 @@ Passing the option is necessary on the systems where the default
 tar format isn't gnu."
   :type 'boolean)
 
+(defvar quelpa-build-bsdtar-p
+  (when quelpa-build-tar-executable
+    (string-match-p
+     "bsdtar"
+     (shell-command-to-string
+      (format "%s --version" quelpa-build-tar-executable))))
+  "Current `quelpa-build-tar-executable' is bsdtar or not.")
+
 (defcustom quelpa-build-version-regexp "^[rRvV]?\\(.*\\)$"
   "Default pattern for matching valid version-strings within repository tags.
 The string in the capture group should be parsed as valid by `version-to-list'."
@@ -550,7 +564,7 @@ position."
 (defun quelpa-build--run-process (dir command &rest args)
   "In DIR (or `default-directory' if unset) run COMMAND with ARGS.
 Output is written to the current buffer."
-  (let ((default-directory (file-name-as-directory (or dir default-directory)))
+  (let ((default-directory (file-name-as-directory (or dir (temporary-file-directory))))
         (argv (nconc (unless (eq system-type 'windows-nt)
                        (list "env" "LC_ALL=C"))
                      (if quelpa-build-timeout-executable
@@ -886,7 +900,16 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
         (when (file-exists-p dir)
           (delete-directory dir t))
         (quelpa-build--princ-checkout repo dir)
-        (quelpa-build--run-process nil "git" "clone" "--origin" remote repo dir)))
+        (cond
+         ((integerp quelpa-git-clone-depth)
+          (quelpa-build--run-process
+           nil "git" "clone"
+           "--depth" (int-to-string quelpa-git-clone-depth)
+           repo dir))
+         (t
+          (quelpa-build--run-process
+           nil "git" "clone"
+           repo dir)))))
       (if quelpa-build-stable
           (let* ((min-bound (goto-char (point-max)))
                  (tag-version
@@ -924,9 +947,12 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
     (quelpa-build--run-process-match
      "\\(.*\\)" dir "git" "rev-parse" "HEAD")))
 
-(defun quelpa-build--update-git-to-ref (dir ref)
-  "Update the git repo in DIR so that HEAD is REF."
-  (quelpa-build--run-process dir "git" "reset" "--hard" ref)
+(defun quelpa-build--update-git-to-ref (dir ref &optional force)
+  "Update the git repo in DIR so that HEAD is REF.
+This will perform a fast-forward merge or a reset if FORCE."
+  (if force
+      (quelpa-build--run-process dir "git" "reset" "--hard" ref)
+    (quelpa-build--run-process dir "git" "merge" "--ff-only" ref))
   (quelpa-build--run-process dir "git" "submodule" "sync" "--recursive")
   (quelpa-build--run-process dir "git" "submodule" "update" "--init" "--recursive"))
 
@@ -1094,7 +1120,8 @@ Optionally PRETTY-PRINT the data."
 
 (defun quelpa-build--create-tar (file dir &optional files)
   "Create a tar FILE containing the contents of DIR, or just FILES if non-nil."
-  (when (eq system-type 'windows-nt)
+  (when (and (not quelpa-build-bsdtar-p)
+             (eq system-type 'windows-nt))
     (setq file (replace-regexp-in-string "^\\([a-z]\\):" "/\\1" file)))
   (apply 'process-file
          quelpa-build-tar-executable nil
