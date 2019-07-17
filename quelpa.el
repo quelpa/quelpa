@@ -64,6 +64,12 @@ the `:upgrade' argument."
   :group 'quelpa
   :type 'boolean)
 
+(defcustom quelpa-force-upgrade-p nil
+  "When non-nil, `quelpa-upgrade' will try to upgrade packages to its latest
+version, regardless of the state of your local package repo."
+  :group 'quelpa
+  :type 'boolean)
+
 (defcustom quelpa-verbose t
   "When non-nil, `quelpa' prints log messages."
   :group 'quelpa
@@ -947,10 +953,10 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
     (quelpa-build--run-process-match
      "\\(.*\\)" dir "git" "rev-parse" "HEAD")))
 
-(defun quelpa-build--update-git-to-ref (dir ref &optional force)
+(defun quelpa-build--update-git-to-ref (dir ref)
   "Update the git repo in DIR so that HEAD is REF.
 This will perform a fast-forward merge or a reset if FORCE."
-  (if force
+  (if quelpa-force-upgrade-p
       (quelpa-build--run-process dir "git" "reset" "--hard" ref)
     (quelpa-build--run-process dir "git" "merge" "--ff-only" ref))
   (quelpa-build--run-process dir "git" "submodule" "sync" "--recursive")
@@ -1716,13 +1722,18 @@ If t, `quelpa' tries to do an upgrade.
 
 :stable
 
-If t, `quelpa' tries building the stable version of a package."
+If t, `quelpa' tries building the stable version of a package.
+
+:force
+
+If t, `quelpa' tries to do an upgrade regardless state of local package repo."
   (while plist
     (let ((key (car plist))
           (value (cadr plist)))
       (pcase key
         (:upgrade (setq quelpa-upgrade-p value))
-        (:stable (setq quelpa-stable-p value))))
+        (:stable (setq quelpa-stable-p value))
+        (:force (setq quelpa-force-upgrade-p value))))
     (setq plist (cddr plist))))
 
 (defun quelpa-package-install-file (file)
@@ -1825,11 +1836,13 @@ RCP is a melpa recipe (list)."
                   (name (quelpa-interactive-candidate)))
              (assq name quelpa-cache)))))
   (when rcp
-    (let ((quelpa-upgrade-p t))
+    (let ((quelpa-upgrade-p t)
+          (quelpa-force-upgrade-p (if current-prefix-arg t quelpa-force-upgrade-p))
+          (current-prefix-arg nil))
       (setq quelpa-cache
             (cl-remove-if-not #'package-installed-p quelpa-cache :key #'car))
       (when (package-installed-p (car (quelpa-arg-rcp rcp)))
-        (quelpa rcp)))))
+        (quelpa rcp :force quelpa-force-upgrade-p)))))
 
 ;;;###autoload
 (defun quelpa (arg &rest plist)
@@ -1849,6 +1862,7 @@ nil."
   (when (quelpa-setup-p) ;if init fails we do nothing
     (let* ((quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p)) ;shadow `quelpa-upgrade-p'
            (quelpa-stable-p quelpa-stable-p) ;shadow `quelpa-stable-p'
+           (quelpa-force-upgrade-p quelpa-force-upgrade-p) ;shadow `quelpa-force-upgrade-p'
            (cache-item (if (symbolp arg) (list arg) arg)))
       (quelpa-parse-plist plist)
       (quelpa-parse-stable cache-item)
