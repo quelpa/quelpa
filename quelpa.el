@@ -1796,7 +1796,7 @@ ARGS are additional options for the quelpa recipe."
     (quelpa (append quelpa-recipe args) :upgrade t)))
 
 ;;;###autoload
-(defun quelpa-upgrade ()
+(defun quelpa-upgrade-all ()
   "Upgrade all packages found in `quelpa-cache'.
 This provides an easy way to upgrade all the packages for which
 the `quelpa' command has been run in the current Emacs session."
@@ -1814,6 +1814,22 @@ the `quelpa' command has been run in the current Emacs session."
               (when (package-installed-p (car (quelpa-arg-rcp item)))
                 (quelpa item)))
             quelpa-cache))))
+
+;;;###autoload
+(defun quelpa-upgrade (rcp)
+  "Upgrade a package found in `quelpa-cache'.
+RCP is a melpa recipe (list)."
+  (interactive
+   (list (when (quelpa-setup-p)
+           (let* ((quelpa-melpa-recipe-stores `(,quelpa-cache))
+                  (name (quelpa-interactive-candidate)))
+             (assq name quelpa-cache)))))
+  (when rcp
+    (let ((quelpa-upgrade-p t))
+      (setq quelpa-cache
+            (cl-remove-if-not #'package-installed-p quelpa-cache :key #'car))
+      (when (package-installed-p (car (quelpa-arg-rcp rcp)))
+        (quelpa rcp)))))
 
 ;;;###autoload
 (defun quelpa (arg &rest plist)
