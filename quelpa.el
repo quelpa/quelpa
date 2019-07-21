@@ -6,7 +6,7 @@
 ;; Author: steckerhalter
 ;; URL: https://framagit.org/steckerhalter/quelpa
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "25.1") (dash "2.14.1"))
 ;; Keywords: package management build source elpa
 
 ;; This file is not part of GNU Emacs.
@@ -45,6 +45,7 @@
 (require 'url-parse)
 (require 'package)
 (require 'lisp-mnt)
+(require 'dash)
 
 ;; --- customs / variables ---------------------------------------------------
 
@@ -247,9 +248,7 @@ On error return nil."
              (and pkg-desc
                   (version-list-<=
                    (version-to-list version)
-                   (if (functionp 'package-desc-vers)
-                       (package-desc-vers pkg-desc) ;old implementation
-                     (package-desc-version (car pkg-desc))))))
+                   (package-desc-version (car pkg-desc)))))
            ;; Also check built-in packages.
            (package-built-in-p name (version-to-list version)))))
 
@@ -559,7 +558,7 @@ position."
                      (when (quelpa-build--valid-version tag regexp)
                        (list (quelpa-build--valid-version tag regexp) tag))))
                  tags)))
-    (setq tags (cl-remove-if nil tags))
+    (setq tags (--remove (not it) tags))
     ;; Returns a list like ((0 1) ("v0.1")); the first element is used
     ;; for comparison and for `package-version-join', and the second
     ;; (the original tag) is used by git/hg/etc.
@@ -1639,12 +1638,23 @@ Return t in each case."
 
 (defun quelpa-update-cache (cache-item)
   ;; try removing existing recipes by name
-  (setq quelpa-cache (cl-remove (car cache-item)
-                                quelpa-cache :key #'car))
+  (setq quelpa-cache (--remove (eq (car cache-item) (car it))
+                               quelpa-cache))
   (push cache-item quelpa-cache)
   (setq quelpa-cache
         (cl-sort quelpa-cache #'string<
                  :key (lambda (item) (symbol-name (car item))))))
+
+(defun quelpa-remove-cache (cache-item)
+  "Remove cache-item from `quelpa-cache'."
+  (let ((cache-version (plist-get (cdr cache-item) :version)))
+    (setq quelpa-cache
+          (--remove (and (eq (car cache-item) (car it))
+                         (or (not cache-version)
+                             (not (plist-get (cdr it) :version))
+                             (eq cache-version
+                                 (plist-get (cdr it) :version))))
+                    quelpa-cache))))
 
 (defun quelpa-parse-stable (cache-item)
   ;; in case :stable doesn't originate from PLIST, shadow the
@@ -1756,19 +1766,22 @@ endings (Windows). So here we replace that with
 (defun quelpa-package-install (arg)
   "Build and install package from ARG (a recipe or package name).
 If the package has dependencies recursively call this function to
-install them."
+install them.
+Return the installed package's version."
   (let* ((rcp (quelpa-arg-rcp arg))
          (file (and rcp (quelpa-build rcp))))
     (when file
       (let* ((pkg-desc (quelpa-get-package-desc file))
-             (requires (package-desc-reqs pkg-desc)))
+             (requires (package-desc-reqs pkg-desc))
+             (version (package-desc-version pkg-desc)))
         (when requires
           (mapc (lambda (req)
                   (unless (or (equal 'emacs (car req))
                               (package-installed-p (car req) (cadr req)))
                     (quelpa-package-install (car req))))
                 requires))
-        (quelpa-package-install-file file)))))
+        (quelpa-package-install-file file)
+        version))))
 
 (defun quelpa-interactive-candidate ()
   "Query the user for a recipe and return the name."
@@ -1817,10 +1830,7 @@ the `quelpa' command has been run in the current Emacs session."
       (when quelpa-self-upgrade-p
         (quelpa-self-upgrade))
       (setq quelpa-cache
-            (cl-remove-if (lambda (package)
-                            (or (eq package 'quelpa)
-                                (not (package-installed-p package))))
-                          quelpa-cache :key #'car))
+            (--remove (not (package-installed-p (car it))) quelpa-cache))
       (mapc (lambda (item)
               (when (package-installed-p (car (quelpa-arg-rcp item)))
                 (quelpa item)))
@@ -1840,7 +1850,7 @@ RCP is a melpa recipe (list)."
           (quelpa-force-upgrade-p (if current-prefix-arg t quelpa-force-upgrade-p))
           (current-prefix-arg nil))
       (setq quelpa-cache
-            (cl-remove-if-not #'package-installed-p quelpa-cache :key #'car))
+            (--remove (not (package-installed-p (car it))) quelpa-cache))
       (when (package-installed-p (car (quelpa-arg-rcp rcp)))
         (quelpa rcp :force quelpa-force-upgrade-p)))))
 
@@ -1863,13 +1873,23 @@ nil."
     (let* ((quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p)) ;shadow `quelpa-upgrade-p'
            (quelpa-stable-p quelpa-stable-p) ;shadow `quelpa-stable-p'
            (quelpa-force-upgrade-p quelpa-force-upgrade-p) ;shadow `quelpa-force-upgrade-p'
-           (cache-item (if (symbolp arg) (list arg) arg)))
+           (cache-item (if (symbolp arg) (list arg) arg))
+           version)
       (quelpa-parse-plist plist)
       (quelpa-parse-stable cache-item)
-      (quelpa-package-install arg)
+      (setq version (quelpa-package-install arg))
+      (setq cache-item `(,(car cache-item) ,@(plist-put (cdr cache-item) :version version)))
       (quelpa-update-cache cache-item)))
   (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
+
+;; compatibility
+(advice-add #'package-delete :after
+            (lambda (pkg-desc &rest _)
+              (let ((cache-item `(,(package-desc-name pkg-desc)
+                                  :version ,(package-desc-version pkg-desc))))
+                (quelpa-remove-cache cache-item)))
+            '((name . quelpa--package-delete)))
 
 (provide 'quelpa)
 
