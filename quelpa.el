@@ -1775,7 +1775,10 @@ the `quelpa' command has been run in the current Emacs session."
       (when quelpa-self-upgrade-p
         (quelpa-self-upgrade))
       (setq quelpa-cache
-            (cl-remove-if-not #'package-installed-p quelpa-cache :key #'car))
+            (cl-remove-if (lambda (package)
+                            (or (eq package 'quelpa)
+                                (not (package-installed-p package))))
+                          quelpa-cache :key #'car))
       (mapc (lambda (item)
               (when (package-installed-p (car (quelpa-arg-rcp item)))
                 (quelpa item)))
