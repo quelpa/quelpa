@@ -6,7 +6,7 @@
 ;; Author: steckerhalter
 ;; URL: https://framagit.org/steckerhalter/quelpa
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "25.1") (dash "2.14.1"))
+;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: package management build source elpa
 
 ;; This file is not part of GNU Emacs.
@@ -45,7 +45,6 @@
 (require 'url-parse)
 (require 'package)
 (require 'lisp-mnt)
-(require 'dash)
 
 ;; --- customs / variables ---------------------------------------------------
 
@@ -149,8 +148,8 @@ If nil the update is disabled and the repo is only updated on
 
 (defcustom quelpa-self-upgrade-p t
   "If non-nil upgrade quelpa itself when doing a
-  `quelpa-upgrade', otherwise only upgrade the packages in the
-  quelpa cache."
+`quelpa-upgrade', otherwise only upgrade the packages in the
+quelpa cache."
   :group 'quelpa
   :type 'boolean)
 
@@ -168,6 +167,8 @@ If nil the update is disabled and the repo is only updated on
 
 (defvar quelpa-recipe '(quelpa :url "https://framagit.org/steckerhalter/quelpa.git" :fetcher git)
   "The recipe for quelpa.")
+
+(defvar quelpa--use-local-p nil "Use local checkout instead as package source.")
 
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
 
@@ -223,10 +224,11 @@ On error return nil."
                               (package-buffer-info))
                      (`tar (insert-file-contents-literally file)
                            (tar-mode)
-                           (if (help-function-arglist 'package-tar-file-info)
-                               ;; legacy `package-tar-file-info' requires an arg
-                               (package-tar-file-info file)
-                             (with-no-warnings (package-tar-file-info)))))))))
+                           (with-no-warnings 
+                             (if (help-function-arglist 'package-tar-file-info)
+                                 ;; legacy `package-tar-file-info' requires an arg
+                                 (package-tar-file-info file)
+                               (package-tar-file-info)))))))))
     (pcase desc
       ((pred package-desc-p) desc)
       ((pred vectorp) (package-desc-from-legacy desc kind)))))
@@ -558,7 +560,7 @@ position."
                      (when (quelpa-build--valid-version tag regexp)
                        (list (quelpa-build--valid-version tag regexp) tag))))
                  tags)))
-    (setq tags (--remove (not it) tags))
+    (setq tags (cl-remove-if nil tags))
     ;; Returns a list like ((0 1) ("v0.1")); the first element is used
     ;; for comparison and for `package-version-join', and the second
     ;; (the original tag) is used by git/hg/etc.
@@ -567,9 +569,9 @@ position."
 ;;; Run Process
 
 (defun quelpa-build--run-process (dir command &rest args)
-  "In DIR (or `default-directory' if unset) run COMMAND with ARGS.
+  "In DIR (or `temporary-file-directory' if unset) run COMMAND with ARGS.
 Output is written to the current buffer."
-  (let ((default-directory (file-name-as-directory (or dir (temporary-file-directory))))
+  (let ((default-directory (file-name-as-directory (or dir temporary-file-directory)))
         (argv (nconc (unless (eq system-type 'windows-nt)
                        (list "env" "LC_ALL=C"))
                      (if quelpa-build-timeout-executable
@@ -886,11 +888,11 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
 (defun quelpa-build--checkout-git (name config dir)
   "Check package NAME with config CONFIG out of git into DIR."
   (let* ((repo (plist-get config :url))
-        (remote (or (plist-get config :remote) "origin"))
-        (commit (or (plist-get config :commit)
-                    (let ((branch (plist-get config :branch)))
-                      (when branch
-                        (concat remote "/" branch))))))
+         (remote (or (plist-get config :remote) "origin"))
+         (commit (or (plist-get config :commit)
+                     (let ((branch (plist-get config :branch)))
+                       (when branch (concat remote "/" branch)))))
+         (depth (or (plist-get config :depth) quelpa-git-clone-depth)))
     (when (string-match (rx bos "file://" (group (1+ anything))) repo)
       ;; Expand local file:// URLs
       (setq repo (expand-file-name (match-string 1 repo))))
@@ -905,16 +907,15 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
         (when (file-exists-p dir)
           (delete-directory dir t))
         (quelpa-build--princ-checkout repo dir)
-        (cond
-         ((integerp quelpa-git-clone-depth)
-          (quelpa-build--run-process
-           nil "git" "clone"
-           "--depth" (int-to-string quelpa-git-clone-depth)
-           repo dir))
-         (t
-          (quelpa-build--run-process
-           nil "git" "clone"
-           repo dir)))))
+        (apply #'quelpa-build--run-process
+               (append
+                `(nil "git" "clone" ,repo ,dir)
+                `("--origin" ,remote)
+                (when (and (integerp depth) (not (plist-get config :commit)))
+                  `("--depth" ,(int-to-string depth)
+                    "--no-single-branch"))
+                (let ((branch (plist-get config :branch)))
+                  (when branch `("--branch" ,branch)))))))
       (if quelpa-build-stable
           (let* ((min-bound (goto-char (point-max)))
                  (tag-version
@@ -926,12 +927,14 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
                            (error "No valid stable versions found for %s" name)))))
             ;; Using reset --hard here to comply with what's used for
             ;; unstable, but maybe this should be a checkout?
-            (quelpa-build--update-git-to-ref
-             dir (concat "tags/" (cadr tag-version)))
+            (unless quelpa--use-local-p
+              (quelpa-build--update-git-to-ref
+               dir (concat "tags/" (cadr tag-version))))
             ;; Return the parsed version as a string
             (package-version-join (car tag-version)))
-        (quelpa-build--update-git-to-ref
-         dir (or commit (concat remote "/" (quelpa-build--git-head-branch dir))))
+        (unless quelpa--use-local-p
+          (quelpa-build--update-git-to-ref
+           dir (or commit (concat remote "/" (quelpa-build--git-head-branch dir)))))
         (apply 'quelpa-build--run-process
                dir "git" "log" "--first-parent" "-n1" "--pretty=format:'\%ci'"
                (quelpa-build--expand-source-file-list dir config))
@@ -954,10 +957,16 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
 
 (defun quelpa-build--update-git-to-ref (dir ref)
   "Update the git repo in DIR so that HEAD is REF.
-This will perform a fast-forward merge or a reset if FORCE."
+This will perform a fast-forward merge or a reset if `quelpa-force-upgrade-p' is set."
+  (condition-case nil
+      (quelpa-build--run-process dir "git" "cat-file" "-e" ref)
+    (error
+     ;; unshallow if needed
+     (quelpa-build--run-process dir "git" "fetch" "--unshallow" "--tags")))
   (if quelpa-force-upgrade-p
       (quelpa-build--run-process dir "git" "reset" "--hard" ref)
-    (quelpa-build--run-process dir "git" "merge" "--ff-only" ref))
+    (with-demoted-errors "Error: %s"
+      (quelpa-build--run-process dir "git" "checkout" ref)))
   (quelpa-build--run-process dir "git" "submodule" "sync" "--recursive")
   (quelpa-build--run-process dir "git" "submodule" "update" "--init" "--recursive"))
 
@@ -1638,8 +1647,9 @@ Return t in each case."
 
 (defun quelpa-update-cache (cache-item)
   ;; try removing existing recipes by name
-  (setq quelpa-cache (--remove (eq (car cache-item) (car it))
-                               quelpa-cache))
+  (setq quelpa-cache (cl-remove-if
+                      (lambda (item) (eq (car cache-item) (car item)))
+                      quelpa-cache))
   (push cache-item quelpa-cache)
   (setq quelpa-cache
         (cl-sort quelpa-cache #'string<
@@ -1649,12 +1659,14 @@ Return t in each case."
   "Remove cache-item from `quelpa-cache'."
   (let ((cache-version (plist-get (cdr cache-item) :version)))
     (setq quelpa-cache
-          (--remove (and (eq (car cache-item) (car it))
-                         (or (not cache-version)
-                             (not (plist-get (cdr it) :version))
-                             (eq cache-version
-                                 (plist-get (cdr it) :version))))
-                    quelpa-cache))))
+          (cl-remove-if
+           (lambda (item)
+             (and (eq (car cache-item) (car item))
+                  (or (not cache-version)
+                      (not (plist-get (cdr item) :version))
+                      (eq cache-version
+                          (plist-get (cdr item) :version)))))
+           quelpa-cache))))
 
 (defun quelpa-parse-stable (cache-item)
   ;; in case :stable doesn't originate from PLIST, shadow the
@@ -1749,9 +1761,8 @@ If t, `quelpa' tries to do an upgrade regardless state of local package repo."
 (defun quelpa-package-install-file (file)
   "Workaround problem with `package-install-file'.
 `package-install-file' uses `insert-file-contents-literally'
-which causes problems when the file inserted has crlf line
-endings (Windows). So here we replace that with
-`insert-file-contents' for non-tar files."
+which causes problems when the FILE inserted has crlf line endings (Windows).
+So here we replace that with `insert-file-contents' for non-tar files."
   (if (eq system-type 'windows-nt)
       (cl-letf* ((insert-file-contents-literally-orig
                   (symbol-function 'insert-file-contents-literally))
@@ -1830,7 +1841,7 @@ the `quelpa' command has been run in the current Emacs session."
       (when quelpa-self-upgrade-p
         (quelpa-self-upgrade))
       (setq quelpa-cache
-            (--remove (not (package-installed-p (car it))) quelpa-cache))
+            (cl-remove-if-not (lambda (item) (package-installed-p (car item))) quelpa-cache))
       (mapc (lambda (item)
               (when (package-installed-p (car (quelpa-arg-rcp item)))
                 (quelpa item)))
@@ -1839,18 +1850,22 @@ the `quelpa' command has been run in the current Emacs session."
 ;;;###autoload
 (defun quelpa-upgrade (rcp)
   "Upgrade a package found in `quelpa-cache'.
-RCP is a melpa recipe (list)."
+RCP is a melpa recipe (list).
+\\[universal-argument] \\[quelpa-upgrade] for forced upgrade.
+\\[universal-argument] \\[universal-argument] \\[quelpa-upgrade] for upgrade using local tip."
   (interactive
    (list (when (quelpa-setup-p)
            (let* ((quelpa-melpa-recipe-stores `(,quelpa-cache))
                   (name (quelpa-interactive-candidate)))
              (assq name quelpa-cache)))))
   (when rcp
-    (let ((quelpa-upgrade-p t)
-          (quelpa-force-upgrade-p (if current-prefix-arg t quelpa-force-upgrade-p))
-          (current-prefix-arg nil))
+    (let* ((quelpa-upgrade-p t)
+           (action (prefix-numeric-value current-prefix-arg))
+           (quelpa-force-upgrade-p (if (eq action 4) t quelpa-force-upgrade-p))
+           (quelpa--use-local-p (if (eq action 16) t quelpa--use-local-p))
+           (current-prefix-arg nil))
       (setq quelpa-cache
-            (--remove (not (package-installed-p (car it))) quelpa-cache))
+            (cl-remove-if-not (lambda (item) (package-installed-p (car item))) quelpa-cache))
       (when (package-installed-p (car (quelpa-arg-rcp rcp)))
         (quelpa rcp :force quelpa-force-upgrade-p)))))
 
