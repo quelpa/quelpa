@@ -4,6 +4,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ### News
 
+2019/10/15 - **`quelpa` is not in active development anymore, only bufixing is done. Please consider using an alternative package manager which is actively developed. You can also take over the maintenance if you're interested to continue developing `quelpa`. Thanks, steckerhalter**  
 2018/06/18 - code moved to [framagit.org](https://framagit.org/steckerhalter/quelpa), **please open issues [here](https://framagit.org/steckerhalter/quelpa/issues)** (github is only an MS mirror now 8)  
 2018/03/25 - support for various fetchers has been added again: `wiki`, `bzr`, `cvs`, `darcs`, `fossil`, `svn`.
 
