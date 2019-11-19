@@ -856,18 +856,19 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
 
 ;;;; Git
 
-(defun quelpa-build--git-repo (dir)
-  "Get the current git repo for DIR."
+(defun quelpa-build--git-repo (dir remote)
+  "Get the current git repo for DIR from REMOTE."
   (quelpa-build--run-process-match
-   "Fetch URL: \\(.*\\)" dir "git" "remote" "show" "-n" "origin"))
+   "Fetch URL: \\(.*\\)" dir "git" "remote" "show" "-n" remote))
 
 (defun quelpa-build--checkout-git (name config dir)
   "Check package NAME with config CONFIG out of git into DIR."
-  (let ((repo (plist-get config :url))
+  (let* ((repo (plist-get config :url))
+        (remote (or (plist-get config :remote) "origin"))
         (commit (or (plist-get config :commit)
                     (let ((branch (plist-get config :branch)))
                       (when branch
-                        (concat "origin/" branch))))))
+                        (concat remote "/" branch))))))
     (when (string-match (rx bos "file://" (group (1+ anything))) repo)
       ;; Expand local file:// URLs
       (setq repo (expand-file-name (match-string 1 repo))))
@@ -875,14 +876,14 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
       (goto-char (point-max))
       (cond
        ((and (file-exists-p (expand-file-name ".git" dir))
-             (string-equal (quelpa-build--git-repo dir) repo))
+             (string-equal (quelpa-build--git-repo dir remote) repo))
         (quelpa-build--princ-exists dir)
-        (quelpa-build--run-process dir "git" "fetch" "--all" "--tags"))
+        (quelpa-build--run-process dir "git" "fetch" "--tags" remote))
        (t
         (when (file-exists-p dir)
           (delete-directory dir t))
         (quelpa-build--princ-checkout repo dir)
-        (quelpa-build--run-process nil "git" "clone" repo dir)))
+        (quelpa-build--run-process nil "git" "clone" "--origin" remote repo dir)))
       (if quelpa-build-stable
           (let* ((min-bound (goto-char (point-max)))
                  (tag-version
@@ -899,7 +900,7 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
             ;; Return the parsed version as a string
             (package-version-join (car tag-version)))
         (quelpa-build--update-git-to-ref
-         dir (or commit (concat "origin/" (quelpa-build--git-head-branch dir))))
+         dir (or commit (concat remote "/" (quelpa-build--git-head-branch dir))))
         (apply 'quelpa-build--run-process
                dir "git" "log" "--first-parent" "-n1" "--pretty=format:'\%ci'"
                (quelpa-build--expand-source-file-list dir config))
