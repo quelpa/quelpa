@@ -242,7 +242,7 @@ On error return nil."
            (package-built-in-p name (version-to-list version)))))
 
 (defun quelpa-checkout (rcp dir)
-  "Return the version of the new package given a RCP.
+  "Return the version of the new package given a RCP and DIR.
 Return nil if the package is already installed and should not be upgraded."
   (pcase-let ((`(,name . ,config) rcp)
               (quelpa-build-stable quelpa-stable-p))
@@ -489,15 +489,17 @@ or nil if the version cannot be parsed."
 
 (defun quelpa-build--find-parse-time (regexp &optional bound)
   "Find REGEXP in current buffer and format as a time-based version string.
-An optional second argument bounds the search; it is a buffer
-position.  The match found must not end after that position."
+An optional second argument BOUND bounds the search; it is a
+buffer position. The match found must not end after that
+position."
   (and (re-search-backward regexp bound t)
        (quelpa-build--parse-time (match-string-no-properties 1))))
 
 (defun quelpa-build--find-parse-time-newest (regexp &optional bound)
   "Find REGEXP in current buffer and format as a time-based version string.
-An optional second argument bounds the search; it is a buffer
-position.  The match found must not end after that position."
+An optional second argument BOUND bounds the search; it is a
+buffer position. The match found must not end after that
+position."
   (save-match-data
     (let (cur matches)
       (while (setq cur (quelpa-build--find-parse-time regexp bound))
@@ -506,8 +508,9 @@ position.  The match found must not end after that position."
 
 (defun quelpa-build--find-version-newest (regexp &optional bound)
   "Find the newest version matching REGEXP before point.
-An optional second argument bounds the search; it is a buffer
-position.  The match found must not before after that position."
+An optional second argument BOUND bounds the search; it is a
+buffer position. The match found must not before after that
+position."
   (let ((tags (split-string
                (buffer-substring-no-properties
                 (or bound (point-min)) (point))
@@ -1630,7 +1633,7 @@ If there is an error and no existing checkout return nil."
            'package-build
            `(:url ,quelpa-melpa-repo-url :files ("*"))
            quelpa-melpa-dir)
-        (error "failed to checkout melpa git repo: `%s'" (error-message-string err)))))
+        (error "Failed to checkout melpa git repo: `%s'" (error-message-string err)))))
 
 (defun quelpa-get-melpa-recipe (name)
   "Read recipe with NAME for melpa git checkout.
@@ -1669,7 +1672,7 @@ Return non-nil if quelpa has been initialized properly."
   (ignore-errors (delete-directory quelpa-packages-dir t)))
 
 (defun quelpa-arg-rcp (arg)
-  "Given recipe or package name, return an alist '(NAME . RCP).
+  "Given recipe or package name ARG, return an alist '(NAME . RCP).
 If RCP cannot be found it will be set to nil"
   (pcase arg
     (`(,a . nil) (quelpa-get-melpa-recipe (car arg)))
@@ -1746,7 +1749,7 @@ install them."
 
 ;;;###autoload
 (defun quelpa-expand-recipe (recipe-name)
-  "Expand a given recipe name into full recipe.
+  "Expand a given RECIPE-NAME into full recipe.
 If called interactively, let the user choose a recipe name and
 insert the result into the current buffer."
   (interactive (list (quelpa-interactive-candidate)))
@@ -1791,8 +1794,9 @@ If called interactively, `quelpa' will prompt for a MELPA package
 to install.
 
 When `quelpa' is called interactively with a prefix argument (e.g
-C-u M-x quelpa) it will try to upgrade the given package even if
-the global var `quelpa-upgrade-p' is set to nil."
+\\[universal-argument] \\[quelpa]) it will try to upgrade the
+given package even if the global var `quelpa-upgrade-p' is set to
+nil."
 
   (interactive (list (quelpa-interactive-candidate)))
   (run-hooks 'quelpa-before-hook)
