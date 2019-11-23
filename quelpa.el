@@ -242,7 +242,7 @@ On error return nil."
            (package-built-in-p name (version-to-list version)))))
 
 (defun quelpa-checkout (rcp dir)
-  "Return the version of the new package given a RCP.
+  "Return the version of the new package given a RCP and DIR.
 Return nil if the package is already installed and should not be upgraded."
   (pcase-let ((`(,name . ,config) rcp)
               (quelpa-build-stable quelpa-stable-p))
@@ -489,15 +489,17 @@ or nil if the version cannot be parsed."
 
 (defun quelpa-build--find-parse-time (regexp &optional bound)
   "Find REGEXP in current buffer and format as a time-based version string.
-An optional second argument bounds the search; it is a buffer
-position.  The match found must not end after that position."
+An optional second argument BOUND bounds the search; it is a
+buffer position. The match found must not end after that
+position."
   (and (re-search-backward regexp bound t)
        (quelpa-build--parse-time (match-string-no-properties 1))))
 
 (defun quelpa-build--find-parse-time-newest (regexp &optional bound)
   "Find REGEXP in current buffer and format as a time-based version string.
-An optional second argument bounds the search; it is a buffer
-position.  The match found must not end after that position."
+An optional second argument BOUND bounds the search; it is a
+buffer position. The match found must not end after that
+position."
   (save-match-data
     (let (cur matches)
       (while (setq cur (quelpa-build--find-parse-time regexp bound))
@@ -506,8 +508,9 @@ position.  The match found must not end after that position."
 
 (defun quelpa-build--find-version-newest (regexp &optional bound)
   "Find the newest version matching REGEXP before point.
-An optional second argument bounds the search; it is a buffer
-position.  The match found must not before after that position."
+An optional second argument BOUND bounds the search; it is a
+buffer position. The match found must not before after that
+position."
   (let ((tags (split-string
                (buffer-substring-no-properties
                 (or bound (point-min)) (point))
@@ -856,18 +859,19 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
 
 ;;;; Git
 
-(defun quelpa-build--git-repo (dir)
-  "Get the current git repo for DIR."
+(defun quelpa-build--git-repo (dir remote)
+  "Get the current git repo for DIR from REMOTE."
   (quelpa-build--run-process-match
-   "Fetch URL: \\(.*\\)" dir "git" "remote" "show" "-n" "origin"))
+   "Fetch URL: \\(.*\\)" dir "git" "remote" "show" "-n" remote))
 
 (defun quelpa-build--checkout-git (name config dir)
   "Check package NAME with config CONFIG out of git into DIR."
-  (let ((repo (plist-get config :url))
+  (let* ((repo (plist-get config :url))
+        (remote (or (plist-get config :remote) "origin"))
         (commit (or (plist-get config :commit)
                     (let ((branch (plist-get config :branch)))
                       (when branch
-                        (concat "origin/" branch))))))
+                        (concat remote "/" branch))))))
     (when (string-match (rx bos "file://" (group (1+ anything))) repo)
       ;; Expand local file:// URLs
       (setq repo (expand-file-name (match-string 1 repo))))
@@ -875,14 +879,14 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
       (goto-char (point-max))
       (cond
        ((and (file-exists-p (expand-file-name ".git" dir))
-             (string-equal (quelpa-build--git-repo dir) repo))
+             (string-equal (quelpa-build--git-repo dir remote) repo))
         (quelpa-build--princ-exists dir)
-        (quelpa-build--run-process dir "git" "fetch" "--all" "--tags"))
+        (quelpa-build--run-process dir "git" "fetch" "--tags" remote))
        (t
         (when (file-exists-p dir)
           (delete-directory dir t))
         (quelpa-build--princ-checkout repo dir)
-        (quelpa-build--run-process nil "git" "clone" repo dir)))
+        (quelpa-build--run-process nil "git" "clone" "--origin" remote repo dir)))
       (if quelpa-build-stable
           (let* ((min-bound (goto-char (point-max)))
                  (tag-version
@@ -899,7 +903,7 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
             ;; Return the parsed version as a string
             (package-version-join (car tag-version)))
         (quelpa-build--update-git-to-ref
-         dir (or commit (concat "origin/" (quelpa-build--git-head-branch dir))))
+         dir (or commit (concat remote "/" (quelpa-build--git-head-branch dir))))
         (apply 'quelpa-build--run-process
                dir "git" "log" "--first-parent" "-n1" "--pretty=format:'\%ci'"
                (quelpa-build--expand-source-file-list dir config))
@@ -1629,7 +1633,7 @@ If there is an error and no existing checkout return nil."
            'package-build
            `(:url ,quelpa-melpa-repo-url :files ("*"))
            quelpa-melpa-dir)
-        (error "failed to checkout melpa git repo: `%s'" (error-message-string err)))))
+        (error "Failed to checkout melpa git repo: `%s'" (error-message-string err)))))
 
 (defun quelpa-get-melpa-recipe (name)
   "Read recipe with NAME for melpa git checkout.
@@ -1668,7 +1672,7 @@ Return non-nil if quelpa has been initialized properly."
   (ignore-errors (delete-directory quelpa-packages-dir t)))
 
 (defun quelpa-arg-rcp (arg)
-  "Given recipe or package name, return an alist '(NAME . RCP).
+  "Given recipe or package name ARG, return an alist '(NAME . RCP).
 If RCP cannot be found it will be set to nil"
   (pcase arg
     (`(,a . nil) (quelpa-get-melpa-recipe (car arg)))
@@ -1745,7 +1749,7 @@ install them."
 
 ;;;###autoload
 (defun quelpa-expand-recipe (recipe-name)
-  "Expand a given recipe name into full recipe.
+  "Expand a given RECIPE-NAME into full recipe.
 If called interactively, let the user choose a recipe name and
 insert the result into the current buffer."
   (interactive (list (quelpa-interactive-candidate)))
@@ -1793,8 +1797,9 @@ If called interactively, `quelpa' will prompt for a MELPA package
 to install.
 
 When `quelpa' is called interactively with a prefix argument (e.g
-C-u M-x quelpa) it will try to upgrade the given package even if
-the global var `quelpa-upgrade-p' is set to nil."
+\\[universal-argument] \\[quelpa]) it will try to upgrade the
+given package even if the global var `quelpa-upgrade-p' is set to
+nil."
 
   (interactive (list (quelpa-interactive-candidate)))
   (run-hooks 'quelpa-before-hook)
