@@ -1,9 +1,10 @@
-[![Home](https://framagit.org/steckerhalter/quelpa/raw/master/logo/quelpa-logo-h64.png)](https://framagit.org/steckerhalter/quelpa)
+[![Home](https://framagit.org/steckerhalter/quelpa/raw/master/logo/quelpa-logo-h64.png)](https://github.com/quelpa/quelpa)
 
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ### News
 
+2019/12/17 - some people offered to maintain and continue to develop `quelpa`. we're moving back to github because of that. stay tuned for more info.  
 2019/10/15 - **`quelpa` is not in active development anymore, only bufixing is done. Please consider using an alternative package manager which is actively developed. You can also take over the maintenance if you're interested to continue developing `quelpa`. Thanks, steckerhalter**  
 2018/06/18 - code moved to [framagit.org](https://framagit.org/steckerhalter/quelpa), **please open issues [here](https://framagit.org/steckerhalter/quelpa/issues)** (github is only an MS mirror now 8)  
 2018/03/25 - support for various fetchers has been added again: `wiki`, `bzr`, `cvs`, `darcs`, `fossil`, `svn`.
@@ -77,7 +78,7 @@ or if you are not using MELPA:
 (if (require 'quelpa nil t)
     (quelpa-self-upgrade)
   (with-temp-buffer
-    (url-insert-file-contents "https://framagit.org/steckerhalter/quelpa/raw/master/bootstrap.el")
+    (url-insert-file-contents "https://github.com/quelpa/quelpa/raw/master/bootstrap.el")
     (eval-buffer)))
 ```
 
@@ -89,7 +90,7 @@ If you don't like `quelpa` doing self-upgrades (although this is recommended), u
 (package-initialize)
 (unless (require 'quelpa nil t)
   (with-temp-buffer
-    (url-insert-file-contents "https://framagit.org/steckerhalter/quelpa/raw/master/bootstrap.el")
+    (url-insert-file-contents "https://github.com/quelpa/quelpa/raw/master/bootstrap.el")
     (eval-buffer)))
 ```
 
