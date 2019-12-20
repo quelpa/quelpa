@@ -1,5 +1,7 @@
 [![Home](https://framagit.org/steckerhalter/quelpa/raw/master/logo/quelpa-logo-h64.png)](https://github.com/quelpa/quelpa)
 
+[![Build Status](https://travis-ci.org/quelpa/quelpa.svg?branch=master)](https://travis-ci.org/quelpa/quelpa)
+
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ### News
