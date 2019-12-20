@@ -19,7 +19,7 @@ if ! test -e /usr/local/bin/emacs; then
         >&2 echo "--- installing deps ---"
         sudo apt-get update
         sudo apt-get -y install build-essential wget git mercurial
-        sudo apt-get -y build-dep emacs23
+        sudo apt-get -y build-dep emacs24
         wget http://ftp.gnu.org/gnu/emacs/emacs-25.3.tar.gz -O- | tar xz
         cd emacs-25.3
         >&2 echo "--- building emacs ---"
