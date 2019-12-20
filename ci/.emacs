@@ -11,7 +11,6 @@
                           :version original)))
 
 ;; github
-(quelpa '(discover-my-major :fetcher github :repo "steckerhalter/discover-my-major"))
 (quelpa '(anaconda-mode :fetcher github :repo "proofit404/anaconda-mode" :files ("*.el" "*.py" "vendor/jedi/jedi" ("jsonrpc" "vendor/jsonrpc/jsonrpc/*.py"))))
 (quelpa 'ag)
 (quelpa 'magit)
