@@ -6,11 +6,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 ### News
 
-2019/12/17 - some people offered to maintain and continue to develop `quelpa`. we're moving back to github because of that. stay tuned for more info.  
-2019/10/15 - **`quelpa` is not in active development anymore, only bufixing is done. Please consider using an alternative package manager which is actively developed. You can also take over the maintenance if you're interested to continue developing `quelpa`. Thanks, steckerhalter**  
-2018/06/18 - code moved to [framagit.org](https://framagit.org/steckerhalter/quelpa), **please open issues [here](https://framagit.org/steckerhalter/quelpa/issues)** (github is only an MS mirror now 8)  
-2018/03/25 - support for various fetchers has been added again: `wiki`, `bzr`, `cvs`, `darcs`, `fossil`, `svn`.
-
+2019/12/17 - some people offered to maintain and continue to develop `quelpa`. we're moving back to github because of that. stay tuned for more info.
 
 <!-- doctoc command used to generate the index: doctoc --title='---' --maxlevel=3 README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -214,7 +210,7 @@ Note that dev version numbers are usually higher than stable version numbers (th
 
 Because `quelpa` installs packages using the built-in Emacs package management system, you can use its regular interface by executing `M-x list-packages` and work with your packages as you would normally do. Deleting a package does not affect the `quelpa` cache yet.
 
-Currently `quelpa` does not remove obsolete packages after upgrades. To delete all obsolete packages from time to time use: 
+Currently `quelpa` does not remove obsolete packages after upgrades. To delete all obsolete packages from time to time use:
 
 -   `M-x list-packages RET`
 -   press  `~` to mark all obsolete packages for deletion
@@ -309,7 +305,7 @@ People using [homebrew](http://brew.sh/) will be able to install the package usi
 
 ### MacPorts
 
-People using [MacPorts](https://www.macports.org/) or Ports, which is similar in maby ways to the pkg system on FreeBSD, can resolve the issue by installing the `gnutar` package.
+People using [MacPorts](https://www.macports.org/) or Ports, which is similar in many ways to the pkg system on FreeBSD, can resolve the issue by installing the `gnutar` package.
 
 ## Windows instructions
 
@@ -397,4 +393,3 @@ Then Emacs should work with `quelpa`.
 ## Why "quelpa"?
 
 The german word `Quelle` means `spring` (as in: water source) but also `source`. `source code` is translated to `Quellcode`. `ELPA` is the abbreviation for Emacs Lisp Package Archive. You get the idea.
-
