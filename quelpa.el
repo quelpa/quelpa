@@ -147,6 +147,12 @@ If nil the update is disabled and the repo is only updated on
   :group 'quelpa
   :type 'boolean)
 
+(defcustom quelpa-git-clone-depth 1
+  "If non-nil shallow clone quelpa git recipes."
+  :group 'quelpa
+  :type '(choice (const :tag "Don't shallow clone" nil) 
+                 (integer :tag "Depth")))
+
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
 
@@ -416,12 +422,17 @@ if `quelpa-build-timeout-executable' is non-nil."
 Certain package names (e.g. \"@\") may not work properly with a BSD tar."
   :type '(file :must-match t))
 
+(defvar quelpa--tar-type nil
+  "Type of `quelpa-build-tar-executable'.  Can be `gnu' or `bsd'.
+nil means the type is not decided yet.")
+
 (defcustom quelpa-build-explicit-tar-format-p nil
   "If non-nil pass \"--format=gnu\" option to tar command.
 
 Passing the option is necessary on the systems where the default
 tar format isn't gnu."
   :type 'boolean)
+
 
 (defcustom quelpa-build-version-regexp "^[rRvV]?\\(.*\\)$"
   "Default pattern for matching valid version-strings within repository tags.
@@ -867,11 +878,11 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
 (defun quelpa-build--checkout-git (name config dir)
   "Check package NAME with config CONFIG out of git into DIR."
   (let* ((repo (plist-get config :url))
-        (remote (or (plist-get config :remote) "origin"))
-        (commit (or (plist-get config :commit)
-                    (let ((branch (plist-get config :branch)))
-                      (when branch
-                        (concat remote "/" branch))))))
+         (remote (or (plist-get config :remote) "origin"))
+         (commit (or (plist-get config :commit)
+                     (let ((branch (plist-get config :branch)))
+                       (when branch (concat remote "/" branch)))))
+         (depth (or (plist-get config :depth) quelpa-git-clone-depth)))
     (when (string-match (rx bos "file://" (group (1+ anything))) repo)
       ;; Expand local file:// URLs
       (setq repo (expand-file-name (match-string 1 repo))))
@@ -886,7 +897,15 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
         (when (file-exists-p dir)
           (delete-directory dir t))
         (quelpa-build--princ-checkout repo dir)
-        (quelpa-build--run-process nil "git" "clone" "--origin" remote repo dir)))
+        (apply #'quelpa-build--run-process
+               (append
+                `(nil "git" "clone" ,repo ,dir)
+                `("--origin" ,remote)
+                (when (and depth (not (plist-get config :commit)))
+                  `("--depth" ,(int-to-string depth)
+                    "--no-single-branch"))
+                (let ((branch (plist-get config :branch)))
+                  (when branch `("--branch" ,branch)))))))
       (if quelpa-build-stable
           (let* ((min-bound (goto-char (point-max)))
                  (tag-version
@@ -1092,9 +1111,23 @@ Optionally PRETTY-PRINT the data."
   (when (file-exists-p file)
     (car (read-from-string (quelpa-build--slurp-file file)))))
 
+(defun quelpa--tar-type ()
+  "Return `bsd' or `gnu' depending on type of Tar executable.
+Tests and sets variable `quelpa--tar-type' if not already set."
+  (or quelpa--tar-type
+      (when (and quelpa-build-tar-executable
+                 (file-executable-p quelpa-build-tar-executable))
+        (setq quelpa--tar-type
+              (let ((v (shell-command-to-string
+                        (format "%s --version" quelpa-build-tar-executable))))
+                (cond ((string-match-p "bsdtar" v) 'bsd)
+                      ((string-match-p "GNU tar" v) 'gnu)
+                      (t 'gnu)))))))
+
 (defun quelpa-build--create-tar (file dir &optional files)
   "Create a tar FILE containing the contents of DIR, or just FILES if non-nil."
-  (when (eq system-type 'windows-nt)
+  (when (and (eq (quelpa--tar-type) 'gnu)
+             (eq system-type 'windows-nt))
     (setq file (replace-regexp-in-string "^\\([a-z]\\):" "/\\1" file)))
   (apply 'process-file
          quelpa-build-tar-executable nil
