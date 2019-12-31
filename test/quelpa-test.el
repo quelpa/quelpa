@@ -119,3 +119,17 @@ update an existing cache item."
     (should (equal (mapcar (lambda (item) (plist-get item :stable))
                            quelpa-cache)
                    '(t t t)))))
+
+(quelpa-deftest quelpa-version-test ()
+  "Ensure that installing a package with proper version will include
+version in cache."
+  (cl-letf ((quelpa-cache nil)
+            ((symbol-function 'quelpa-package-install) (lambda (&rest _) `(20190406 1613))))
+    (quelpa '(makey :fetcher github :repo "mickeynp/makey"))
+    (should (equal quelpa-cache
+                   '((makey :fetcher github :repo "mickeynp/makey" :version (20190406 1613))))))
+  (cl-letf ((quelpa-cache nil)
+            ((symbol-function 'quelpa-package-install) #'ignore))
+    (quelpa 'makey)
+    (should (equal quelpa-cache
+                   '((makey))))))

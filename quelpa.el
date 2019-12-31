@@ -1658,6 +1658,19 @@ Return t in each case."
         (cl-sort quelpa-cache #'string<
                  :key (lambda (item) (symbol-name (car item))))))
 
+(defun quelpa-remove-cache-item (cache-item)
+  "Remove CACHE-ITEM from `quelpa-cache'."
+  (let ((cache-version (plist-get (cdr cache-item) :version)))
+    (setq quelpa-cache
+          (cl-remove-if
+           (lambda (item)
+             (and (equal (car cache-item) (car item))
+                  (or (not cache-version)
+                      (not (plist-get (cdr item) :version))
+                      (equal cache-version
+                             (plist-get (cdr item) :version)))))
+           quelpa-cache))))
+
 (defun quelpa-parse-stable (cache-item)
   ;; in case :stable doesn't originate from PLIST, shadow the
   ;; default value anyways
@@ -1761,19 +1774,22 @@ So here we replace that with `insert-file-contents' for non-tar files."
 
 (defun quelpa-package-install (arg)
   "Build and install package from ARG (a recipe or package name).
-If the package has dependencies recursively call this function to install them."
+If the package has dependencies recursively call this function to install them.
+Return the installed package's version."
   (let* ((rcp (quelpa-arg-rcp arg))
          (file (and rcp (quelpa-build rcp))))
     (when file
       (let* ((pkg-desc (quelpa-get-package-desc file))
-             (requires (package-desc-reqs pkg-desc)))
+             (requires (package-desc-reqs pkg-desc))
+             (version (package-desc-version pkg-desc)))
         (when requires
           (mapc (lambda (req)
                   (unless (or (equal 'emacs (car req))
                               (package-installed-p (car req) (cadr req)))
                     (quelpa-package-install (car req))))
                 requires))
-        (quelpa-package-install-file file)))))
+        (quelpa-package-install-file file)
+        version))))
 
 (defun quelpa-interactive-candidate ()
   "Query the user for a recipe and return the name."
@@ -1861,13 +1877,35 @@ nil."
   (when (quelpa-setup-p) ;if init fails we do nothing
     (let* ((quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p)) ;shadow `quelpa-upgrade-p'
            (quelpa-stable-p quelpa-stable-p) ;shadow `quelpa-stable-p'
-           (cache-item (if (symbolp arg) (list arg) arg)))
+           (cache-item (if (symbolp arg) (list arg) arg))
+           version)
       (quelpa-parse-plist plist)
       (quelpa-parse-stable cache-item)
-      (quelpa-package-install arg)
+      (when (setq version (quelpa-package-install arg))
+        (setq cache-item `(,(car cache-item)
+                           ,@(plist-put (cdr cache-item) :version version))))
       (quelpa-update-cache cache-item)))
   (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
+
+;;;###autoload
+(define-minor-mode quelpa-mode
+  "Global minor mode for Quelpa."
+  :init-value t
+  :group 'quelpa
+  :global t
+  :lighter " Quelpa"
+  (if quelpa-mode
+      (progn
+        (advice-add #'package-delete :after
+                    (lambda (pkg-desc &rest _)
+                      (ignore-errors
+                        (let ((cache-item
+                               `(,(package-desc-name pkg-desc)
+                                 :version ,(package-desc-version pkg-desc))))
+                          (quelpa-remove-cache-item cache-item))))
+                    '((name . quelpa--package-delete))))
+    (advice-remove #'package-delete 'quelpa--package-delete)))
 
 (provide 'quelpa)
 
