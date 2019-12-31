@@ -71,7 +71,7 @@ First `quelpa` needs to be installed. You can install `quelpa` either from MELPA
 
 or if you are not using MELPA:
 
-```cl
+``` elisp
 (package-initialize)
 (if (require 'quelpa nil t)
     (quelpa-self-upgrade)
@@ -84,7 +84,7 @@ Evaluate this expression in your `*scratch*` buffer to bootstrap `quelpa`. Add i
 
 If you don't like `quelpa` doing self-upgrades (although this is recommended), use the following snippet instead:
 
-```cl
+``` elisp
 (package-initialize)
 (unless (require 'quelpa nil t)
   (with-temp-buffer
@@ -93,6 +93,17 @@ If you don't like `quelpa` doing self-upgrades (although this is recommended), u
 ```
 
 **Note**: `(package-initialize)` can be omitted if you are already running the command before the snippet in your init file.
+
+Or if you want to bootstrap it from a forked repository with `quelpa` source ready for modification.
+
+``` elisp
+(let ((quelpa-pkg-dir (expand-file-name "quelpa/build/quelpa" user-emacs-directory)))
+  (unless (file-exists-p quelpa-pkg-dir)
+    (with-temp-buffer
+      (url-insert-file-contents "https://raw.githubusercontent.com/kiennq/quelpa/master/quelpa.el")
+      (eval-buffer)
+      (quelpa-self-upgrade))))
+```
 
 ## Usage
 
@@ -104,7 +115,7 @@ There are two ways to install packages with `quelpa`:
 
 Check <https://melpa.org/> for any packages you would like to install. You only need to know the name:
 
-```cl
+``` elisp
 (quelpa 'magit)
 ```
 
@@ -136,7 +147,7 @@ Don't forget the quote before the recipe.
 
 Per default `quelpa` does not do anything if a package is already installed. You can customize this behavior globally by setting the variable `quelpa-upgrade-p` to `t` manually:
 
-```cl
+``` elisp
 (setq quelpa-upgrade-p t)
 ```
 
@@ -146,21 +157,23 @@ It is also possible to override this default behavior for individual packages:
 
 #### Interactive Overriding
 
-When `quelpa` is called interactively with a prefix argument (e.g `C-u M-x quelpa`) it will try to upgrade the given package even if the global variable `quelpa-upgrade-p` is set to nil.
+When `quelpa` is called interactively with a prefix argument (e.g `C-u M-x quelpa`) it will try to upgrade the given melpa package even if the global variable `quelpa-upgrade-p` is set to nil.
 
 That means `C-u M-x quelpa magit RET` will upgrade magit.
+
+When you want to upgrade packages with customized recipes that managed by `quelpa`, just run `M-x quelpa-upgrade`.
 
 Please note that the `:upgrade` parameter described below is still preferred over the prefix argument.
 
 #### Non-Interactive Overriding
 
-```cl
+``` elisp
 (quelpa 'company :upgrade t)
 ```
 
 This way `quelpa` will try to upgrade `company` even if upgrading is disabled globally.
 
-```cl
+``` elisp
 (quelpa '(ag :repo "Wilfred/ag.el" :fetcher github) :upgrade nil)
 ```
 
@@ -168,13 +181,13 @@ When used that way, `quelpa` will not upgrade `ag`. This can be used to "pin" pa
 
 ### Upgrading all packages
 
-Upgrading all your `quelpa` packages at init is one option to keep them up to date, but can slow it down considerably. Alternatively you can execute `M-x quelpa-upgrade` and upgrade every cached package.
+Upgrading all your `quelpa` packages at init is one option to keep them up to date, but can slow it down considerably. Alternatively you can execute `M-x quelpa-upgrade-all` and upgrade every cached package.
 
 This command relies on an intact cache file which is set in the `quelpa-cache-file` variable. It is updated after every `quelpa` invocation. To reset it for debugging purposes, just delete the file and better keep a backup.
 
 Normally `quelpa` also upgrades itself as well here. You can disable this by setting `quelpa-self-upgrade-p` to `nil`:
 
-```cl
+``` elisp
 (setq quelpa-self-upgrade-p nil)
 ```
 
@@ -186,19 +199,19 @@ For more information please see [MELPA's notes on stable packages](https://githu
 
 In `quelpa` there is a global variable where building of stable packages can be enabled, so that all packages are built stable (if available for the individual package):
 
-```cl
+``` elisp
 (setq quelpa-stable-p t)
 ```
 
 or you can set it just for one package by supplying `stable` as an argument:
 
-```cl
+``` elisp
 (quelpa 'anzu :stable t)
 ```
 
 or as part of the recipe itself:
 
-```cl
+``` elisp
 (quelpa '(ag :repo "Wilfred/ag.el" :fetcher github :stable t))
 ```
 
@@ -222,7 +235,7 @@ Currently `quelpa` does not remove obsolete packages after upgrades. To delete a
 
 Builds packages from single `.el` files. It works like this:
 
-```cl
+``` elisp
 (quelpa '(rainbow-mode :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el" :fetcher url))
 ```
 
@@ -230,7 +243,7 @@ You specify the `:url` (either a remote or local one like `file:///path/to/file.
 
 Another example:
 
-```cl
+``` elisp
 (quelpa '(ox-rss :url "http://orgmode.org/cgit.cgi/org-mode.git/plain/contrib/lisp/ox-rss.el" :fetcher url))
 
 ```
@@ -239,7 +252,7 @@ By default upgrades are managed through file hashes, so if the content changed, 
 
 To keep the original version unmodified use the parameter `:version original`. For example:
 
-```cl
+``` elisp
 (quelpa '(queue :url "http://www.dr-qubit.org/download.php?file=predictive/queue.el" :fetcher url :version original))
 ```
 
@@ -269,13 +282,13 @@ Upon initialization `quelpa` usually updates the MELPA git repo (stored in `quel
 
 You can disable these updates by setting `quelpa-update-melpa-p` to `nil` before requiring `quelpa`:
 
-```cl
+``` elisp
 (setq quelpa-update-melpa-p nil)
 ```
 
 Or, if you don't want to use the MELPA git repo at all (e.g. if you're using `quelpa` mainly for installing packages outside of MELPA,) you can also set `quelpa-checkout-melpa-p` to `nil`:
 
-```cl
+``` elisp
 (setq quelpa-checkout-melpa-p nil)
 ```
 
@@ -294,6 +307,12 @@ This way, if no recipe is found in this custom directory, it will fallback to th
 The files themselves should be named after the package name, without any extension like `.el` or `.rcp`.
 
 Alternatively, you can also specify a list of recipes instead.
+
+#### Limiting `git` checkout depth
+
+By default, each package that managed by `quelpa` will be cloned into `quelpa-build-dir` under its own repository.
+
+This act of cloning the whole package histories may considerably increase the disk spaces consumed. We can limit that by setting `quelpa-git-clone-depth` to desired depth.
 
 ## MacOS instructions
 
@@ -389,6 +408,9 @@ When you can choose the packages that should get installed go to `All Packages` 
 Now copy `tar`, `msys-1.0.dll`, `msys-regex-1.dll`, `msys-intl-8.dll`, `msys-iconv-2.dll` from `C:\MinGW\msys\1.0\bin` to `c:\emacs\bin`
 
 Then Emacs should work with `quelpa`.
+
+Note that, from Windows 10 1703 `tar` is included in Windows by default.
+It's `bsd tar` but usable.
 
 ## Why "quelpa"?
 
