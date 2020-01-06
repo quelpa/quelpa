@@ -1827,14 +1827,12 @@ the `quelpa' command has been run in the current Emacs session."
   (interactive
    (when (quelpa-setup-p)
      (let* ((quelpa-melpa-recipe-stores (list quelpa-cache))
-            (name (quelpa-interactive-candidate))
-            (prefix (prefix-numeric-value current-prefix-arg)))
+            (name (quelpa-interactive-candidate)))
        (list (assoc name quelpa-cache)))))
   (when rcp
-    (let* ((quelpa-upgrade-p t)
-           (current-prefix-arg nil))
+    (let ((quelpa-upgrade-p t))
       (setq quelpa-cache
-            (cl-remove-if-not (lambda (item) (package-installed-p (car item))) quelpa-cache))
+            (cl-remove-if-not #'package-installed-p quelpa-cache :key #'car))
       (when (package-installed-p (car (quelpa-arg-rcp rcp)))
         (quelpa rcp)))))
 
