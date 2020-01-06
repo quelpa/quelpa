@@ -1,8 +1,6 @@
-(unless (require 'quelpa nil t)
-  (load (concat quelpa-ci-dir "/bootstrap.el"))
-  (require 'quelpa))
+(require 'quelpa)
 
-(require 'ert nil t)
+(require 'ert)
 
 (defmacro quelpa-deftest (name arglist docstring &rest body)
   "Add `quelpa-setup-p' as initial test to the given test body."
