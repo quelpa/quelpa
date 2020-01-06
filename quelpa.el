@@ -147,6 +147,12 @@ If nil the update is disabled and the repo is only updated on
   :group 'quelpa
   :type 'boolean)
 
+(defcustom quelpa-git-clone-depth 1
+  "If non-nil shallow clone quelpa git recipes."
+  :group 'quelpa
+  :type '(choice (const :tag "Don't shallow clone" nil)
+                 (integer :tag "Depth")))
+
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
 
@@ -867,7 +873,8 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
         (commit (or (plist-get config :commit)
                     (let ((branch (plist-get config :branch)))
                       (when branch
-                        (concat "origin/" branch))))))
+                        (concat "origin/" branch)))))
+        (depth (or (plist-get config :depth) quelpa-git-clone-depth)))
     (when (string-match (rx bos "file://" (group (1+ anything))) repo)
       ;; Expand local file:// URLs
       (setq repo (expand-file-name (match-string 1 repo))))
@@ -882,7 +889,11 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
         (when (file-exists-p dir)
           (delete-directory dir t))
         (quelpa-build--princ-checkout repo dir)
-        (quelpa-build--run-process nil "git" "clone" repo dir)))
+        (quelpa-build--run-process nil "git" "clone" repo dir)
+        (apply #'quelpa-build--run-process
+               (append (list "git" "clone" repo dir)
+                       (when (and depth (not (plist-get config :commit)))
+                         (list "--depth" (int-to-string depth)))))))
       (if quelpa-build-stable
           (let* ((min-bound (goto-char (point-max)))
                  (tag-version
