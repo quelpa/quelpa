@@ -20,7 +20,7 @@ if ! test -e /usr/local/bin/emacs; then
         sudo apt-get update
         sudo apt-get -y install build-essential wget git mercurial
         sudo apt-get -y build-dep emacs24
-        wget http://ftp.gnu.org/gnu/emacs/emacs-25.3.tar.gz -O- | tar xz
+        wget https://ftp.gnu.org/gnu/emacs/emacs-26.3.tar.gz -O- | tar xz
         cd emacs-25.3
         >&2 echo "--- building emacs ---"
         ./configure &&\
