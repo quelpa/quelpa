@@ -142,8 +142,8 @@ If nil the update is disabled and the repo is only updated on
 
 (defcustom quelpa-self-upgrade-p t
   "If non-nil upgrade quelpa itself when doing a
-  `quelpa-upgrade', otherwise only upgrade the packages in the
-  quelpa cache."
+`quelpa-upgrade-all', otherwise only upgrade the packages in the
+quelpa cache."
   :group 'quelpa
   :type 'boolean)
 
@@ -1802,7 +1802,7 @@ ARGS are additional options for the quelpa recipe."
     (quelpa (append quelpa-recipe args) :upgrade t)))
 
 ;;;###autoload
-(defun quelpa-upgrade ()
+(defun quelpa-upgrade-all ()
   "Upgrade all packages found in `quelpa-cache'.
 This provides an easy way to upgrade all the packages for which
 the `quelpa' command has been run in the current Emacs session."
@@ -1820,6 +1820,21 @@ the `quelpa' command has been run in the current Emacs session."
               (when (package-installed-p (car (quelpa-arg-rcp item)))
                 (quelpa item)))
             quelpa-cache))))
+
+;;;###autoload
+(defun quelpa-upgrade (rcp)
+  "Upgrade a package found in `quelpa-cache' with recipe RCP."
+  (interactive
+   (when (quelpa-setup-p)
+     (let* ((quelpa-melpa-recipe-stores (list quelpa-cache))
+            (name (quelpa-interactive-candidate)))
+       (list (assoc name quelpa-cache)))))
+  (when rcp
+    (let ((quelpa-upgrade-p t))
+      (setq quelpa-cache
+            (cl-remove-if-not #'package-installed-p quelpa-cache :key #'car))
+      (when (package-installed-p (car (quelpa-arg-rcp rcp)))
+        (quelpa rcp)))))
 
 ;;;###autoload
 (defun quelpa (arg &rest plist)

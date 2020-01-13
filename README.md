@@ -168,7 +168,7 @@ When used that way, `quelpa` will not upgrade `ag`. This can be used to "pin" pa
 
 ### Upgrading all packages
 
-Upgrading all your `quelpa` packages at init is one option to keep them up to date, but can slow it down considerably. Alternatively you can execute `M-x quelpa-upgrade` and upgrade every cached package.
+Upgrading all your `quelpa` packages at init is one option to keep them up to date, but can slow it down considerably. Alternatively you can execute `M-x quelpa-upgrade-all` and upgrade every cached package.
 
 This command relies on an intact cache file which is set in the `quelpa-cache-file` variable. It is updated after every `quelpa` invocation. To reset it for debugging purposes, just delete the file and better keep a backup.
 
