@@ -150,7 +150,7 @@ quelpa cache."
 (defcustom quelpa-git-clone-depth 1
   "If non-nil shallow clone quelpa git recipes."
   :group 'quelpa
-  :type '(choice (const :tag "Don't shallow clone" nil) 
+  :type '(choice (const :tag "Don't shallow clone" nil)
                  (integer :tag "Depth")))
 
 (defvar quelpa-initialized-p nil
@@ -216,13 +216,15 @@ On error return nil."
                               (package-buffer-info))
                      (`tar (insert-file-contents-literally file)
                            (tar-mode)
-                           (if (help-function-arglist 'package-tar-file-info)
-                               ;; legacy `package-tar-file-info' requires an arg
-                               (package-tar-file-info file)
-                             (with-no-warnings (package-tar-file-info)))))))))
+                           (with-no-warnings
+                             (if (help-function-arglist 'package-tar-file-info)
+                                 ;; legacy `package-tar-file-info' requires an arg
+                                 (package-tar-file-info file)
+                               (package-tar-file-info)))))))))
     (pcase desc
       ((pred package-desc-p) desc)
-      ((pred vectorp) (package-desc-from-legacy desc kind)))))
+      ((pred vectorp) (if (fboundp 'package-desc-from-legacy)
+                          (package-desc-from-legacy desc kind))))))
 
 (defun quelpa-archive-file-name (archive-entry)
   "Return the path of the file in which the package for ARCHIVE-ENTRY is stored."
@@ -241,9 +243,7 @@ On error return nil."
              (and pkg-desc
                   (version-list-<=
                    (version-to-list version)
-                   (if (functionp 'package-desc-vers)
-                       (package-desc-vers pkg-desc) ;old implementation
-                     (package-desc-version (car pkg-desc))))))
+                   (package-desc-version (car pkg-desc)))))
            ;; Also check built-in packages.
            (package-built-in-p name (version-to-list version)))))
 
@@ -559,9 +559,13 @@ position."
 ;;; Run Process
 
 (defun quelpa-build--run-process (dir command &rest args)
-  "In DIR (or `default-directory' if unset) run COMMAND with ARGS.
+  "In DIR run COMMAND with ARGS.
+If DIR is unset, try to run from `quelpa-build-dir'
+or variable `temporary-file-directory'.
 Output is written to the current buffer."
-  (let ((default-directory (file-name-as-directory (or dir default-directory)))
+  (let ((default-directory (file-name-as-directory (or dir
+                                                       quelpa-build-dir
+                                                       temporary-file-directory)))
         (argv (nconc (unless (eq system-type 'windows-nt)
                        (list "env" "LC_ALL=C"))
                      (if quelpa-build-timeout-executable
@@ -944,8 +948,15 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
      "\\(.*\\)" dir "git" "rev-parse" "HEAD")))
 
 (defun quelpa-build--update-git-to-ref (dir ref)
-  "Update the git repo in DIR so that HEAD is REF."
-  (quelpa-build--run-process dir "git" "reset" "--hard" ref)
+  "Update the git repo in DIR so that HEAD is REF.
+This will perform an checkout."
+  (condition-case nil
+      (quelpa-build--run-process dir "git" "cat-file" "-e" ref)
+    (error
+     ;; unshallow if needed
+     (quelpa-build--run-process dir "git" "fetch" "--unshallow" "--tags")))
+  (with-demoted-errors "Error: %s"
+    (quelpa-build--run-process dir "git" "checkout" ref))
   (quelpa-build--run-process dir "git" "submodule" "sync" "--recursive")
   (quelpa-build--run-process dir "git" "submodule" "update" "--init" "--recursive"))
 
@@ -1638,6 +1649,7 @@ Return t in each case."
         (insert (prin1-to-string quelpa-cache))))))
 
 (defun quelpa-update-cache (cache-item)
+  "Update `quelpa-cache' with new CACHE-ITEM."
   ;; try removing existing recipes by name
   (setq quelpa-cache (cl-remove (car cache-item)
                                 quelpa-cache :key #'car))
@@ -1734,9 +1746,8 @@ If t, `quelpa' tries building the stable version of a package."
 (defun quelpa-package-install-file (file)
   "Workaround problem with `package-install-file'.
 `package-install-file' uses `insert-file-contents-literally'
-which causes problems when the file inserted has crlf line
-endings (Windows). So here we replace that with
-`insert-file-contents' for non-tar files."
+which causes problems when the FILE inserted has crlf line endings (Windows).
+So here we replace that with `insert-file-contents' for non-tar files."
   (if (eq system-type 'windows-nt)
       (cl-letf* ((insert-file-contents-literally-orig
                   (symbol-function 'insert-file-contents-literally))
@@ -1750,8 +1761,7 @@ endings (Windows). So here we replace that with
 
 (defun quelpa-package-install (arg)
   "Build and install package from ARG (a recipe or package name).
-If the package has dependencies recursively call this function to
-install them."
+If the package has dependencies recursively call this function to install them."
   (let* ((rcp (quelpa-arg-rcp arg))
          (file (and rcp (quelpa-build rcp))))
     (when file
@@ -1812,10 +1822,7 @@ the `quelpa' command has been run in the current Emacs session."
       (when quelpa-self-upgrade-p
         (quelpa-self-upgrade))
       (setq quelpa-cache
-            (cl-remove-if (lambda (package)
-                            (or (eq package 'quelpa)
-                                (not (package-installed-p package))))
-                          quelpa-cache :key #'car))
+            (cl-remove-if-not #'package-installed-p quelpa-cache :key #'car))
       (mapc (lambda (item)
               (when (package-installed-p (car (quelpa-arg-rcp item)))
                 (quelpa item)))
