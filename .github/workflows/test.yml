@@ -61,7 +61,7 @@ jobs:
       run: |
         SANDBOX_DIR=$(mktemp -d) || exit 1
         echo ::set-env name=SANDBOX_DIR::$SANDBOX_DIR
-        ./makem.sh -vv --sandbox-dir=$SANDBOX_DIR --auto-install --install package-lint
+        ./makem.sh -vv --sandbox-dir=$SANDBOX_DIR --install-deps --install-linters
 
     # The "all" rule is not used, because it treats compilation warnings
     # as failures, so linting and testing are run as separate steps.
