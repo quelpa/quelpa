@@ -1,0 +1,210 @@
+# Note: This readme's tables of contents are generated with org-make-toc <https://github.com/alphapapa/org-make-toc>.
+
+[[logo/quelpa-logo-h64.png]]
+
+[[https://travis-ci.org/quelpa/quelpa.svg?branch=master]]
+
+Build and install your Emacs Lisp packages on-the-fly and directly from source.
+
+* News
+
+*2019/12/17*: Some people offered to maintain and continue to develop Quelpa, so we're moving back to GitHub.  Stay tuned for more info.
+
+* Contents
+:PROPERTIES:
+:TOC:      :include siblings :depth 1 :ignore this :force depth
+:END:
+:CONTENTS:
+- [[#overview][Overview]]
+- [[#requirements][Requirements]]
+- [[#installation][Installation]]
+- [[#usage][Usage]]
+- [[#why-quelpa][Why "Quelpa"?]]
+:END:
+
+* Overview
+
+=quelpa= is a tool to compile and install Emacs Lisp packages locally from local or remote source code.
+
+Given a recipe in [[https://github.com/melpa/melpa#recipe-format][MELPA's format]], for example:
+
+#+BEGIN_EXAMPLE elisp
+  (quelpa '(hydra :repo "abo-abo/hydra" :fetcher github))
+#+END_EXAMPLE
+
+=quelpa= gets the package source code, builds an ELPA compatible package and installs that locally with =package.el=. The installed packages can then be managed in the usual way with =M-x list-packages=.
+
+=quelpa= can be used in many ways, for example to manage your personal packages, testing development versions of other packages or as a helper when developing a package to test building, compiling and installing it.
+
+To get an idea how to use it to manage your Emacs setup, take a look at the [[https://framagit.org/steckerhalter/steckemacs.el][steckemacs configuration]], which uses [[https://framagit.org/steckerhalter/quelpa-use-package][quelpa-use-package]] to integrate with =use-package=.
+
+You can build and install packages from (fetcher names in parens): Git (=git=), GitHub (=github=), Bazaar (=bzr=), Mercurial (=hg=), Subversion (=svn=), CVS (=cvs=), Darcs (=darcs=), Fossil (=fossil=) and EmacsWiki (=wiki=)
+
+* Requirements
+
+- Emacs 24.3.1
+- git: [[http://git-scm.com/]]
+
+Every build requires the corresponding build tool. To install a =subversion= hosted package, you need to have =subversion= installed.
+
+Note: Even if the sources of a package are fetched with a VCS tool you have installed, they might have dependencies that require a different VCS tool. Better install the most common ones before proceeding.
+
+* Installation
+:PROPERTIES:
+:TOC:      :include descendants :depth 1
+:END:
+
+You may install Quelpa one of two ways:
+
++  Using [[https://github.com/melpa/melpa#usage][MELPA]], run =M-x package-install RET quelpa RET=.
++  Alternatively, place file =quelpa.el= into a directory in your Emacs =load-path=, then use ~(require 'quelpa)~ in your init file.
+
+* Usage
+:PROPERTIES:
+:TOC:      :include descendants :depth 1
+:END:
+
+Cool.  Now that we are all setup, enjoy the ride.
+
+:CONTENTS:
+- [[#installing-packages][Installing packages]]
+- [[#upgrading-packages][Upgrading packages]]
+- [[#managing-packages][Managing packages]]
+- [[#using-tagged-versions][Using tagged versions]]
+- [[#additional-recipe-fetchers][Additional recipe fetchers]]
+- [[#additional-options][Additional options]]
+:END:
+
+** Installing packages
+
+There are two ways to install packages with Quelpa:
+
+**** By package name
+
++  Interactively, use =M-x quelpa RET=, then input a package name with completion.
++  In Lisp code, use ~(quelpa 'package-name)~.
+
+This will fetch the package's source code from its repository, build the package, and install it.
+
+**** By recipe
+
+You can also install packages that are not on MELPA by providing a recipe in the proper [[https://github.com/melpa/melpa/#recipe-format][format]].  For example, call =quelpa= with a recipe like:
+
+#+BEGIN_SRC elisp
+  (quelpa '(discover-my-major :fetcher git :url "https://framagit.org/steckerhalter/discover-my-major.git"))
+#+END_SRC
+
+** Upgrading packages
+
+By default, Quelpa does not upgrade installed packages.  You can enable upgrading globally by running =M-x customize-variable RET quelpa-upgrade-p RET=.
+
+To override the default and upgrade individual packages:
+
++  Interactively, call =quelpa= with a universal prefix argument, like =C-u M-x quelpa RET=.
++  From Lisp, call =quelpa= with the keyword argument =:upgrade=, like ~(quelpa 'package-name :upgrade t)~.
+
+When evaluating a buffer of =quelpa= calls, you may prevent a package from being upgraded by setting =:upgrade nil=, like =(quelpa 'package-name :upgrade nil)=.
+
+*** Upgrading all packages
+
+You may choose to upgrade all Quelpa-installed packages at Emacs startup, but that can slow down Emacs's startup considerably.  
+
+Alternatively, you may upgrade all Quelpa-installed packages using =M-x quelpa-upgrade-all RET=.  This command relies on the cache file, set in variable =quelpa-cache-file=.  It is updated after every =quelpa= invocation.
+
+By default, when upgrading all packages, Quelpa also upgrades itself.  Disable this by setting variable =quelpa-self-upgrade-p= to =nil=.
+
+** Managing packages
+
+Quelpa installs packages using Emacs's built-in package library, =package.el=, so after installing a package with Quelpa, you can view its status and remove it using =M-x list-packages RET=.  Note that deleting a package this way does not yet affect Quelpa's cache, so Quelpa will still consider the package to have been installed with Quelpa.
+
+As well, Quelpa does not automatically remove obsolete package versions after upgrading.  To delete obsolete package versions manually, use =M-x list-packages RET=, then press =~= to mark all obsolete packages for deletion, and press =x= to delete them.
+
+** Using tagged versions
+
+Quelpa can be instructed to build tagged versions of packages.  This means that the Git or Mercurial repository is queried for a tagged version, and if one is found, that version will be built.  For more information please see [[https://github.com/melpa/melpa#stable-packages][MELPA's notes on stable packages]].
+
+To enable building of tagged versions globally, set variable =quelpa-stable-p= to =t=.  
+
+To do so for a single package:
+
++  Using the =quelpa= command, use the command's keyword argument =:stable=, like ~(quelpa 'package-name :stable t)~.
++  In a package's recipe, use the same keyword, like ~(quelpa '(package-name :stable t))~.  
+
+Using the argument to the =quelpa= command overrides the global setting =quelpa-stable-p=, and using the argument in a recipe overrides both the command argument and the global setting.
+
+*Note:* Non-tagged package version numbers are generated at build time using the current date, and these numbers usually are sorted as higher than tagged version numbers.  Therefore, if you have installed a non-tagged package version and wish to replace it with a tagged version, you must first remove the package, then install the tagged version.
+
+*Note:* Tagged versions are commonly referred to as "stable" versions (since these are the versions appearing in the MELPA Stable repo).  However, such package versions are not necessarily more stable than the untagged versions provided in the non-"Stable" MELPA repo, and using them is not generally recommended.  Therefore, we do not refer to such versions as "stable" versions.
+
+** Additional recipe fetchers
+
+You may use these additional fetchers in recipes:
+
+*** URL
+
+The =url= fetcher builds packages from single =.el= files.  The URL may be a remote HTTP one or a local =file://= one.  For example:
+
+#+BEGIN_SRC elisp
+  (quelpa
+   '(rainbow-mode :fetcher url
+                  :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el"))
+#+END_SRC
+
+*Note:*
++  By default, upgrades are managed through file hashes, so if the content has changed, Quelpa will upgrade the package.  
++  Existing version numbers are retained.  Quelpa uses a version suffix that allows the original version to retain priority, so if you install a package from another source with the same version, it will be preferred.
+     - To omit the Quelpa-specific version suffix, use the parameter =:version original=.  For example:
+
+#+BEGIN_SRC elisp
+  (quelpa
+   '(queue :version original :fetcher url
+           :url "http://www.dr-qubit.org/download.php?file=predictive/queue.el" ))
+#+END_SRC
+
+*** File
+
+The =file= fetcher builds single-file packages from local =.el= files.  For example:
+
+#+BEGIN_SRC elisp
+  (quelpa
+   '(rainbow-mode :fetcher file
+                  :path "/home/user/src/rainbow-mode/rainbow-mode.el"))
+#+END_SRC
+
+It also builds multi-file packages from a local directory.  For example:
+
+#+BEGIN_SRC elisp
+  (quelpa
+   '(rainbow-mode :fetcher file
+                  :path "~/src/rainbow-mode"))
+#+END_SRC
+
+*Note:*
++  Specifying a directory for =:path= does not retain existing version numbers, nor does it respect the =:version original= parameter.
++  Paths are expanded with =expand-file-name=, so =~= in path names is expanded to the user's home directory.
+
+** Additional options
+
+*** Prevent updating of MELPA repo on Emacs startup
+
+By default, when Quelpa is loaded, it updates the local clone of the MELPA git repo, which ensures that the latest recipes are always available.  If you load Quelpa in your init file, this naturally lengthens Emacs's startup time.  You may disable this by setting =quelpa-update-melpa-p= to nil before loading Quelpa.
+
+If you don't want to use MELPA recipes at all (e.g. if you're using Quelpa mainly to install packages not in MELPA) you can disable all fetching of the MELPA repo by setting =quelpa-checkout-melpa-p= to nil.
+
+*** Use local recipes
+
+You may configure Quelpa to use recipes stored in a local directory in preference to those in MELPA.  This may be helpful if you wish to modify a MELPA recipe.  The variable =quelpa-melpa-recipe-stores= is a list of directory paths which are searched for recipes; by default, it contains the path to the local MELPA clone's recipes directory.  Directories listed in the variable are searched in order, so to give your own recipe directory preference, add it to the front of the list, like:
+
+#+BEGIN_SRC elisp
+  (add-to-list 'quelpa-melpa-recipe-stores "/home/user/src/recipes")
+#+END_SRC
+
+If a package's recipe is not found in that directory, Quelpa will fall back on remaining directories in the list, including the MELPA recipe directory.
+
+Recipe files should be named after the package name, without any filename extension.
+
+# FIXME: What does this mean?  # Alternatively, you can also specify a list of recipes instead.
+
+* Why "Quelpa"?
+
+The German word /quelle/ means /spring/ (as in: water source) but also /source/.  /Source code/ is translated to /quellcode/.  /ELPA/ is the abbreviation for Emacs Lisp Package Archive.  You get the idea.
