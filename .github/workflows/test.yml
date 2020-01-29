@@ -57,6 +57,9 @@ jobs:
 
     - uses: actions/checkout@v2
 
+    - name: Install bzr
+      run: sudo apt install bzr
+
     - name: Initialize sandbox
       run: |
         SANDBOX_DIR=$(mktemp -d) || exit 1
