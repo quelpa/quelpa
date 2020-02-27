@@ -123,6 +123,13 @@ Alternatively, you may upgrade all Quelpa-installed packages using =M-x quelpa-u
 
 By default, when upgrading all packages, Quelpa also upgrades itself.  Disable this by setting variable =quelpa-self-upgrade-p= to =nil=.
 
+To run =quelpa-upgrade-all= at most every 7 days, after all the init files are loaded:
+
+#+BEGIN_SRC elisp
+(setq quelpa-upgrade-interval 7)
+(add-hook #'after-init-hook #'quelpa-upgrade-all-maybe)
+#+END_SRC
+
 ** Managing packages
 
 Quelpa installs packages using Emacs's built-in package library, =package.el=, so after installing a package with Quelpa, you can view its status and remove it using =M-x list-packages RET=.  Note that deleting a package this way does not yet affect Quelpa's cache, so Quelpa will still consider the package to have been installed with Quelpa.
