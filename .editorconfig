@@ -1,0 +1,6 @@
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending for *.el files (prevents QUELPA errors)
+[*.el]
+end_of_line = lf

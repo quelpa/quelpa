@@ -278,13 +278,15 @@ already and should not be upgraded etc)."
   (let* ((name (car rcp))
          (build-dir (expand-file-name (symbol-name name) quelpa-build-dir))
          (version (quelpa-checkout rcp build-dir)))
-    (when version
-      (quelpa-archive-file-name
-       (quelpa-build-package (symbol-name name)
-                             version
-                             (quelpa-build--config-file-list (cdr rcp))
-                             build-dir
-                             quelpa-packages-dir)))))
+    (if version
+        (quelpa-archive-file-name
+         (quelpa-build-package (symbol-name name)
+                               version
+                               (quelpa-build--config-file-list (cdr rcp))
+                               build-dir
+                               quelpa-packages-dir))
+      (quelpa-build--message "Newer package has been installed. Not updating.")
+      nil)))
 
 ;; --- package-build.el integration ------------------------------------------
 
@@ -1676,7 +1678,9 @@ Return t in each case."
   ;; default value anyways
   (when (plist-member (cdr cache-item) :stable)
     (setq quelpa-stable-p (plist-get (cdr cache-item) :stable)))
-  (when (and quelpa-stable-p (not (plist-get (cdr cache-item) :stable)))
+  (when (and quelpa-stable-p
+             (plist-member (cdr cache-item) :stable)
+             (not (plist-get (cdr cache-item) :stable)))
     (setf (cdr (last cache-item)) '(:stable t))))
 
 (defun quelpa-checkout-melpa ()
@@ -1790,28 +1794,30 @@ If the package has dependencies recursively call this function to install them."
         (quelpa-package-install-file file)))))
 
 (defun quelpa-interactive-candidate ()
-  "Query the user for a recipe and return the name."
+  "Query the user for a recipe and return the name or recipe."
   (when (quelpa-setup-p)
-    (let  ((recipes (cl-loop
-                     for store in quelpa-melpa-recipe-stores
-                     if (stringp store)
-                     ;; this regexp matches all files except dotfiles
-                     append (directory-files store nil "^[^.].+$")
-                     else if (listp store)
-                     append store)))
-      (intern (completing-read "Choose MELPA recipe: "
-                               recipes nil t)))))
+    (let*  ((recipes (cl-loop
+                      for store in quelpa-melpa-recipe-stores
+                      if (stringp store)
+                      ;; this regexp matches all files except dotfiles
+                      append (directory-files store nil "^[^.].+$")
+                      else if (listp store)
+                      append store))
+            (recipe (intern (completing-read "Choose MELPA recipe: "
+                                             recipes nil t))))
+      (or (assoc recipe recipes) recipe))))
 
 ;; --- public interface ------------------------------------------------------
 
 ;;;###autoload
-(defun quelpa-expand-recipe (recipe-name)
-  "Expand a given RECIPE-NAME into full recipe.
+(defun quelpa-expand-recipe (recipe)
+  "Expand a given RECIPE into full recipe.
 If called interactively, let the user choose a recipe name and
 insert the result into the current buffer."
   (interactive (list (quelpa-interactive-candidate)))
   (when (quelpa-setup-p)
-    (let* ((recipe (quelpa-get-melpa-recipe recipe-name)))
+    (let* ((recipe (if (listp recipe) recipe
+                     (quelpa-get-melpa-recipe recipe))))
       (when recipe
         (if (called-interactively-p 'any)
             (prin1 recipe (current-buffer)))
@@ -1836,8 +1842,6 @@ With prefix FORCE, packages will all be upgraded discarding local changes."
     (let ((quelpa-upgrade-p t))
       (when quelpa-self-upgrade-p
         (quelpa-self-upgrade))
-      (setq quelpa-cache
-            (cl-remove-if-not #'package-installed-p quelpa-cache :key #'car))
       (mapc (lambda (item)
               (when (package-installed-p (car (quelpa-arg-rcp item)))
                 (quelpa item :force force)))
@@ -1851,20 +1855,19 @@ Optionally, ACTION can be passed for non-interactive call with value of:
 - `local' (or \\[universal-argument] \\[universal-argument] \\[quelpa-upgrade])
   for upgrade using current working tree."
   (interactive
-   (when (quelpa-setup-p)
-     (let* ((quelpa-melpa-recipe-stores (list quelpa-cache))
-            (name (quelpa-interactive-candidate))
-            (prefix (prefix-numeric-value current-prefix-arg)))
-       (list (assoc name quelpa-cache)
+     (let ((prefix (prefix-numeric-value current-prefix-arg)))
+       (list nil
              (cond  ((eq prefix 4) 'force)
-                    ((eq prefix 16) 'local))))))
-  (when rcp
-    (let ((quelpa-upgrade-p t)
-          (current-prefix-arg nil)
-          (config (cond ((eq action 'force) `(:force t))
-                        ((eq action 'local) `(:use-current-ref t)))))
-      (setq quelpa-cache
-            (cl-remove-if-not #'package-installed-p quelpa-cache :key #'car))
+                    ((eq prefix 16) 'local)))))
+  (when (quelpa-setup-p)
+    (let* ((quelpa-melpa-recipe-stores
+            (list (cl-remove-if-not #'package-installed-p
+                                    quelpa-cache :key #'car)))
+           (rcp (or rcp (quelpa-interactive-candidate)))
+           (quelpa-upgrade-p t)
+           (current-prefix-arg nil)
+           (config (cond ((eq action 'force) `(:force t))
+                         ((eq action 'local) `(:use-current-ref t)))))
       (when (package-installed-p (car (quelpa-arg-rcp rcp)))
         (apply #'quelpa rcp config)))))
 
@@ -1880,13 +1883,14 @@ When `quelpa' is called interactively with a prefix argument (e.g
 \\[universal-argument] \\[quelpa]) it will try to upgrade the
 given package even if the global var `quelpa-upgrade-p' is set to
 nil."
-
-  (interactive (list (quelpa-interactive-candidate)))
+  (interactive (list nil))
   (run-hooks 'quelpa-before-hook)
   (when (quelpa-setup-p) ;if init fails we do nothing
-    (let* ((quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p)) ;shadow `quelpa-upgrade-p'
+    (let* ((quelpa-melpa-recipe-stores `(,quelpa-cache ,@quelpa-melpa-recipe-stores))
+           (arg (or arg (quelpa-interactive-candidate)))
+           (quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p)) ;shadow `quelpa-upgrade-p'
            (quelpa-stable-p quelpa-stable-p) ;shadow `quelpa-stable-p'
-           (cache-item (if (symbolp arg) (list arg) arg)))
+           (cache-item (quelpa-arg-rcp arg)))
       (quelpa-parse-plist plist)
       (quelpa-parse-stable cache-item)
       (apply #'quelpa-package-install arg plist)
