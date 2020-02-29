@@ -480,9 +480,15 @@ function sandbox {
         debug "Installing linters: package-lint relint"
 
         args_sandbox_package_install+=(
-            --eval "(package-install 'elsa)"
+            # NOTE: Commenting out Elsa and Relint for Quelpa, because we
+            # want to test Quelpa with older Emacsen.  This means that, if
+            # a newer version of makem.sh is merged into the repo, these
+            # changes should be preserved (e.g. Magit makes this easy).
+
+            #  --eval "(package-install 'elsa)"
             --eval "(package-install 'package-lint)"
-            --eval "(package-install 'relint)")
+            # --eval "(package-install 'relint)"
+        )
     fi
 
     # *** Install packages into sandbox
