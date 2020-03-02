@@ -120,7 +120,10 @@ update an existing cache item."
             ((symbol-function 'quelpa-package-install) 'ignore))
     (quelpa '(makey :fetcher github :repo "mickeynp/makey"))
     (quelpa 'makey)
-    (should (equal quelpa-cache '((makey))))))
+    (should (equal quelpa-cache '((makey :fetcher github :repo "mickeynp/makey"))))
+    (quelpa '(makey :fetcher github :repo "foo/makey"))
+    (should (equal quelpa-cache '((makey :fetcher github :repo "foo/makey"))))
+    ))
 
 (quelpa-deftest cache-regressions ()
   (cl-letf ((quelpa-cache nil)
