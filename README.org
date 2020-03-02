@@ -8,7 +8,6 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 - 2020/03/02: Emacs 24 is not supported anymore, please upgrade to use =quelpa=
 - 2020/03/02: *BREAKING CHANGE* =bootstrap.el= has been deprecated, please change your bootstrapping snippet as documented in the Installation section below.
-- 2019/12/17: Some people offered to maintain and continue to develop Quelpa, so we're moving back to GitHub.  Stay tuned for more info.
 
 * Contents
 :PROPERTIES:
@@ -42,7 +41,7 @@ You can build and install packages from (fetcher names in parens): Git (=git=), 
 
 * Requirements
 
-- Emacs 24.3.1
+- Emacs 25.1
 - git: [[http://git-scm.com/]]
 
 Every build requires the corresponding build tool. To install a =subversion= hosted package, you need to have =subversion= installed.
