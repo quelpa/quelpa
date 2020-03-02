@@ -153,6 +153,11 @@ quelpa cache."
   :type '(choice (const :tag "Don't shallow clone" nil)
                  (integer :tag "Depth")))
 
+(defcustom quelpa-upgrade-interval nil
+  "Interval in days for `quelpa-upgrade-all-maybe'."
+  :group 'quelpa
+  :type 'integer)
+
 (defvar quelpa-initialized-p nil
   "Non-nil when quelpa has been initialized.")
 
@@ -1888,6 +1893,21 @@ nil."
       (quelpa-update-cache cache-item)))
   (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
+
+;;;###autoload
+(defun quelpa-upgrade-all-maybe (&optional force)
+  "Run `quelpa-upgrade-all' if at least `quelpa-upgrade-interval' days have passed since the last run.
+With prefix FORCE, packages will all be upgraded discarding local changes."
+  (interactive "P")
+  (when quelpa-upgrade-interval
+    (let ((timestamp (expand-file-name "last_upgrade" quelpa-dir)))
+      (when (or (not (file-exists-p timestamp))
+                (> (- (time-to-seconds) ; Current time - modification time.
+                      (time-to-seconds (nth 5 (file-attributes timestamp))))
+                   (* 60 60 24 quelpa-upgrade-interval)))
+        (let ((current-prefix-arg force))
+          (quelpa-upgrade-all))
+        (write-region "" nil timestamp)))))
 
 (provide 'quelpa)
 
