@@ -4,7 +4,7 @@
 ;; Copyright 2014-2015, Vasilij Schneidermann <v.schneidermann@gmail.com>
 
 ;; Author: steckerhalter
-;; URL: https://framagit.org/steckerhalter/quelpa
+;; URL: https://github.com/quelpa/quelpa
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: package management build source elpa
@@ -32,7 +32,7 @@
 ;; built on-the-fly directly from source.
 
 ;; See the README for more info:
-;; https://framagit.org/steckerhalter/quelpa/blob/master/README.md
+;; https://github.com/quelpa/quelpa/blob/master/README.org
 
 ;;; Requirements:
 
@@ -159,7 +159,7 @@ quelpa cache."
 (defvar quelpa-cache nil
   "The `quelpa' command stores processed pkgs/recipes in the cache.")
 
-(defvar quelpa-recipe '(quelpa :url "https://framagit.org/steckerhalter/quelpa.git" :fetcher git)
+(defvar quelpa-recipe '(quelpa :repo "quelpa/quelpa" :fetcher github)
   "The recipe for quelpa.")
 
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------

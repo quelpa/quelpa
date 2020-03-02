@@ -36,7 +36,7 @@ Given a recipe in [[https://github.com/melpa/melpa#recipe-format][MELPA's format
 
 =quelpa= can be used in many ways, for example to manage your personal packages, testing development versions of other packages or as a helper when developing a package to test building, compiling and installing it.
 
-To get an idea how to use it to manage your Emacs setup, take a look at the [[https://framagit.org/steckerhalter/steckemacs.el][steckemacs configuration]], which uses [[https://framagit.org/steckerhalter/quelpa-use-package][quelpa-use-package]] to integrate with =use-package=.
+To get an idea how to use it to manage your Emacs setup, take a look at the [[https://framagit.org/steckerhalter/steckemacs.el][steckemacs configuration]], which uses [[https://github.com/quelpa/quelpa-use-package][quelpa-use-package]] to integrate with =use-package=.
 
 You can build and install packages from (fetcher names in parens): Git (=git=), GitHub (=github=), Bazaar (=bzr=), Mercurial (=hg=), Subversion (=svn=), CVS (=cvs=), Darcs (=darcs=), Fossil (=fossil=) and EmacsWiki (=wiki=)
 
