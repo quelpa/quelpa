@@ -2,8 +2,6 @@
 
 [[logo/quelpa-logo-h64.png]]
 
-[[https://travis-ci.org/quelpa/quelpa.svg?branch=master]]
-
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 * News
