@@ -8,7 +8,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 * News
 
-*2020/03/02*: *BREAKING CHANGE* =bootstrap.el= has been deprecated, please change your bootstrapping snippet as documented in the Installation section below.
+*2020/03/02*: *BREAKING CHANGE* =bootstrap.el= has been deprecated, please change your bootstrapping snippet as documented in the Installation section below.\\
 *2019/12/17*: Some people offered to maintain and continue to develop Quelpa, so we're moving back to GitHub.  Stay tuned for more info.
 
 * Contents
