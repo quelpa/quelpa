@@ -103,14 +103,17 @@ You can also install packages that are not on MELPA by providing a recipe in the
   (quelpa '(discover-my-major :fetcher git :url "https://framagit.org/steckerhalter/discover-my-major.git"))
 #+END_SRC
 
+Once you installed a package with its own recipe, Quelpa will remember it and next time it can offer you to upgrade/install the package again with =M-x quelpa RET=.
+
 ** Upgrading packages
 
 By default, Quelpa does not upgrade installed packages.  You can enable upgrading globally by running =M-x customize-variable RET quelpa-upgrade-p RET=.
 
 To override the default and upgrade individual packages:
 
-+  Interactively, call =quelpa= with a universal prefix argument, like =C-u M-x quelpa RET=.
-+  From Lisp, call =quelpa= with the keyword argument =:upgrade=, like ~(quelpa 'package-name :upgrade t)~.
++ Interactively, call =quelpa= with a universal prefix argument, like =C-u M-x quelpa RET=.
++ From Lisp, call =quelpa= with the keyword argument =:upgrade=, like ~(quelpa 'package-name :upgrade t)~.
++ Interactively, call =M-x quelpa-upgrade RET=, it will list all Quelpa installed packages.
 
 When evaluating a buffer of =quelpa= calls, you may prevent a package from being upgraded by setting =:upgrade nil=, like =(quelpa 'package-name :upgrade nil)=.
 
