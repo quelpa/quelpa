@@ -8,6 +8,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 * News
 
+*2020/03/02*: *BREAKING CHANGE* =bootstrap.el= has been deprecated, please change your bootstrapping snippet as documented in the Installation section below.
 *2019/12/17*: Some people offered to maintain and continue to develop Quelpa, so we're moving back to GitHub.  Stay tuned for more info.
 
 * Contents
@@ -54,10 +55,20 @@ Note: Even if the sources of a package are fetched with a VCS tool you have inst
 :TOC:      :include descendants :depth 1
 :END:
 
-You may install Quelpa one of two ways:
+You may install =quelpa= like this:
 
-+  Using [[https://github.com/melpa/melpa#usage][MELPA]], run =M-x package-install RET quelpa RET=.
-+  Alternatively, place file =quelpa.el= into a directory in your Emacs =load-path=, then use ~(require 'quelpa)~ in your init file.
++ Using [[https://github.com/melpa/melpa#usage][MELPA]], run =M-x package-install RET quelpa RET=.
++ Alternatively, place file =quelpa.el= into a directory in your Emacs =load-path=, then use ~(require 'quelpa)~ in your init file.
++ If you want to bootstrap =quelpa= automatically from your init file, you can use this snippet:
+
+#+BEGIN_SRC elisp
+(unless (package-installed-p 'quelpa)
+    (with-temp-buffer
+      (url-insert-file-contents "https://github.com/quelpa/quelpa/raw/master/quelpa.el")
+      (eval-buffer)
+      (quelpa-self-upgrade)))
+#+END_SRC
+
 
 * Usage
 :PROPERTIES:
