@@ -1819,10 +1819,10 @@ Optionally, ACTION can be passed for non-interactive call with value of:
 - `local' (or \\[universal-argument] \\[universal-argument] \\[quelpa-upgrade])
   for upgrade using current working tree."
   (interactive
-     (let ((prefix (prefix-numeric-value current-prefix-arg)))
-       (list nil
-             (cond  ((eq prefix 4) 'force)
-                    ((eq prefix 16) 'local)))))
+   (let ((prefix (prefix-numeric-value current-prefix-arg)))
+     (list nil
+           (cond  ((eq prefix 4) 'force)
+                  ((eq prefix 16) 'local)))))
   (when (quelpa-setup-p)
     (let* ((quelpa-melpa-recipe-stores
             (list (cl-remove-if-not #'package-installed-p
