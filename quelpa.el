@@ -1807,6 +1807,13 @@ If the package has dependencies recursively call this function to install them."
                                              recipes nil t))))
       (or (assoc recipe recipes) recipe))))
 
+(defun quelpa--delete-obsoleted-package (name)
+  "Delete obsoleted packages with name NAME."
+  (mapc (lambda (pkg-desc)
+          (with-demoted-errors "Error deleting package: %S"
+            (package-delete pkg-desc)))
+        (cddr (assoc name package-alist))))
+
 ;; --- public interface ------------------------------------------------------
 
 ;;;###autoload
@@ -1894,6 +1901,7 @@ nil."
       (quelpa-parse-plist plist)
       (quelpa-parse-stable cache-item)
       (apply #'quelpa-package-install arg plist)
+      (quelpa--delete-obsoleted-package (car cache-item))
       (quelpa-update-cache cache-item)))
   (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
