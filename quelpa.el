@@ -6,7 +6,7 @@
 ;; Author: steckerhalter
 ;; URL: https://github.com/quelpa/quelpa
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: package management build source elpa
 
 ;; This file is not part of GNU Emacs.
@@ -45,6 +45,7 @@
 (require 'url-parse)
 (require 'package)
 (require 'lisp-mnt)
+(eval-when-compile (require 'subr-x))
 
 ;; --- customs / variables ---------------------------------------------------
 
@@ -166,6 +167,10 @@ quelpa cache."
 
 (defvar quelpa-recipe '(quelpa :repo "quelpa/quelpa" :fetcher github)
   "The recipe for quelpa.")
+
+(defvar package-alist)
+(defvar package--initialized)
+(declare-function package-load-all-descriptors "ext:package")
 
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
 
@@ -891,8 +896,8 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
   (let* ((repo (plist-get config :url))
          (remote (or (plist-get config :remote) "origin"))
          (commit (or (plist-get config :commit)
-                     (let ((branch (plist-get config :branch)))
-                       (when branch (concat remote "/" branch)))))
+                     (when-let ((branch (plist-get config :branch)))
+                       (concat remote "/" branch))))
          (depth (or (plist-get config :depth) quelpa-git-clone-depth))
          (force (plist-get config :force))
          (use-current-ref (plist-get config :use-current-ref)))
@@ -917,8 +922,8 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
                 (when (and depth (not (plist-get config :commit)))
                   `("--depth" ,(int-to-string depth)
                     "--no-single-branch"))
-                (let ((branch (plist-get config :branch)))
-                  (when branch `("--branch" ,branch)))))))
+                (when-let ((branch (plist-get config :branch)))
+                  `("--branch" ,branch))))))
       (if quelpa-build-stable
           (let* ((min-bound (goto-char (point-max)))
                  (tag-version
@@ -1258,13 +1263,12 @@ Tests and sets variable `quelpa--tar-type' if not already set."
                  (extras (let (alist)
                            (while rest-plist
                              (unless (memq (car rest-plist) '(:kind :archive))
-                               (let ((value (cadr rest-plist)))
-                                 (when value
-                                   (push (cons (car rest-plist)
-                                               (if (eq (car-safe value) 'quote)
-                                                   (cadr value)
-                                                 value))
-                                         alist))))
+                               (when-let ((value (cadr rest-plist)))
+                                 (push (cons (car rest-plist)
+                                             (if (eq (car-safe value) 'quote)
+                                                 (cadr value)
+                                               value))
+                                       alist)))
                              (setq rest-plist (cddr rest-plist)))
                            alist)))
             (when (string-match "[\r\n]" descr)
@@ -1724,6 +1728,7 @@ Return non-nil if quelpa has been initialized properly."
       (quelpa-setup-package-structs)
       (if quelpa-checkout-melpa-p
           (unless (quelpa-checkout-melpa) (throw 'quit nil)))
+      (unless package--initialized (package-load-all-descriptors))
       (setq quelpa-initialized-p t))
     t))
 
