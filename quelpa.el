@@ -168,10 +168,6 @@ quelpa cache."
 (defvar quelpa-recipe '(quelpa :repo "quelpa/quelpa" :fetcher github)
   "The recipe for quelpa.")
 
-(defvar package-alist)
-(defvar package--initialized)
-(declare-function package-load-all-descriptors "ext:package")
-
 ;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
 
 (defun quelpa-setup-package-structs ()
