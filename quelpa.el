@@ -7,7 +7,7 @@
 ;; URL: https://github.com/quelpa/quelpa
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "25.1"))
-;; Keywords: tools
+;; Keywords: tools package management build source elpa
 
 ;; This file is not part of GNU Emacs.
 
