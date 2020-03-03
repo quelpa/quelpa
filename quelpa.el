@@ -191,14 +191,9 @@ On error return nil."
                      (`tar (insert-file-contents-literally file)
                            (tar-mode)
                            (with-no-warnings
-                             (if (help-function-arglist 'package-tar-file-info)
-                                 ;; legacy `package-tar-file-info' requires an arg
-                                 (package-tar-file-info file)
-                               (package-tar-file-info)))))))))
-    (pcase desc
-      ((pred package-desc-p) desc)
-      ((pred vectorp) (when (fboundp 'package-desc-from-legacy)
-                        (package-desc-from-legacy desc kind))))))
+                             (package-tar-file-info))))))))
+    (when (package-desc-p desc)
+      desc)))
 
 (defun quelpa-archive-file-name (archive-entry)
   "Return the path of the file in which the package for ARCHIVE-ENTRY is stored."
