@@ -1783,7 +1783,8 @@ If the package has dependencies recursively call this function to install them."
   "Delete obsoleted packages with name NAME."
   (mapc (lambda (pkg-desc)
           (with-demoted-errors "Error deleting package: %S"
-            (package-delete pkg-desc)))
+            (let ((inhibit-message t))
+              (package-delete pkg-desc))))
         (cddr (assoc name package-alist))))
 
 ;; --- public interface ------------------------------------------------------
