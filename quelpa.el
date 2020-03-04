@@ -45,6 +45,7 @@
 (require 'url-parse)
 (require 'package)
 (require 'lisp-mnt)
+(eval-when-compile (require 'subr-x))
 
 ;; --- customs / variables ---------------------------------------------------
 
@@ -855,8 +856,8 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
   (let* ((repo (plist-get config :url))
          (remote (or (plist-get config :remote) "origin"))
          (commit (or (plist-get config :commit)
-                     (let ((branch (plist-get config :branch)))
-                       (when branch (concat remote "/" branch)))))
+                     (when-let ((branch (plist-get config :branch)))
+                       (concat remote "/" branch))))
          (depth (or (plist-get config :depth) quelpa-git-clone-depth))
          (force (plist-get config :force))
          (use-current-ref (plist-get config :use-current-ref)))
@@ -881,8 +882,8 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
                 (when (and depth (not (plist-get config :commit)))
                   `("--depth" ,(int-to-string depth)
                     "--no-single-branch"))
-                (let ((branch (plist-get config :branch)))
-                  (when branch `("--branch" ,branch)))))))
+                (when-let ((branch (plist-get config :branch)))
+                  `("--branch" ,branch))))))
       (if quelpa-build-stable
           (let* ((min-bound (goto-char (point-max)))
                  (tag-version
@@ -1222,13 +1223,12 @@ Tests and sets variable `quelpa--tar-type' if not already set."
                  (extras (let (alist)
                            (while rest-plist
                              (unless (memq (car rest-plist) '(:kind :archive))
-                               (let ((value (cadr rest-plist)))
-                                 (when value
-                                   (push (cons (car rest-plist)
-                                               (if (eq (car-safe value) 'quote)
-                                                   (cadr value)
-                                                 value))
-                                         alist))))
+                               (when-let ((value (cadr rest-plist)))
+                                 (push (cons (car rest-plist)
+                                             (if (eq (car-safe value) 'quote)
+                                                 (cadr value)
+                                               value))
+                                       alist)))
                              (setq rest-plist (cddr rest-plist)))
                            alist)))
             (when (string-match "[\r\n]" descr)
@@ -1683,6 +1683,7 @@ Return non-nil if quelpa has been initialized properly."
       (quelpa-read-cache)
       (if quelpa-checkout-melpa-p
           (unless (quelpa-checkout-melpa) (throw 'quit nil)))
+      (unless package--initialized (package-load-all-descriptors))
       (setq quelpa-initialized-p t))
     t))
 
@@ -1765,6 +1766,13 @@ If the package has dependencies recursively call this function to install them."
             (recipe (intern (completing-read "Choose MELPA recipe: "
                                              recipes nil t))))
       (or (assoc recipe recipes) recipe))))
+
+(defun quelpa--delete-obsoleted-package (name)
+  "Delete obsoleted packages with name NAME."
+  (mapc (lambda (pkg-desc)
+          (with-demoted-errors "Error deleting package: %S"
+            (package-delete pkg-desc)))
+        (cddr (assoc name package-alist))))
 
 ;; --- public interface ------------------------------------------------------
 
@@ -1853,6 +1861,7 @@ nil."
       (quelpa-parse-plist plist)
       (quelpa-parse-stable cache-item)
       (apply #'quelpa-package-install arg plist)
+      (quelpa--delete-obsoleted-package (car cache-item))
       (quelpa-update-cache cache-item)))
   (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
