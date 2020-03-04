@@ -7,7 +7,7 @@
 ;; URL: https://github.com/quelpa/quelpa
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "25.1"))
-;; Keywords: package management build source elpa
+;; Keywords: tools package management build source elpa
 
 ;; This file is not part of GNU Emacs.
 
@@ -36,7 +36,7 @@
 
 ;;; Requirements:
 
-;; Emacs 24.3.1
+;; Emacs 25.1
 
 ;;; Code:
 
@@ -168,37 +168,6 @@ quelpa cache."
 (defvar quelpa-recipe '(quelpa :repo "quelpa/quelpa" :fetcher github)
   "The recipe for quelpa.")
 
-;; --- compatibility for legacy `package.el' in Emacs 24.3  -------------------
-
-(defun quelpa-setup-package-structs ()
-  "Setup the struct `package-desc' when not available.
-`package-desc-from-legacy' is provided to convert the legacy
-vector desc into a valid PACKAGE-DESC."
-  (unless (functionp 'package-desc-p)
-    (cl-defstruct
-        (package-desc
-         (:constructor
-          ;; convert legacy package desc into PACKAGE-DESC
-          package-desc-from-legacy
-          (pkg-info kind
-                    &aux
-                    (name (intern (aref pkg-info 0)))
-                    (version (version-to-list (aref pkg-info 3)))
-                    (summary (if (string= (aref pkg-info 2) "")
-                                 "No description available."
-                               (aref pkg-info 2)))
-                    (reqs  (aref pkg-info 1))
-                    (kind kind))))
-      name
-      version
-      (summary "No description available.")
-      reqs
-      kind
-      archive
-      dir
-      extras
-      signed)))
-
 ;; --- package building ------------------------------------------------------
 
 (defun quelpa-package-type (file)
@@ -223,14 +192,9 @@ On error return nil."
                      (`tar (insert-file-contents-literally file)
                            (tar-mode)
                            (with-no-warnings
-                             (if (help-function-arglist 'package-tar-file-info)
-                                 ;; legacy `package-tar-file-info' requires an arg
-                                 (package-tar-file-info file)
-                               (package-tar-file-info)))))))))
-    (pcase desc
-      ((pred package-desc-p) desc)
-      ((pred vectorp) (when (fboundp 'package-desc-from-legacy)
-                        (package-desc-from-legacy desc kind))))))
+                             (package-tar-file-info))))))))
+    (when (package-desc-p desc)
+      desc)))
 
 (defun quelpa-archive-file-name (archive-entry)
   "Return the path of the file in which the package for ARCHIVE-ENTRY is stored."
@@ -1458,12 +1422,8 @@ and a cl struct in Emacs HEAD.  This wrapper normalises the results."
                   (package-desc-summary desc)
                   (package-desc-version desc)
                   extras))
-      ;; The regexp and the processing is taken from `lm-homepage' in Emacs 24.4
-      (let* ((page (lm-header "\\(?:x-\\)?\\(?:homepage\\|url\\)"))
-             (homepage (if (and page (string-match "^<.+>$" page))
-                           (substring page 1 -1)
-                         page))
-             extras)
+      (let ((homepage (lm-homepage))
+            extras)
         (when keywords (push (cons :keywords keywords) extras))
         (when homepage (push (cons :url homepage) extras))
         (vector  (aref desc 0)
@@ -1721,7 +1681,6 @@ Return non-nil if quelpa has been initialized properly."
       (unless (file-exists-p dir) (make-directory dir t)))
     (unless quelpa-initialized-p
       (quelpa-read-cache)
-      (quelpa-setup-package-structs)
       (if quelpa-checkout-melpa-p
           (unless (quelpa-checkout-melpa) (throw 'quit nil)))
       (unless package--initialized (package-load-all-descriptors))
@@ -1863,10 +1822,10 @@ Optionally, ACTION can be passed for non-interactive call with value of:
 - `local' (or \\[universal-argument] \\[universal-argument] \\[quelpa-upgrade])
   for upgrade using current working tree."
   (interactive
-     (let ((prefix (prefix-numeric-value current-prefix-arg)))
-       (list nil
-             (cond  ((eq prefix 4) 'force)
-                    ((eq prefix 16) 'local)))))
+   (let ((prefix (prefix-numeric-value current-prefix-arg)))
+     (list nil
+           (cond  ((eq prefix 4) 'force)
+                  ((eq prefix 16) 'local)))))
   (when (quelpa-setup-p)
     (let* ((quelpa-melpa-recipe-stores
             (list (cl-remove-if-not #'package-installed-p
