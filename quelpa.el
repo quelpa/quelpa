@@ -65,6 +65,13 @@ the `:upgrade' argument."
   :group 'quelpa
   :type 'boolean)
 
+(defcustom quelpa-autoremove-p t
+  "When non-nil, automatically remove old packages after upgrading.
+The global value can be overridden for each package by supplying the
+`:autoremove' argument."
+  :group 'quelpa
+  :type 'boolean)
+
 (defcustom quelpa-verbose t
   "When non-nil, `quelpa' prints log messages."
   :group 'quelpa
@@ -1711,13 +1718,18 @@ If t, `quelpa' tries to do an upgrade.
 
 :stable
 
-If t, `quelpa' tries building the stable version of a package."
+If t, `quelpa' tries building the stable version of a package.
+
+:autoremove
+
+If t, `quelpa' tries to remove obsoleted packages."
   (while plist
     (let ((key (car plist))
           (value (cadr plist)))
       (pcase key
         (:upgrade (setq quelpa-upgrade-p value))
-        (:stable (setq quelpa-stable-p value))))
+        (:stable (setq quelpa-stable-p value))
+        (:autoremove (setq quelpa-autoremove-p value))))
     (setq plist (cddr plist))))
 
 (defun quelpa-package-install-file (file)
@@ -1806,13 +1818,11 @@ the `quelpa' command has been run in the current Emacs session.
 With prefix FORCE, packages will all be upgraded discarding local changes."
   (interactive "P")
   (when (quelpa-setup-p)
-    (let ((quelpa-upgrade-p t))
-      (when quelpa-self-upgrade-p
-        (quelpa-self-upgrade))
-      (mapc (lambda (item)
-              (when (package-installed-p (car (quelpa-arg-rcp item)))
-                (quelpa item :force force)))
-            quelpa-cache))))
+    (when quelpa-self-upgrade-p
+      (quelpa-self-upgrade))
+    (mapc (lambda (rcp)
+            (quelpa-upgrade rcp (when force 'force)))
+          quelpa-cache)))
 
 ;;;###autoload
 (defun quelpa-upgrade (rcp &optional action)
@@ -1827,14 +1837,16 @@ Optionally, ACTION can be passed for non-interactive call with value of:
            (cond  ((eq prefix 4) 'force)
                   ((eq prefix 16) 'local)))))
   (when (quelpa-setup-p)
-    (let* ((quelpa-melpa-recipe-stores
-            (list (cl-remove-if-not #'package-installed-p
-                                    quelpa-cache :key #'car)))
-           (rcp (or rcp (quelpa-interactive-candidate)))
+    (let* ((rcp (or rcp
+                    (let ((quelpa-melpa-recipe-stores
+                           (list (cl-remove-if-not #'package-installed-p
+                                                   quelpa-cache :key #'car))))
+                      (quelpa-interactive-candidate))))
            (quelpa-upgrade-p t)
            (current-prefix-arg nil)
-           (config (cond ((eq action 'force) `(:force t))
-                         ((eq action 'local) `(:use-current-ref t)))))
+           (config (append (cond ((eq action 'force) `(:force t))
+                                 ((eq action 'local) `(:use-current-ref t)))
+                           `(:autoremove quelpa-autoremove-p))))
       (when (package-installed-p (car (quelpa-arg-rcp rcp)))
         (apply #'quelpa rcp config)))))
 
@@ -1853,15 +1865,19 @@ nil."
   (interactive (list nil))
   (run-hooks 'quelpa-before-hook)
   (when (quelpa-setup-p) ;if init fails we do nothing
-    (let* ((quelpa-melpa-recipe-stores `(,quelpa-cache ,@quelpa-melpa-recipe-stores))
-           (arg (or arg (quelpa-interactive-candidate)))
+    (let* ((arg (or arg
+                    (let ((quelpa-melpa-recipe-stores
+                           `(,quelpa-cache ,@quelpa-melpa-recipe-stores)))
+                      (quelpa-interactive-candidate))))
            (quelpa-upgrade-p (if current-prefix-arg t quelpa-upgrade-p)) ;shadow `quelpa-upgrade-p'
            (quelpa-stable-p quelpa-stable-p) ;shadow `quelpa-stable-p'
+           (quelpa-autoremove-p (if current-prefix-arg quelpa-autoremove-p nil))
            (cache-item (quelpa-arg-rcp arg)))
       (quelpa-parse-plist plist)
       (quelpa-parse-stable cache-item)
       (apply #'quelpa-package-install arg plist)
-      (quelpa--delete-obsoleted-package (car cache-item))
+      (when quelpa-autoremove-p
+        (quelpa--delete-obsoleted-package (car cache-item)))
       (quelpa-update-cache cache-item)))
   (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
@@ -1877,8 +1893,7 @@ With prefix FORCE, packages will all be upgraded discarding local changes."
                 (> (- (time-to-seconds) ; Current time - modification time.
                       (time-to-seconds (nth 5 (file-attributes timestamp))))
                    (* 60 60 24 quelpa-upgrade-interval)))
-        (let ((current-prefix-arg force))
-          (quelpa-upgrade-all))
+        (quelpa-upgrade-all force)
         (write-region "" nil timestamp)))))
 
 (provide 'quelpa)
