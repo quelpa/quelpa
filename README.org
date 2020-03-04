@@ -8,6 +8,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 * News
 
+- 2020/03/04: Obsoleted packages will automatically be removed when newer package installed successfully
 - 2020/03/02: Emacs 24 is not supported anymore, please upgrade to use =quelpa=
 - 2020/03/02: *BREAKING CHANGE* =bootstrap.el= has been deprecated, please change your bootstrapping snippet as documented in the Installation section below.
 
