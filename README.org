@@ -8,6 +8,7 @@ Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 * News
 
+- 2020/03/04: Obsoleted packages will automatically be removed when newer package installed successfully
 - 2020/03/02: Emacs 24 is not supported anymore, please upgrade to use =quelpa=
 - 2020/03/02: *BREAKING CHANGE* =bootstrap.el= has been deprecated, please change your bootstrapping snippet as documented in the Installation section below.
 
@@ -138,7 +139,6 @@ To run =quelpa-upgrade-all= at most every 7 days, after all the init files are l
 
 Quelpa installs packages using Emacs's built-in package library, =package.el=, so after installing a package with Quelpa, you can view its status and remove it using =M-x list-packages RET=.  Note that deleting a package this way does not yet affect Quelpa's cache, so Quelpa will still consider the package to have been installed with Quelpa.
 
-+As well, Quelpa does not automatically remove obsolete package versions after upgrading.  To delete obsolete package versions manually, use =M-x list-packages RET=, then press =~= to mark all obsolete packages for deletion, and press =x= to delete them.+
 Quelpa will automatically remove obsoleted package versions after upgrading.
 
 ** Using tagged versions
