@@ -122,7 +122,7 @@ When evaluating a buffer of =quelpa= calls, you may prevent a package from being
 
 *** Upgrading all packages
 
-You may choose to upgrade all Quelpa-installed packages at Emacs startup, but that can slow down Emacs's startup considerably.  
+You may choose to upgrade all Quelpa-installed packages at Emacs startup, but that can slow down Emacs's startup considerably.
 
 Alternatively, you may upgrade all Quelpa-installed packages using =M-x quelpa-upgrade-all RET=.  This command relies on the cache file, set in variable =quelpa-cache-file=.  It is updated after every =quelpa= invocation.
 
@@ -139,18 +139,24 @@ To run =quelpa-upgrade-all= at most every 7 days, after all the init files are l
 
 Quelpa installs packages using Emacs's built-in package library, =package.el=, so after installing a package with Quelpa, you can view its status and remove it using =M-x list-packages RET=.  Note that deleting a package this way does not yet affect Quelpa's cache, so Quelpa will still consider the package to have been installed with Quelpa.
 
-Quelpa will automatically remove obsoleted package versions after upgrading.
+Quelpa will automatically remove obsoleted package versions after upgrading.  Disable this by setting =quelpa-autoremove-p= to =nil=.
+
+Alternatively, you may prevent a package old version from being removed by setting =:autoremove nil=, like =(quelpa 'foo :autoremove nil)=.
+
+Also, here is the default actions of each Quelpa command related to removing packages:
+- =M-x quelpa-upgrade-all=, =M-x quelpa-upgrade=, =C-u M-x quelpa= will by default *remove* obsoleted packages
+- =M-x quelpa= will by default *not remove* obsoleted package.
 
 ** Using tagged versions
 
 Quelpa can be instructed to build tagged versions of packages.  This means that the Git or Mercurial repository is queried for a tagged version, and if one is found, that version will be built.  For more information please see [[https://github.com/melpa/melpa#stable-packages][MELPA's notes on stable packages]].
 
-To enable building of tagged versions globally, set variable =quelpa-stable-p= to =t=.  
+To enable building of tagged versions globally, set variable =quelpa-stable-p= to =t=.
 
 To do so for a single package:
 
 +  Using the =quelpa= command, use the command's keyword argument =:stable=, like ~(quelpa 'package-name :stable t)~.
-+  In a package's recipe, use the same keyword, like ~(quelpa '(package-name :stable t))~.  
++  In a package's recipe, use the same keyword, like ~(quelpa '(package-name :stable t))~.
 
 Using the argument to the =quelpa= command overrides the global setting =quelpa-stable-p=, and using the argument in a recipe overrides both the command argument and the global setting.
 
@@ -173,7 +179,7 @@ The =url= fetcher builds packages from single =.el= files.  The URL may be a rem
 #+END_SRC
 
 *Note:*
-+  By default, upgrades are managed through file hashes, so if the content has changed, Quelpa will upgrade the package.  
++  By default, upgrades are managed through file hashes, so if the content has changed, Quelpa will upgrade the package.
 +  Existing version numbers are retained.  Quelpa uses a version suffix that allows the original version to retain priority, so if you install a package from another source with the same version, it will be preferred.
      - To omit the Quelpa-specific version suffix, use the parameter =:version original=.  For example:
 
