@@ -212,6 +212,18 @@ It also builds multi-file packages from a local directory.  For example:
 +  Specifying a directory for =:path= does not retain existing version numbers, nor does it respect the =:version original= parameter.
 +  Paths are expanded with =expand-file-name=, so =~= in path names is expanded to the user's home directory.
 
+*** Github SSH
+
+The =github-ssh= fetcher builds packages from =github ssh= link, it's alternative of =github= fetcher which builds packages from =https= link. For example, the following recipe will clone =Quelpa= from =git@github.com:quelpa/quelpa.git= and builds it:
+
+#+BEGIN_SRC elisp
+  (quelpa '(quelpa :fetcher github-ssh :repo "quelpa/quelpa"))
+#+END_SRC
+
+*Note:*
++ You should setup [[https://help.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent][Github ssh key]] before using this.
++ This fetcher will come handy when you want to modify the packages and contribute back without the needs of enter password everytime.
+
 ** Additional options
 
 *** Prevent updating of MELPA repo on Emacs startup

@@ -952,6 +952,11 @@ This will perform an checkout or a reset if FORCE."
   (let ((url (format "https://github.com/%s.git" (plist-get config :repo))))
     (quelpa-build--checkout-git name (plist-put (copy-sequence config) :url url) dir)))
 
+(defun quelpa-build--checkout-github-ssh (name config dir)
+  "Check package NAME with config CONFIG out of github into DIR."
+  (let ((url (format "git@github.com:%s.git" (plist-get config :repo))))
+    (quelpa-build--checkout-git name (plist-put (copy-sequence config) :url url) dir)))
+
 (defun quelpa-build--checkout-gitlab (name config dir)
   "Check package NAME with config CONFIG out of gitlab into DIR."
   (let ((url (format "https://gitlab.com/%s.git" (plist-get config :repo))))
