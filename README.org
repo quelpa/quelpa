@@ -221,7 +221,7 @@ The =github-ssh= fetcher builds packages from =github ssh= link, it's alternativ
 #+END_SRC
 
 *Note:*
-+ You should setup [Github ssh key](https://help.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) before using this.
++ You should setup [[https://help.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent][Github ssh key]] before using this.
 + This fetcher will come handy when you want to modify the packages and contribute back without the needs of enter password everytime.
 
 ** Additional options
