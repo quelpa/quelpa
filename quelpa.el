@@ -257,7 +257,9 @@ already and should not be upgraded etc)."
                                (quelpa-build--config-file-list (cdr rcp))
                                build-dir
                                quelpa-packages-dir))
-      (quelpa-build--message "Newer package has been installed. Not updating.")
+      (quelpa-build--message "Newer package has been installed. Not upgrading.")
+      (when (fboundp 'package--quickstart-maybe-refresh)
+        (package--quickstart-maybe-refresh))
       nil)))
 
 ;; --- package-build.el integration ------------------------------------------
