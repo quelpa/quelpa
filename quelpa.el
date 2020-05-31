@@ -224,11 +224,13 @@ On error return nil."
            ;; Also check built-in packages.
            (package-built-in-p name (version-to-list version)))))
 
+(defvar quelpa--override-version-check nil)
 (defun quelpa-checkout (rcp dir)
   "Return the version of the new package given a RCP and DIR.
 Return nil if the package is already installed and should not be upgraded."
   (pcase-let ((`(,name . ,config) rcp)
-              (quelpa-build-stable quelpa-stable-p))
+              (quelpa-build-stable quelpa-stable-p)
+              (quelpa--override-version-check quelpa--override-version-check))
     (unless (or (and (assq name package-alist) (not quelpa-upgrade-p))
                 (and (not config)
                      (quelpa-message t "no recipe found for package `%s'" name)))
@@ -237,7 +239,8 @@ Return nil if the package is already installed and should not be upgraded."
                        (error
                         (error "Failed to checkout `%s': `%s'"
                                name (error-message-string err))))))
-        (when (quelpa-version>-p name version)
+        (when (or quelpa--override-version-check
+                  (quelpa-version>-p name version))
           version)))))
 
 (defun quelpa-build (rcp)
@@ -873,6 +876,7 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
     (when (string-match (rx bos "file://" (group (1+ anything))) repo)
       ;; Expand local file:// URLs
       (setq repo (expand-file-name (match-string 1 repo))))
+    (setq quelpa--override-version-check use-current-ref)
     (with-current-buffer (get-buffer-create "*quelpa-build-checkout*")
       (goto-char (point-max))
       (cond
@@ -1758,19 +1762,22 @@ So here we replace that with `insert-file-contents' for non-tar files."
 (defun quelpa-package-install (arg &rest plist)
   "Build and install package from ARG (a recipe or package name).
 PLIST is a plist that may modify the build and/or fetch process.
-If the package has dependencies recursively call this function to install them."
+If the package has dependencies recursively call this function to install them.
+Return new package version."
   (let* ((rcp (quelpa-arg-rcp arg))
          (file (when rcp (quelpa-build (append rcp plist)))))
     (when file
       (let* ((pkg-desc (quelpa-get-package-desc file))
-             (requires (package-desc-reqs pkg-desc)))
+             (requires (package-desc-reqs pkg-desc))
+             (ver (package-desc-version pkg-desc)))
         (when requires
           (mapc (lambda (req)
                   (unless (or (equal 'emacs (car req))
                               (package-installed-p (car req) (cadr req)))
                     (quelpa-package-install (car req))))
                 requires))
-        (quelpa-package-install-file file)))))
+        (quelpa-package-install-file file)
+        ver))))
 
 (defun quelpa-interactive-candidate ()
   "Query the user for a recipe and return the name or recipe."
@@ -1786,13 +1793,23 @@ If the package has dependencies recursively call this function to install them."
                                              recipes nil t))))
       (or (assoc recipe recipes) recipe))))
 
-(defun quelpa--delete-obsoleted-package (name)
-  "Delete obsoleted packages with name NAME."
-  (mapc (lambda (pkg-desc)
-          (with-demoted-errors "Error deleting package: %S"
-            (let ((inhibit-message t))
-              (package-delete pkg-desc))))
-        (cddr (assoc name package-alist))))
+(defun quelpa--delete-obsoleted-package (name &optional new-version)
+  "Delete obsoleted packages with name NAME.
+With NEW-VERSION, will delete obsoleted packages that are not in same
+version."
+  (when-let* ((all-pkgs (alist-get name package-alist))
+              (new-pkg-version (or new-version
+                                   (package-desc-version (car all-pkgs)))))
+    (with-demoted-errors "Error deleting package: %S"
+      (mapc (lambda (pkg-desc)
+              (unless (equal (package-desc-version pkg-desc)
+                             new-pkg-version)
+                (let ((inhibit-message t))
+                  (package-delete pkg-desc 'force))))
+            all-pkgs))
+    ;; Only packages with same version remained. Just pick the first one.
+    (when-let (all-pkgs (alist-get name package-alist))
+      (setf (cdr all-pkgs) nil))))
 
 ;; --- public interface ------------------------------------------------------
 
@@ -1883,9 +1900,9 @@ nil."
            (cache-item (quelpa-arg-rcp arg)))
       (quelpa-parse-plist plist)
       (quelpa-parse-stable cache-item)
-      (apply #'quelpa-package-install arg plist)
-      (when quelpa-autoremove-p
-        (quelpa--delete-obsoleted-package (car cache-item)))
+      (let ((ver (apply #'quelpa-package-install arg plist)))
+        (when quelpa-autoremove-p
+          (quelpa--delete-obsoleted-package (car cache-item) ver)))
       (quelpa-update-cache cache-item)))
   (quelpa-shutdown)
   (run-hooks 'quelpa-after-hook))
