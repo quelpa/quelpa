@@ -138,7 +138,7 @@ update an existing cache item."
 (quelpa-deftest stable ()
   (cl-letf ((quelpa-cache nil)
             ((symbol-function 'quelpa-package-install) 'ignore))
-    (quelpa '(2048-game :fetcher hg :url "https://bitbucket.org/zck/2048.el" :stable t))
+    (quelpa '(2048-game :fetcher hg :url "https://hg.sr.ht/~zck/game-2048" :stable t))
     (quelpa 'elx :stable t)
     (let ((quelpa-stable-p t))
       (quelpa 'imgur))
@@ -170,7 +170,9 @@ update an existing cache item."
   (should-install 2048-game)
   ;; [2020-01-26 Sun 00:07] Nose repo is uncloneable due to TLS error,
   ;; but probably a local problem.
-  (should-install nose))
+  ;; There is no package nose
+  ;; (should-install nose)
+  (should-install minesweeper))
 
 (quelpa-deftest svn ()
   (should-install (confluence
