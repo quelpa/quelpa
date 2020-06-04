@@ -1797,8 +1797,8 @@ Return new package version."
   "Delete obsoleted packages with name NAME.
 With NEW-VERSION, will delete obsoleted packages that are not in same
 version."
-  (when-let* ((all-pkgs (alist-get name package-alist))
-              (new-pkg-version (or new-version
+  (when-let ((all-pkgs (alist-get name package-alist))
+             (new-pkg-version (or new-version
                                    (package-desc-version (car all-pkgs)))))
     (with-demoted-errors "Error deleting package: %S"
       (mapc (lambda (pkg-desc)
