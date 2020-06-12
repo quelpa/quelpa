@@ -213,16 +213,28 @@ On error return nil."
      (format "%s-%s.%s" name version (if (eq flavour 'single) "el" "tar"))
      quelpa-packages-dir)))
 
-(defun quelpa-version>-p (name version)
+(defun quelpa-version-cmp (name version op)
+  "Return non-nil if version of pkg with NAME and VERSION satisfies OP.
+OP is taking two version list and comparing."
+  (let ((ver (and version (version-to-list version)))
+        (pkg-ver
+         (or (when-let ((pkg-desc (cdr (assq name package-alist)))
+                        (pkg-ver (package-desc-version (car pkg-desc))))
+               pkg-ver)
+             (alist-get name package--builtin-versions))))
+    (funcall op ver pkg-ver)))
+
+(defmacro quelpa-version>-p (name version)
   "Return non-nil if VERSION of pkg with NAME is newer than what is currently installed."
-  (not (or (not version)
-           (let ((pkg-desc (cdr (assq name package-alist))))
-             (and pkg-desc
-                  (version-list-<=
-                   (version-to-list version)
-                   (package-desc-version (car pkg-desc)))))
-           ;; Also check built-in packages.
-           (package-built-in-p name (version-to-list version)))))
+  `(quelpa-version-cmp ,name ,version (lambda (o1 o2) (not (version-list-<= o1 o2)))))
+
+(defmacro quelpa-version<-p (name version)
+  "Return non-nil if VERSION of pkg with NAME is older than what is currently installed."
+  `(quelpa-version-cmp ,name ,version 'version-list-<))
+
+(defmacro quelpa-version=-p (name version)
+  "Return non-nil if VERSION of pkg with NAME is same which what is currently installed."
+  `(quelpa-version-cmp ,name ,version 'version-list-=))
 
 (defvar quelpa--override-version-check nil)
 (defun quelpa-checkout (rcp dir)
@@ -239,9 +251,14 @@ Return nil if the package is already installed and should not be upgraded."
                        (error
                         (error "Failed to checkout `%s': `%s'"
                                name (error-message-string err))))))
-        (when (or quelpa--override-version-check
-                  (quelpa-version>-p name version))
-          version)))))
+        (cond
+          ((and quelpa--override-version-check
+                (quelpa-version=-p name version))
+           (setq version (concat version ".1"))
+           version)
+          ((or quelpa--override-version-check
+               (quelpa-version>-p name version))
+           version))))))
 
 (defun quelpa-build (rcp)
   "Build a package from the given recipe RCP.
