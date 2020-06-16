@@ -216,12 +216,13 @@ On error return nil."
 (defun quelpa-version-cmp (name version op)
   "Return non-nil if version of pkg with NAME and VERSION satisfies OP.
 OP is taking two version list and comparing."
-  (let ((ver (and version (version-to-list version)))
+  (let ((ver (if version (version-to-list version) '(0 -5)))
         (pkg-ver
          (or (when-let ((pkg-desc (cdr (assq name package-alist)))
                         (pkg-ver (package-desc-version (car pkg-desc))))
                pkg-ver)
-             (alist-get name package--builtin-versions))))
+             (alist-get name package--builtin-versions)
+             '(0 -5))))
     (funcall op ver pkg-ver)))
 
 (defmacro quelpa-version>-p (name version)
