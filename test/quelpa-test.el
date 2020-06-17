@@ -85,9 +85,12 @@ Defines ERT test with `quelpa-' prepended to NAME and
                                           '(20140406 1613)
                                           "Emacs Lisp packages built directly from source"
                                           '((package-build (0))) nil nil "test" nil nil)))))))
+    (should-not (quelpa-version>-p 'quelpa nil))
     (should-not (quelpa-version>-p 'quelpa "0"))
     (should-not (quelpa-version>-p 'quelpa "20140406.1613"))
     (should (quelpa-version>-p 'quelpa "20140406.1614"))
+    ;; For not installed package, it should always older than any package version
+    (should (quelpa-version>-p 'foo "0snapshot0.0.1"))
     (let ((package--builtin-versions '((foobar . (20140406 1613)))))
       (should-not (quelpa-version>-p 'foobar "0"))
       (should-not (quelpa-version>-p 'foobar "20140406.1613"))
@@ -194,6 +197,9 @@ update an existing cache item."
                    :fetcher url))
   (should-install (rainbow-mode
                    :url "http://git.savannah.gnu.org/cgit/emacs/elpa.git/plain/packages/rainbow-mode/rainbow-mode.el"
+                   :fetcher url))
+  (should-install (thingatpt+
+                   :url "https://raw.githubusercontent.com/emacsmirror/emacswiki.org/master/thingatpt+.el"
                    :fetcher url)))
 
 (quelpa-deftest file ()
