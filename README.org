@@ -66,7 +66,7 @@ You may install =quelpa= like this:
 #+BEGIN_SRC elisp
 (unless (package-installed-p 'quelpa)
     (with-temp-buffer
-      (url-insert-file-contents "https://github.com/quelpa/quelpa/raw/master/quelpa.el")
+      (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
       (eval-buffer)
       (quelpa-self-upgrade)))
 #+END_SRC
