@@ -3,6 +3,7 @@
 [[logo/quelpa-logo-h64.png]]
 
 [[https://melpa.org/#/quelpa][file:https://melpa.org/packages/quelpa-badge.svg]]
+[[https://stable.melpa.org/#/quelpa][file:https://stable.melpa.org/packages/quelpa-badge.svg]]
 
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
