@@ -1804,7 +1804,7 @@ Return new package version."
                       for store in quelpa-melpa-recipe-stores
                       if (stringp store)
                       ;; this regexp matches all files except dotfiles
-                      append (directory-files store nil "^[^.].+$")
+                      append (directory-files store nil "^[^.].*$")
                       else if (listp store)
                       append store))
             (recipe (intern (completing-read "Choose MELPA recipe: "
