@@ -271,17 +271,18 @@ already and should not be upgraded etc)."
   (let* ((name (car rcp))
          (build-dir (expand-file-name (symbol-name name) quelpa-build-dir))
          (version (quelpa-checkout rcp build-dir)))
-    (if version
-        (quelpa-archive-file-name
-         (quelpa-build-package (symbol-name name)
-                               version
-                               (quelpa-build--config-file-list (cdr rcp))
-                               build-dir
-                               quelpa-packages-dir))
-      (quelpa-build--message "Newer package has been installed. Not upgrading.")
+    (prog1
+        (if version
+            (quelpa-archive-file-name
+             (quelpa-build-package (symbol-name name)
+                                   version
+                                   (quelpa-build--config-file-list (cdr rcp))
+                                   build-dir
+                                   quelpa-packages-dir))
+          (quelpa-build--message "Newer package has been installed. Not upgrading.")
+          nil)
       (when (fboundp 'package--quickstart-maybe-refresh)
-        (package--quickstart-maybe-refresh))
-      nil)))
+        (package--quickstart-maybe-refresh)))))
 
 ;; --- package-build.el integration ------------------------------------------
 
