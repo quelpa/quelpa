@@ -47,18 +47,14 @@ Defines ERT test with `quelpa-' prepended to NAME and
   "Ensure `quelpa-arg-rcp' always returns the correct RCP format."
   (let ((quelpa-rcp '(quelpa :repo "quelpa/quelpa" :fetcher github))
         (package-build-rcp '(package-build :repo "melpa/package-build" :fetcher github)))
-    (should
-     (equal
-      (quelpa-arg-rcp quelpa-rcp)
-      quelpa-rcp))
-    (should
-     (equal
-      (quelpa-arg-rcp 'package-build)
-      package-build-rcp))
-    (should
-     (equal
-      (quelpa-arg-rcp '(package-build))
-      package-build-rcp))))
+    (should (equal (quelpa-arg-rcp quelpa-rcp)
+                   quelpa-rcp))
+    (should (equal (quelpa-arg-rcp 'package-build)
+                   package-build-rcp))
+    (should (equal (quelpa-arg-rcp '(package-build))
+                   package-build-rcp))
+    (should (equal (quelpa-arg-rcp "package-build")
+                   package-build-rcp))))
 
 (quelpa-deftest version>-p ()
   "Passed version should correctly be tested against the mocked
@@ -119,7 +115,8 @@ Defines ERT test with `quelpa-' prepended to NAME and
   "Ensure that installing a package with a different recipe will
 update an existing cache item."
   (cl-letf ((quelpa-cache nil)
-            ((symbol-function 'quelpa-package-install) 'ignore))
+            ((symbol-function 'quelpa-package-install) (lambda (&rest _) '(1 0)))
+            ((symbol-function 'quelpa--delete-obsoleted-package) 'ignore))
     (quelpa '(makey :fetcher github :repo "mickeynp/makey"))
     (quelpa 'makey)
     (should (equal quelpa-cache '((makey :fetcher github :repo "mickeynp/makey"))))
@@ -129,13 +126,18 @@ update an existing cache item."
 
 (quelpa-deftest cache-regressions ()
   (cl-letf ((quelpa-cache nil)
-            ((symbol-function 'quelpa-package-install) 'ignore))
+            ((symbol-function 'quelpa-package-install) (lambda (&rest _) '(1 0)))
+            ((symbol-function 'quelpa--delete-obsoleted-package) 'ignore))
     (quelpa '(multiple-cursors :fetcher github :repo "magnars/multiple-cursors.el" :stable t))
-    (should (equal quelpa-cache '((multiple-cursors :fetcher github :repo "magnars/multiple-cursors.el" :stable t))))
+    (should (equal quelpa-cache '((multiple-cursors :fetcher github
+                                                    :repo "magnars/multiple-cursors.el"
+                                                    :stable t))))
     (let ((quelpa-stable-p t))
-      (quelpa '(multiple-cursors :fetcher github :repo "magnars/multiple-cursors.el")
+      (quelpa '(multiple-cursors :fetcher github
+                                 :repo "magnars/multiple-cursors.el")
               :stable nil))
-    (should (equal quelpa-cache '((multiple-cursors :fetcher github :repo "magnars/multiple-cursors.el"))))))
+    (should (equal quelpa-cache '((multiple-cursors :fetcher github
+                                                    :repo "magnars/multiple-cursors.el"))))))
 
 (quelpa-deftest stable ()
   (cl-letf ((quelpa-cache nil)
