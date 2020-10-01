@@ -213,16 +213,17 @@ On error return nil."
      (format "%s-%s.%s" name version (if (eq flavour 'single) "el" "tar"))
      quelpa-packages-dir)))
 
+(defconst quelpa--min-ver '(0 -10) "Smallest possible version.")
 (defun quelpa-version-cmp (name version op)
   "Return non-nil if version of pkg with NAME and VERSION satisfies OP.
 OP is taking two version list and comparing."
-  (let ((ver (if version (version-to-list version) '(0 -5)))
+  (let ((ver (if version (version-to-list version) quelpa--min-ver))
         (pkg-ver
          (or (when-let ((pkg-desc (cdr (assq name package-alist)))
                         (pkg-ver (package-desc-version (car pkg-desc))))
                pkg-ver)
              (alist-get name package--builtin-versions)
-             '(0 -5))))
+             quelpa--min-ver)))
     (funcall op ver pkg-ver)))
 
 (defmacro quelpa-version>-p (name version)
@@ -237,12 +238,12 @@ OP is taking two version list and comparing."
   "Return non-nil if VERSION of pkg with NAME is same which what is currently installed."
   `(quelpa-version-cmp ,name ,version 'version-list-=))
 
-(defmacro quelpa--package-installed-p (package &optional min-version)
+(defun quelpa--package-installed-p (package &optional min-version)
   "Return non-nil if PACKAGE, of MIN-VERSION or newer, is installed.
 Like `package-installed-p' but properly check for built-in package even when all
 packages are not initialized."
-  `(or (package-installed-p ,package ,min-version)
-       (package-built-in-p ,package ,min-version)))
+  (or (package-installed-p package (or min-version quelpa--min-ver))
+      (package-built-in-p package (or min-version quelpa--min-ver))))
 
 (defvar quelpa--override-version-check nil)
 (defun quelpa-checkout (rcp dir)
@@ -1799,7 +1800,7 @@ Return new package version."
         (when requires
           (mapc (lambda (req)
                   (unless (or (equal 'emacs (car req))
-                              (package-installed-p (car req) (cadr req)))
+                              (quelpa--package-installed-p (car req) (cadr req)))
                     (quelpa-package-install (car req))))
                 requires))
         (quelpa-package-install-file file)
@@ -1891,7 +1892,7 @@ Optionally, ACTION can be passed for non-interactive call with value of:
   (when (quelpa-setup-p)
     (let* ((rcp (or rcp
                     (let ((quelpa-melpa-recipe-stores
-                           (list (cl-remove-if-not #'package-installed-p
+                           (list (cl-remove-if-not #'quelpa--package-installed-p
                                                    quelpa-cache :key #'car))))
                       (quelpa-interactive-candidate))))
            (quelpa-upgrade-p t)
@@ -1899,7 +1900,7 @@ Optionally, ACTION can be passed for non-interactive call with value of:
            (config (append (cond ((eq action 'force) `(:force t))
                                  ((eq action 'local) `(:use-current-ref t)))
                            `(:autoremove ,quelpa-autoremove-p))))
-      (when (package-installed-p (car (quelpa-arg-rcp rcp)))
+      (when (quelpa--package-installed-p (car (quelpa-arg-rcp rcp)))
         (apply #'quelpa rcp config)))))
 
 ;;;###autoload
