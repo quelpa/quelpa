@@ -5,7 +5,7 @@
 
 ;; Author: steckerhalter
 ;; URL: https://github.com/quelpa/quelpa
-;; Version: 0.0.1
+;; Version: 1.0
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: tools package management build source elpa
 
