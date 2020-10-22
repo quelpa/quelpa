@@ -66,7 +66,7 @@ You may install =quelpa= like this:
 + If you want to bootstrap =quelpa= automatically from your init file, you can use this snippet:
 
 #+BEGIN_SRC elisp
-(unless (package-installed-p 'quelpa)
+  (unless (package-installed-p 'quelpa)
     (with-temp-buffer
       (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
       (eval-buffer)
@@ -134,8 +134,8 @@ By default, when upgrading all packages, Quelpa also upgrades itself.  Disable t
 To run =quelpa-upgrade-all= at most every 7 days, after all the init files are loaded:
 
 #+BEGIN_SRC elisp
-(setq quelpa-upgrade-interval 7)
-(add-hook #'after-init-hook #'quelpa-upgrade-all-maybe)
+  (setq quelpa-upgrade-interval 7)
+  (add-hook #'after-init-hook #'quelpa-upgrade-all-maybe)
 #+END_SRC
 
 ** Managing packages
