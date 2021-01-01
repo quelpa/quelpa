@@ -1688,12 +1688,17 @@ Return t in each case."
              (not (plist-get (cdr cache-item) :stable)))
     (setf (cdr (last cache-item)) '(:stable t))))
 
-(defun quelpa-checkout-melpa ()
+;;;###autoload
+(defun quelpa-checkout-melpa (&optional force)
   "Fetch or update the melpa source code from Github.
 If there is no error return non-nil.
 If there is an error but melpa is already checked out return non-nil.
-If there is an error and no existing checkout return nil."
-  (or (and (null quelpa-update-melpa-p)
+If there is an error and no existing checkout return nil.
+
+When FORCE is non-nil we will always update MELPA regrdless of
+`quelpa-update-melpa-p`."
+  (interactive "p")
+  (or (and (not (or force quelpa-update-melpa-p))
            (file-exists-p (expand-file-name ".git" quelpa-melpa-dir)))
       (condition-case err
           (quelpa-build--checkout-git
@@ -1726,8 +1731,9 @@ Return non-nil if quelpa has been initialized properly."
       (unless (file-exists-p dir) (make-directory dir t)))
     (unless quelpa-initialized-p
       (quelpa-read-cache)
-      (if quelpa-checkout-melpa-p
-          (unless (quelpa-checkout-melpa) (throw 'quit nil)))
+      (when (and quelpa-checkout-melpa-p
+                 (not (quelpa-checkout-melpa)))
+        (throw 'quit nil))
       (unless package-alist (package-load-all-descriptors))
       (setq quelpa-initialized-p t))
     t))
