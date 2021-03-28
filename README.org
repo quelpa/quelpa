@@ -48,7 +48,7 @@ You can build and install packages from (fetcher names in parens): Git (=git=), 
 
 - Emacs 25.1
 - tar
-- git: [[http://git-scm.com/]]
+- git (recommend version >= 2.20): [[http://git-scm.com/]]
 
 Every build requires the corresponding build tool. To install a =subversion= hosted package, you need to have =subversion= installed.
 
