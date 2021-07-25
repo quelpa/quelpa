@@ -649,8 +649,8 @@ This is used to avoid exceeding the rate limit of 1 request per 2
 seconds; the server cuts off after 10 requests in 20 seconds.")
 
 (defvar quelpa-build--wiki-min-request-interval 3
-  "The shortest permissible interval between successive requests for Emacswiki URLs.")
-
+  "The shortest permissible interval between successive requests for Emacswiki
+URLs.")
 (defmacro quelpa-build--with-wiki-rate-limit (&rest body)
   "Rate-limit BODY code passed to this macro to match EmacsWiki's rate limiting."
   (let ((elapsed (cl-gensym)))
@@ -1368,7 +1368,6 @@ for ALLOW-EMPTY to prevent this error."
                           t)))
               (nconc
                lst (mapcar (lambda (f)
-                             (let ((destname)))
                              (cons f
                                    (concat prefix
                                            (replace-regexp-in-string
