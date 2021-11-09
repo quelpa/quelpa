@@ -9,6 +9,7 @@
 Build and install your Emacs Lisp packages on-the-fly and directly from source.
 
 * News
+- 2021/12/28: Add new option =quelpa-use-async-p= that allows to run quelpa in external process when [[https://github.com/jwiegley/emacs-async][emacs-async]] is installed.
 - 2021/03/12: Switch default from shallow clone to partial clone for git recipes 
 - 2020/03/04: Obsoleted packages will automatically be removed when newer package installed successfully
 - 2020/03/02: Emacs 24 is not supported anymore, please upgrade to use =quelpa=
