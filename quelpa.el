@@ -318,9 +318,7 @@ already and should not be upgraded etc)."
                                    build-dir
                                    (quelpa-packages-dir)))
           (quelpa-build--message "Newer package `%s' has been installed. Not upgrading." name)
-          nil)
-      (when (fboundp 'package--quickstart-maybe-refresh)
-        (package--quickstart-maybe-refresh)))))
+          nil))))
 
 ;; --- package-build.el integration ------------------------------------------
 
@@ -1862,6 +1860,8 @@ Return new package version."
                     (quelpa-package-install (car req))))
                 requires))
         (quelpa-package-install-file file)
+        (when (fboundp 'package--quickstart-maybe-refresh)
+          (package--quickstart-maybe-refresh))
         ver))))
 
 (defun quelpa-interactive-candidate ()
@@ -2022,6 +2022,7 @@ given package and remove any old versions of it even if the
               (async-start `(lambda ()
                               (package-initialize)
                               ;; update melpa should be done in main process
+                              (setq package-quickstart ,package-quickstart)
                               (setq create-lockfiles nil)
                               (setq quelpa-update-melpa-p nil)
                               (setq quelpa-use-async-p nil)
