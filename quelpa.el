@@ -1661,6 +1661,11 @@ attribute with an URL like \"http://domain.tld/path/to/file.el\"."
     (unless (file-directory-p dir)
       (make-directory dir))
     (url-copy-file url local-path t)
+    (with-temp-buffer
+      (insert-file-contents local-path)
+      (quelpa-build--update-or-insert-version "0")
+      (quelpa-build--ensure-ends-here-line local-path)
+      (write-file local-path nil))
     (quelpa-check-hash name config local-path dir 'url)))
 
 ;; --- helpers ---------------------------------------------------------------
