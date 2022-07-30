@@ -1206,7 +1206,7 @@ Tests and sets variable `quelpa--tar-type' if not already set."
          "--exclude=_FOSSIL_"
          "--exclude=.bzr"
          "--exclude=.hg"
-         (append (and quelpa-build-explicit-tar-format-p '("--format=gnu"))
+         (append (and quelpa-build-explicit-tar-format-p (eq (quelpa--tar-type) 'gnu) '("--format=gnu"))
                  (or (mapcar (lambda (fn) (concat dir "/" fn)) files) (list dir)))))
 
 (defun quelpa-build--find-package-commentary (file-path)
