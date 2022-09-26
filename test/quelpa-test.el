@@ -73,7 +73,7 @@ Defines ERT test with `quelpa-' prepended to NAME and
                                   (20140406 1613)
                                   "Emacs Lisp packages built directly from source"
                                   ((package-build (0))) nil nil "test" nil nil])))
-                             (t
+                             ((functionp 'record)
                               ;; Emacs 26+ records.
                               `((quelpa
                                  ,(record 'package-desc
