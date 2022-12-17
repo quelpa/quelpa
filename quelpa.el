@@ -288,19 +288,19 @@ already and should not be upgraded etc)."
          (build-dir (expand-file-name (symbol-name name) quelpa-build-dir))
          (ver-type (plist-get (cdr rcp) :version-type))
          (files (quelpa-build--config-file-list (cdr rcp)))
-         (melpa-ver (version-to-list (quelpa-checkout rcp build-dir)))
+         (melpa-ver (quelpa-checkout rcp build-dir))
          (version
-          (package-version-join
-           (cond
-            ((or (not (equal ver-type 'elpa)) quelpa-stable-p) melpa-ver)
-            (t
+          (cond
+           ((or (not (equal ver-type 'elpa)) quelpa-stable-p) melpa-ver)
+           (t
+            (package-version-join
              (let ((base-ver
                     (if-let ((info (quelpa-build--pkg-info (symbol-name name)
                                                            files build-dir)))
                         (aref info 3)
                       '(0 0 0))))
                (while (< (length base-ver) 3) (setq base-ver (append base-ver '(0))))
-               (nconc base-ver melpa-ver)))))))
+               (nconc base-ver (version-to-list melpa-ver))))))))
     (prog1
         (if version
             (quelpa-archive-file-name
