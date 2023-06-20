@@ -170,6 +170,15 @@ update an existing cache item."
   (should-install ag)
   (should-install magit))
 
+(quelpa-deftest gitlab ()
+  (should-install gcmh))
+
+(quelpa-deftest codeberg ()
+  (should-install run-stuff))
+
+(quelpa-deftest sourcehut ()
+  (should-install myrddin-mode))
+
 (quelpa-deftest hg ()
   (should-install 2048-game)
   ;; [2020-01-26 Sun 00:07] Nose repo is uncloneable due to TLS error,
