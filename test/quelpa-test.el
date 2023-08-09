@@ -167,8 +167,7 @@ update an existing cache item."
                    :fetcher github :repo "proofit404/anaconda-mode"
                    :files ("*.el" "*.py" "vendor/jedi/jedi"
                            ("jsonrpc" "vendor/jsonrpc/jsonrpc/*.py"))))
-  (should-install ag)
-  (should-install magit))
+  (should-install ag))
 
 (quelpa-deftest gitlab ()
   (should-install gcmh))
