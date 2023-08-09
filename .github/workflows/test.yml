@@ -75,6 +75,9 @@ jobs:
     # The "all" rule is not used, because it treats compilation warnings
     # as failures, so linting and testing are run as separate steps.
 
+    - name: Compile
+      run: eask compile
+
     - name: Lint
       # NOTE: Uncomment this line to treat lint failures as passing
       #       so the job doesn't show failure.
