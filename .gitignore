@@ -1,2 +1,5 @@
 .vagrant*
 *.elc
+
+/.eask
+/dist
