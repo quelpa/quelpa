@@ -613,6 +613,7 @@ NAME and BUFFER is the same with `make-process'."
                                          (unless (process-live-p proc)
                                            (setq exit-code (process-exit-status proc))
                                            (quelpa--exit-recursive-edit-debounce)))))
+    (setq tmp proc)
     (while (process-live-p proc)
       ;; allow the user to continue to use Emacs while waiting
       (recursive-edit))
@@ -627,7 +628,7 @@ Output is written to the current buffer."
                                                        quelpa-build-dir
                                                        temporary-file-directory)))
         (argv (nconc (unless (eq system-type 'windows-nt)
-                       (list "env" "LC_ALL=C"))
+                       (list "env" "LC_ALL=C" "TERM=xterm"))
                      (if quelpa-build-timeout-executable
                          (nconc (list quelpa-build-timeout-executable
                                       "-k" "60" (number-to-string
