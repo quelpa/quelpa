@@ -634,7 +634,7 @@ Output is written to the current buffer."
                                                        quelpa-build-dir
                                                        temporary-file-directory)))
         (argv (nconc (unless (eq system-type 'windows-nt)
-                       (list "env" "LC_ALL=C"))
+                       (list "env" "LC_ALL=C" "TERM=xterm"))
                      (if quelpa-build-timeout-executable
                          (nconc (list quelpa-build-timeout-executable
                                       "-k" "60" (number-to-string
