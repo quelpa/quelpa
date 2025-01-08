@@ -9,21 +9,37 @@ Defines ERT test with `quelpa-' prepended to NAME and
 `ert-deftest', which see."
   (declare (indent 2))
   (let ((name (intern (concat "quelpa-" (symbol-name name))))
+        (name-async (intern (concat "quelpa-" (symbol-name name) "-async")))
         (ert-plist (cl-loop while (keywordp (car body))
                             collect (pop body)
                             collect (pop body))))
-    `(ert-deftest ,name ()
-       ,@ert-plist
-       (should (quelpa-setup-p))
-       (cl-macrolet ((should-install (quelpa-args)
-                                     (let* ((name (pcase quelpa-args
+    `(progn
+       (ert-deftest ,name ()
+         ,@ert-plist
+         (should (quelpa-setup-p))
+         (cl-macrolet ((should-install (quelpa-args)
+                         (let* ((name (pcase quelpa-args
+                                        ((pred atom) quelpa-args)
+                                        (`((,name . ,_) . ,_) name)
+                                        (`(,(and name (pred atom)) . ,_) name))))
+                           `(progn
+                              (quelpa ',quelpa-args)
+                              (should (package-installed-p ',name))))))
+           ,@body))
+
+       (ert-deftest ,name-async ()
+         ,@ert-plist
+         (should (quelpa-setup-p))
+         (cl-macrolet ((should-install (quelpa-args)
+                         (let* ((name (pcase quelpa-args
                                                     ((pred atom) quelpa-args)
                                                     (`((,name . ,_) . ,_) name)
                                                     (`(,(and name (pred atom)) . ,_) name))))
                                        `(progn
                                           (quelpa ',quelpa-args)
                                           (should (package-installed-p ',name))))))
-         ,@body))))
+         (let ((quelpa-async-p t))
+           ,@body))))))
 
 (quelpa-deftest expand-recipe ()
   "Should be expanding correctly as return value and into buffer."
@@ -141,14 +157,31 @@ update an existing cache item."
 
 (quelpa-deftest stable ()
   (cl-letf ((quelpa-cache nil)
-            ((symbol-function 'quelpa-package-install) 'ignore))
+            ((symbol-function 'quelpa-package-install) (lambda (&rest _) "1.0.0"))
+            ((symbol-function 'package-delete) #'ignore))
     (quelpa '(2048-game :fetcher hg :url "https://hg.sr.ht/~zck/game-2048" :stable t))
     (quelpa 'elx :stable t)
     (let ((quelpa-stable-p t))
       (quelpa 'imgur))
-    (should (equal (mapcar (lambda (item) (plist-get item :stable))
+    (should (equal (mapcar (lambda (item) (plist-get (cdr item) :stable))
                            quelpa-cache)
                    '(t t t)))))
+
+(quelpa-deftest stable-upgrade ()
+  ;; FIXME: Fails due to: (void-function quelpa-build--checkout-nil)
+  :expected-result :failed
+  (should-install (anzu :stable t))
+  (should-install ((company :repo "company-mode/company-mode" :fetcher github)
+                   :stable t))
+  (should-install ((scss-mode :repo "antonj/scss-mode" :fetcher github)
+                   :stable t))
+  ;; Upgrade to non-stable.
+  ;; TODO: Probably need to compare versions before and after.
+  (should-install (anzu :upgrade t))
+  (should-install ((company :repo "company-mode/company-mode" :fetcher github)
+                   :upgrade t))
+  (should-install ((scss-mode :repo "antonj/scss-mode" :fetcher github)
+                   :upgrade t)))
 
 ;;;; Installation tests
 
@@ -173,7 +206,7 @@ update an existing cache item."
   (should-install gcmh))
 
 (quelpa-deftest codeberg ()
-  (should-install run-stuff))
+  (should-install spell-fu))
 
 (quelpa-deftest sourcehut ()
   (should-install myrddin-mode))
@@ -220,22 +253,6 @@ update an existing cache item."
                    :files ("*.el" "emacs-helm.sh"
                            (:exclude "helm.el" "helm-lib.el" "helm-source.el" "helm-match-plugin.el" "helm-core-pkg.el"))
                    :path "~/emacs-packages/helm")))
-
-(quelpa-deftest stable ()
-  ;; FIXME: Fails due to: (void-function quelpa-build--checkout-nil)
-  :expected-result :failed
-  (should-install (anzu :stable t))
-  (should-install ((company :repo "company-mode/company-mode" :fetcher github)
-                   :stable t))
-  (should-install ((scss-mode :repo "antonj/scss-mode" :fetcher github)
-                   :stable t))
-  ;; Upgrade to non-stable.
-  ;; TODO: Probably need to compare versions before and after.
-  (should-install (anzu :upgrade t))
-  (should-install ((company :repo "company-mode/company-mode" :fetcher github)
-                   :upgrade t))
-  (should-install ((scss-mode :repo "antonj/scss-mode" :fetcher github)
-                   :upgrade t)))
 
 ;;;; Footer
 
