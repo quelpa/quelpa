@@ -166,6 +166,22 @@ update an existing cache item."
                            quelpa-cache)
                    '(t t t)))))
 
+(quelpa-deftest stable-upgrade ()
+  ;; FIXME: Fails due to: (void-function quelpa-build--checkout-nil)
+  :expected-result :failed
+  (should-install (anzu :stable t))
+  (should-install ((company :repo "company-mode/company-mode" :fetcher github)
+                   :stable t))
+  (should-install ((scss-mode :repo "antonj/scss-mode" :fetcher github)
+                   :stable t))
+  ;; Upgrade to non-stable.
+  ;; TODO: Probably need to compare versions before and after.
+  (should-install (anzu :upgrade t))
+  (should-install ((company :repo "company-mode/company-mode" :fetcher github)
+                   :upgrade t))
+  (should-install ((scss-mode :repo "antonj/scss-mode" :fetcher github)
+                   :upgrade t)))
+
 ;;;; Installation tests
 
 ;; These tests test installing packages from various kinds of repos.
@@ -236,22 +252,6 @@ update an existing cache item."
                    :files ("*.el" "emacs-helm.sh"
                            (:exclude "helm.el" "helm-lib.el" "helm-source.el" "helm-match-plugin.el" "helm-core-pkg.el"))
                    :path "~/emacs-packages/helm")))
-
-(quelpa-deftest stable ()
-  ;; FIXME: Fails due to: (void-function quelpa-build--checkout-nil)
-  :expected-result :failed
-  (should-install (anzu :stable t))
-  (should-install ((company :repo "company-mode/company-mode" :fetcher github)
-                   :stable t))
-  (should-install ((scss-mode :repo "antonj/scss-mode" :fetcher github)
-                   :stable t))
-  ;; Upgrade to non-stable.
-  ;; TODO: Probably need to compare versions before and after.
-  (should-install (anzu :upgrade t))
-  (should-install ((company :repo "company-mode/company-mode" :fetcher github)
-                   :upgrade t))
-  (should-install ((scss-mode :repo "antonj/scss-mode" :fetcher github)
-                   :upgrade t)))
 
 ;;;; Footer
 
