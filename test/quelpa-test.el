@@ -157,12 +157,13 @@ update an existing cache item."
 
 (quelpa-deftest stable ()
   (cl-letf ((quelpa-cache nil)
-            ((symbol-function 'quelpa-package-install) 'ignore))
+            ((symbol-function 'quelpa-package-install) (lambda (&rest _) "1.0.0"))
+            ((symbol-function 'package-delete) #'ignore))
     (quelpa '(2048-game :fetcher hg :url "https://hg.sr.ht/~zck/game-2048" :stable t))
     (quelpa 'elx :stable t)
     (let ((quelpa-stable-p t))
       (quelpa 'imgur))
-    (should (equal (mapcar (lambda (item) (plist-get item :stable))
+    (should (equal (mapcar (lambda (item) (plist-get (cdr item) :stable))
                            quelpa-cache)
                    '(t t t)))))
 

@@ -1775,7 +1775,6 @@ Return t in each case."
   (when (plist-member (cdr cache-item) :stable)
     (setq quelpa-stable-p (plist-get (cdr cache-item) :stable)))
   (when (and quelpa-stable-p
-             (plist-member (cdr cache-item) :stable)
              (not (plist-get (cdr cache-item) :stable)))
     (setf (cdr (last cache-item)) '(:stable t))))
 
