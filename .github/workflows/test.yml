@@ -92,6 +92,8 @@ jobs:
 
     - name: Test
       if: matrix.os == 'ubuntu-latest'
+      env:
+        TERM: xterm
       run: eask test ert ./test/quelpa-test.el
 
 # Local Variables:
