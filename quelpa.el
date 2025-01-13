@@ -1015,7 +1015,7 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
            dir (or commit (concat remote "/" (quelpa-build--git-head-branch dir)))
            force))
         (apply 'quelpa-build--run-process
-               dir "git" "log" "--first-parent" "-n1" "--pretty=format:'\%ci'"
+               dir "git" "--no-pager" "log" "--first-parent" "-n1" "--pretty=format:'\%ci'"
                (quelpa-build--expand-source-file-list dir config))
         (quelpa-build--find-parse-time "\
 \\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} \
