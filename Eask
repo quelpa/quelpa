@@ -1,3 +1,5 @@
+;; -*- mode: eask; lexical-binding: t -*-
+
 (package "quelpa"
          "1.0"
          "Emacs Lisp packages built directly from source")
