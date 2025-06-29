@@ -314,9 +314,7 @@ already and should not be upgraded etc)."
                                    build-dir
                                    quelpa-packages-dir))
           (quelpa-build--message "Newer package has been installed. Not upgrading.")
-          nil)
-      (when (fboundp 'package--quickstart-maybe-refresh)
-        (package--quickstart-maybe-refresh)))))
+          nil)))))
 
 ;; --- package-build.el integration ------------------------------------------
 
