@@ -1,12 +1,45 @@
-(require 'quelpa)
+;;; quelpa-test.el --- Tests for quelpa  -*- lexical-binding: t; -*-
 
+(require 'quelpa)
 (require 'ert)
+
+;;; Test infrastructure
+
+(defmacro quelpa-test-sandbox (&rest body)
+  "Run BODY with all quelpa/package paths redirected to a temp directory.
+Creates a fresh temporary `user-emacs-directory' so that tests never
+install packages into the real Emacs configuration.  The sandbox
+directory is deleted when BODY finishes (or signals)."
+  (declare (indent 0) (debug t))
+  `(let* ((sandbox (make-temp-file "quelpa-test-" t))
+          (user-emacs-directory (file-name-as-directory sandbox))
+          (quelpa-dir (expand-file-name "quelpa" user-emacs-directory))
+          (quelpa-melpa-dir (expand-file-name "melpa" quelpa-dir))
+          (quelpa-build-dir (expand-file-name "build" quelpa-dir))
+          (quelpa-packages-dir (expand-file-name "packages" quelpa-dir))
+          (quelpa-persistent-cache-file (expand-file-name "cache" quelpa-dir))
+          (quelpa-melpa-recipe-stores (list (expand-file-name
+                                            "recipes" quelpa-melpa-dir)))
+           (package-user-dir (expand-file-name "elpa" user-emacs-directory))
+           ;; Reset state so `quelpa-setup-p' re-initializes.
+          (quelpa-initialized-p nil)
+          (quelpa-cache nil)
+          (package-alist nil))
+     ;; Ensure the recipes directory exists so `directory-files'
+     ;; inside `quelpa-get-melpa-recipe' doesn't signal.
+     (make-directory (car quelpa-melpa-recipe-stores) t)
+     (unwind-protect
+         (progn ,@body)
+       (delete-directory sandbox t))))
 
 (defmacro quelpa-deftest (name arglist &rest body)
   "Define Quelpa ERT test.
 Defines ERT test with `quelpa-' prepended to NAME and
 `quelpa-setup-p' as a precondition to BODY.  ARGLIST is passed to
-`ert-deftest', which see."
+`ert-deftest', which see.
+
+Each test runs inside `quelpa-test-sandbox', so packages are
+installed into a disposable temporary directory."
   (declare (indent 2))
   (let ((name (intern (concat "quelpa-" (symbol-name name))))
         (name-async (intern (concat "quelpa-" (symbol-name name) "-async")))
@@ -16,34 +49,43 @@ Defines ERT test with `quelpa-' prepended to NAME and
     `(progn
        (ert-deftest ,name ()
          ,@ert-plist
-         (should (quelpa-setup-p))
-         (cl-macrolet ((should-install (quelpa-args)
-                         (let* ((name (pcase quelpa-args
-                                        ((pred atom) quelpa-args)
-                                        (`((,name . ,_) . ,_) name)
-                                        (`(,(and name (pred atom)) . ,_) name))))
-                           `(progn
-                              (quelpa ',quelpa-args)
-                              (should (package-installed-p ',name))))))
-           ,@body))
+         (quelpa-test-sandbox
+           (should (quelpa-setup-p))
+           (cl-macrolet ((should-install (quelpa-args)
+                           (let* ((name (pcase quelpa-args
+                                          ((pred atom) quelpa-args)
+                                          (`((,name . ,_) . ,_) name)
+                                          (`(,(and name (pred atom)) . ,_) name))))
+                             `(progn
+                                (quelpa ',quelpa-args)
+                                (should (package-installed-p ',name))))))
+             ,@body)))
 
        (ert-deftest ,name-async ()
          ,@ert-plist
-         (should (quelpa-setup-p))
-         (cl-macrolet ((should-install (quelpa-args)
-                         (let* ((name (pcase quelpa-args
-                                                    ((pred atom) quelpa-args)
-                                                    (`((,name . ,_) . ,_) name)
-                                                    (`(,(and name (pred atom)) . ,_) name))))
-                                       `(progn
-                                          (quelpa ',quelpa-args)
-                                          (should (package-installed-p ',name))))))
-         (let ((quelpa-async-p t))
-           ,@body))))))
+         (quelpa-test-sandbox
+           (should (quelpa-setup-p))
+           (cl-macrolet ((should-install (quelpa-args)
+                           (let* ((name (pcase quelpa-args
+                                          ((pred atom) quelpa-args)
+                                          (`((,name . ,_) . ,_) name)
+                                          (`(,(and name (pred atom)) . ,_) name))))
+                             `(progn
+                                (quelpa ',quelpa-args)
+                                (should (package-installed-p ',name))))))
+             (let ((quelpa-async-p t)
+                   (quelpa--in-async-context t))
+               ,@body)))))))
+
+;;; Unit tests (mocked, no network)
 
 (quelpa-deftest expand-recipe ()
   "Should be expanding correctly as return value and into buffer."
   (let ((package-build-rcp '(package-build :repo "melpa/package-build" :fetcher github)))
+    ;; Write a mock recipe file so `quelpa-get-melpa-recipe' can find it.
+    (with-temp-file (expand-file-name "package-build"
+                                      (car quelpa-melpa-recipe-stores))
+      (prin1 package-build-rcp (current-buffer)))
     (should
      (equal
       (quelpa-expand-recipe 'package-build)
@@ -63,6 +105,10 @@ Defines ERT test with `quelpa-' prepended to NAME and
   "Ensure `quelpa-arg-rcp' always returns the correct RCP format."
   (let ((quelpa-rcp '(quelpa :repo "quelpa/quelpa" :fetcher github))
         (package-build-rcp '(package-build :repo "melpa/package-build" :fetcher github)))
+    ;; Write a mock recipe file so bare-name lookups work.
+    (with-temp-file (expand-file-name "package-build"
+                                      (car quelpa-melpa-recipe-stores))
+      (prin1 package-build-rcp (current-buffer)))
     (should (equal (quelpa-arg-rcp quelpa-rcp)
                    quelpa-rcp))
     (should (equal (quelpa-arg-rcp 'package-build)
@@ -134,7 +180,12 @@ update an existing cache item."
             ((symbol-function 'quelpa-package-install) (lambda (&rest _) '(1 0)))
             ((symbol-function 'quelpa--delete-obsoleted-package) 'ignore))
     (quelpa '(makey :fetcher github :repo "mickeynp/makey"))
-    (quelpa 'makey)
+    ;; Re-install by bare name.  `quelpa-arg-rcp' resolves the name
+    ;; from `quelpa-melpa-recipe-stores'; include the cache so the
+    ;; test doesn't depend on a real MELPA checkout.
+    (let ((quelpa-melpa-recipe-stores
+           (append quelpa-melpa-recipe-stores (list quelpa-cache))))
+      (quelpa 'makey))
     (should (equal quelpa-cache '((makey :fetcher github :repo "mickeynp/makey"))))
     (quelpa '(makey :fetcher github :repo "foo/makey"))
     (should (equal quelpa-cache '((makey :fetcher github :repo "foo/makey"))))
@@ -160,9 +211,9 @@ update an existing cache item."
             ((symbol-function 'quelpa-package-install) (lambda (&rest _) "1.0.0"))
             ((symbol-function 'package-delete) #'ignore))
     (quelpa '(2048-game :fetcher hg :url "https://hg.sr.ht/~zck/game-2048" :stable t))
-    (quelpa 'elx :stable t)
+    (quelpa '(elx :fetcher github :repo "emacscollective/elx") :stable t)
     (let ((quelpa-stable-p t))
-      (quelpa 'imgur))
+      (quelpa '(imgur :fetcher github :repo "myuhe/imgur.el")))
     (should (equal (mapcar (lambda (item) (plist-get (cdr item) :stable))
                            quelpa-cache)
                    '(t t t)))))
