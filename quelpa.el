@@ -418,8 +418,14 @@ and return TIME-STAMP, otherwise return OLD-TIME-STAMP."
         (delete-directory dir t)
         (make-directory dir)
         (if (eq type 'file)
-            (copy-file file-path dir t t t t)
-          (copy-directory file-path dir t t t)))
+            (progn
+              (copy-file file-path dir t t t t)
+              (quelpa-build--add-write-perm dir))
+          (progn
+            (copy-directory file-path dir t t t)
+            (quelpa-build--add-write-perm dir)
+            (dolist (f (directory-files-recursively dir ".*" t))
+              (quelpa-build--add-write-perm f)))))
       (quelpa-build--dump new-stamp-info stamp-file)
       (quelpa-file-version file-path type version time-stamp))))
 
@@ -1516,6 +1522,12 @@ FILES is a list of (SOURCE . DEST) relative filepath pairs."
            do (quelpa-build--copy-file
                (expand-file-name source-file source-dir)
                (expand-file-name dest-file target-dir))))
+
+(defun quelpa-build--add-write-perm (file)
+  "Add write permission to file."
+  (let ((current-modes (file-modes file))
+        (new-modes (logior (file-modes file) 128)))
+    (set-file-modes file new-modes)))
 
 (defun quelpa-build--copy-file (file newname)
   "Copy FILE to NEWNAME and create parent directories for NEWNAME if they don't exist."
