@@ -6,7 +6,7 @@
 ;; Author: steckerhalter
 ;; URL: https://github.com/quelpa/quelpa
 ;; Version: 1.0
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: tools package management build source elpa
 
 ;; This file is not part of GNU Emacs.
@@ -36,7 +36,7 @@
 
 ;;; Requirements:
 
-;; Emacs 25.1
+;; Emacs 26.1
 
 ;;; Code:
 
@@ -239,25 +239,28 @@ OP is taking two version list and comparing."
     (funcall op ver pkg-ver)))
 
 (defmacro quelpa-version>-p (name version)
-  "Return non-nil if VERSION of pkg with NAME is newer than what is currently installed."
+  "Non-nil if VERSION of NAME pkg is newer than what is currently installed."
   `(quelpa-version-cmp ,name ,version (lambda (o1 o2) (not (version-list-<= o1 o2)))))
 
 (defmacro quelpa-version<-p (name version)
-  "Return non-nil if VERSION of pkg with NAME is older than what is currently installed."
+  "Non-nil if VERSION of NAME pkg is older than what is currently installed."
   `(quelpa-version-cmp ,name ,version 'version-list-<))
 
 (defmacro quelpa-version=-p (name version)
-  "Return non-nil if VERSION of pkg with NAME is same which what is currently installed."
+  "Non-nil if VERSION of pkg with NAME is same as currently installed."
   `(quelpa-version-cmp ,name ,version 'version-list-=))
 
 (defun quelpa--package-installed-p (package &optional min-version)
-  "Return non-nil if PACKAGE, of MIN-VERSION or newer, is installed.
+  "Non-nil if PACKAGE, of MIN-VERSION or newer, is installed.
 Like `package-installed-p' but properly check for built-in package even when all
 packages are not initialized."
   (or (package-installed-p package (or min-version quelpa--min-ver))
       (package-built-in-p package (or min-version quelpa--min-ver))))
 
 (defvar quelpa--override-version-check nil)
+(defvar quelpa-build-stable nil
+  "When non-nil, then try to build packages from versions-tagged code.")
+
 (defun quelpa-checkout (rcp dir)
   "Return the version of the new package given a RCP and DIR.
 Return nil if the package is already installed and should not be upgraded."
@@ -273,13 +276,13 @@ Return nil if the package is already installed and should not be upgraded."
                         (error "Failed to checkout `%s': `%s'"
                                name (error-message-string err))))))
         (cond
-          ((and quelpa--override-version-check
-                (quelpa-version=-p name version))
-           (setq version (concat version ".1"))
-           version)
-          ((or quelpa--override-version-check
-               (quelpa-version>-p name version))
-           version))))))
+         ((and quelpa--override-version-check
+               (quelpa-version=-p name version))
+          (setq version (concat version ".1"))
+          version)
+         ((or quelpa--override-version-check
+              (quelpa-version>-p name version))
+          version))))))
 
 (defun quelpa-build (rcp)
   "Build a package from the given recipe RCP.
@@ -326,7 +329,7 @@ already and should not be upgraded etc)."
       time-stamp
     (cl-letf* ((package-strip-rcs-id-orig (symbol-function 'package-strip-rcs-id))
                ((symbol-function 'package-strip-rcs-id)
-                (lambda (str)
+                (lambda (_str)
                   (or (funcall package-strip-rcs-id-orig (lm-header "package-version"))
                       (funcall package-strip-rcs-id-orig (lm-header "version"))
                       "0"))))
@@ -406,7 +409,8 @@ and return TIME-STAMP, otherwise return OLD-TIME-STAMP."
                 hashes (mapcar
                         (lambda (file)
                           (secure-hash
-                           'sha1 (concat file (quelpa-slurp-file file)))) files)
+                           'sha1 (concat file (quelpa-slurp-file file))))
+                        files)
                 new-content-hash (secure-hash 'sha1 (mapconcat 'identity hashes "")))
         (setq new-content-hash (secure-hash 'sha1 (quelpa-slurp-file file-path)))))
 
@@ -429,8 +433,7 @@ and return TIME-STAMP, otherwise return OLD-TIME-STAMP."
   "When non-nil, then print additional progress information."
   :type 'boolean)
 
-(defvar quelpa-build-stable nil
-  "When non-nil, then try to build packages from versions-tagged code.")
+
 
 (defcustom quelpa-build-timeout-executable
   (let ((prog (or (executable-find "timeout")
@@ -518,9 +521,10 @@ Otherwise do nothing."
 ;;; Version Handling
 
 (defun quelpa-build--valid-version (str &optional regexp)
-  "Apply to STR the REGEXP if defined, \
-then pass the string to `version-to-list' and return the result, \
-or nil if the version cannot be parsed."
+  "Convert version string in STR into a list of numbers.
+If a REGEXP is specified, first extract the sub-string matching and convert
+the match.
+Return the result, or nil if the version cannot be parsed."
   (when (and regexp (string-match regexp str))
     (setq str (match-string 1 str)))
   (ignore-errors (version-to-list str)))
@@ -694,7 +698,7 @@ This is used to avoid exceeding the rate limit of 1 request per 2
 seconds; the server cuts off after 10 requests in 20 seconds.")
 
 (defvar quelpa-build--wiki-min-request-interval 3
-  "The shortest permissible interval between successive requests for Emacswiki URLs.")
+  "Shortest permissible interval between successive requests for Emacswiki URLs.")
 
 (defmacro quelpa-build--with-wiki-rate-limit (&rest body)
   "Rate-limit BODY code passed to this macro to match EmacsWiki's rate limiting."
@@ -886,8 +890,8 @@ Return a cons cell whose `car' is the root and whose `cdr' is the repository."
     (with-current-buffer (get-buffer-create "*quelpa-build-checkout*")
       (let ((root (quelpa-build--trim (plist-get config :url) ?/))
             (repo (or (plist-get config :module) (symbol-name name)))
-            (bound (goto-char (point-max)))
             latest)
+        (goto-char (point-max))
         (cond
          ((and (file-exists-p (expand-file-name "CVS" dir))
                (equal (quelpa-build--cvs-repo dir) (cons root repo)))
@@ -1518,7 +1522,7 @@ FILES is a list of (SOURCE . DEST) relative filepath pairs."
                (expand-file-name dest-file target-dir))))
 
 (defun quelpa-build--copy-file (file newname)
-  "Copy FILE to NEWNAME and create parent directories for NEWNAME if they don't exist."
+  "Copy FILE to NEWNAME, create parent directories for NEWNAME if they are missing."
   (let ((newdir (file-name-directory newname)))
     (unless (file-exists-p newdir)
       (make-directory newdir t)))
@@ -2038,7 +2042,9 @@ given package and remove any old versions of it even if the
 
 ;;;###autoload
 (defun quelpa-upgrade-all-maybe (&optional force)
-  "Run `quelpa-upgrade-all' if at least `quelpa-upgrade-interval' days have passed since the last run.
+  "Run `quelpa-upgrade-all' if it is aging or FORCE.
+It is considered aged when least `quelpa-upgrade-interval' days have passed
+since the last run.
 With prefix FORCE, packages will all be upgraded discarding local changes."
   (interactive "P")
   (when quelpa-upgrade-interval
