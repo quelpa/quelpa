@@ -5,7 +5,8 @@
 
 ;; Author: steckerhalter
 ;; URL: https://github.com/quelpa/quelpa
-;; Version: 1.0
+;; Package-Origin: (quelpa :url "https://github.com/quelpa/quelpa")
+;; Version: 1.1b
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: tools package management build source elpa
 
@@ -299,7 +300,7 @@ already and should not be upgraded etc)."
            (melpa-ver
             (let ((base-ver
                    (if-let* ((info (quelpa-build--pkg-info (symbol-name name)
-                                                          files build-dir)))
+                                                           files build-dir)))
                        (aref info 3)
                      '(0 0 0))))
               (while (< (length base-ver) 3) (setq base-ver (append base-ver '(0))))

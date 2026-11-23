@@ -43,7 +43,7 @@ Defines ERT test with `quelpa-' prepended to NAME and
 
 (quelpa-deftest expand-recipe ()
   "Should be expanding correctly as return value and into buffer."
-  (let ((package-build-rcp '(package-build :repo "melpa/package-build" :fetcher github)))
+  (let ((package-build-rcp '(package-build :fetcher github :repo "melpa/package-build" :files (:defaults "package-build.mk"))))
     (should
      (equal
       (quelpa-expand-recipe 'package-build)
@@ -62,7 +62,7 @@ Defines ERT test with `quelpa-' prepended to NAME and
 (quelpa-deftest arg-rcp ()
   "Ensure `quelpa-arg-rcp' always returns the correct RCP format."
   (let ((quelpa-rcp '(quelpa :repo "quelpa/quelpa" :fetcher github))
-        (package-build-rcp '(package-build :repo "melpa/package-build" :fetcher github)))
+        (package-build-rcp '(package-build :fetcher github :repo "melpa/package-build" :files (:defaults "package-build.mk"))))
     (should (equal (quelpa-arg-rcp quelpa-rcp)
                    quelpa-rcp))
     (should (equal (quelpa-arg-rcp 'package-build)
