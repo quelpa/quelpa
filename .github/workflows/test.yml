@@ -59,7 +59,7 @@ jobs:
 
     - name: Install bzr
       if: matrix.os == 'ubuntu-latest'
-      run: sudo apt install hg bzr subversion
+      run: sudo apt install mercurial bzr subversion
 
     # The "all" rule is not used, because it treats compilation warnings
     # as failures, so linting and testing are run as separate steps.
