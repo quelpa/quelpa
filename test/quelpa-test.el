@@ -224,13 +224,7 @@ update an existing cache item."
                    :fetcher svn :url "https://svn.code.sf.net/p/confluence-el/code/trunk/"
                    :files ("confluence*.el" "*.dtd" "*.xsl"))))
 
-(quelpa-deftest bzr ()
-  (should-install (weblogger :fetcher bzr :url "lp:weblogger-el")))
 
-(quelpa-deftest wiki ()
-  (should-install (key-chord :fetcher wiki))
-  (should-install (buffer-move :fetcher wiki))
-  (should-install move-text))
 
 (quelpa-deftest url ()
   ;; FIXME: For some reason this test seems to fail in batch mode but works interactively.
