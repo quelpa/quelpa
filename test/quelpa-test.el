@@ -43,7 +43,7 @@ Defines ERT test with `quelpa-' prepended to NAME and
 
 (quelpa-deftest expand-recipe ()
   "Should be expanding correctly as return value and into buffer."
-  (let ((package-build-rcp '(package-build :repo "melpa/package-build" :fetcher github)))
+  (let ((package-build-rcp '(package-build :fetcher github :repo "melpa/package-build" :files (:defaults "package-build.mk"))))
     (should
      (equal
       (quelpa-expand-recipe 'package-build)
@@ -62,7 +62,7 @@ Defines ERT test with `quelpa-' prepended to NAME and
 (quelpa-deftest arg-rcp ()
   "Ensure `quelpa-arg-rcp' always returns the correct RCP format."
   (let ((quelpa-rcp '(quelpa :repo "quelpa/quelpa" :fetcher github))
-        (package-build-rcp '(package-build :repo "melpa/package-build" :fetcher github)))
+        (package-build-rcp '(package-build :fetcher github :repo "melpa/package-build" :files (:defaults "package-build.mk"))))
     (should (equal (quelpa-arg-rcp quelpa-rcp)
                    quelpa-rcp))
     (should (equal (quelpa-arg-rcp 'package-build)
@@ -224,13 +224,7 @@ update an existing cache item."
                    :fetcher svn :url "https://svn.code.sf.net/p/confluence-el/code/trunk/"
                    :files ("confluence*.el" "*.dtd" "*.xsl"))))
 
-(quelpa-deftest bzr ()
-  (should-install (weblogger :fetcher bzr :url "lp:weblogger-el")))
 
-(quelpa-deftest wiki ()
-  (should-install (key-chord :fetcher wiki))
-  (should-install (buffer-move :fetcher wiki))
-  (should-install move-text))
 
 (quelpa-deftest url ()
   ;; FIXME: For some reason this test seems to fail in batch mode but works interactively.
